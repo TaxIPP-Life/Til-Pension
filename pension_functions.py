@@ -7,7 +7,7 @@ from utils import interval_years, months_to_years
 chomage=2
 avpf=8
 
-def workstate_selection(table, code_regime = None, input_step = 'month', output_step = 'month', option = 'dummy'):
+def workstate_selection(table, code_regime=None, input_step='month', output_step='month', option='dummy'):
     ''' Input : monthly or yearly-table (lines: indiv, col: dates 'yyyymm') 
     Output : (0/1)-pandas matrix with 1 = indiv has worked at least one month during the civil year in this regime if yearly-table'''
     if not code_regime:
@@ -41,13 +41,13 @@ def workstate_selection(table, code_regime = None, input_step = 'month', output_
     return selection
     
 
-def unemployment_trimesters(table, code_regime = None, input_step = 'month'):
+def unemployment_trimesters(table, code_regime=None, input_step='month'):
     ''' Input : monthly or yearly-table (lines: indiv, col: dates 'yyyymm') 
     Output : vector with number of trimesters for unemployment'''
     if not code_regime:
         print "Indiquer le code identifiant du régime"
         
-    def _select_unemployment(data, code_regime, option = 'dummy'):
+    def _select_unemployment(data, code_regime, option='dummy'):
         ''' Ne conserve que les périodes de chomage succédant directement à une période de cotisation au RG 
         TODO: A améliorer car boucle for très moche '''
         data_col = data.columns[1:]
