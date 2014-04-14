@@ -1,19 +1,24 @@
 # -*- coding:utf-8 -*-
-
+import math
 import numpy as np
 import pandas as pd
 
 from pandas import DataFrame
-from datetime import datetime, timedelta
+from datetime import datetime
+
 
 import os
 parentdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.sys.path.insert(0,parentdir) 
-from SimulPension import PensionSimulation, workstate_selection, \
-        years_to_months, months_to_years, unemployment_trimesters, \
-        calculate_trim_cot, substract_months, valbytranches_date, calculate_SAM
+from SimulPension import PensionSimulation
+from utils import years_to_months, months_to_years, substract_months, valbytranches
+from pension_functions import  workstate_selection, unemployment_trimesters, calculate_trim_cot,  calculate_SAM
 
 code_avpf = 8
+
+def date_(year, month, day):
+    return dt.datetime.date(year, month, day)
+
 
 class Regime_general(PensionSimulation):
     
@@ -161,20 +166,74 @@ class Regime_general(PensionSimulation):
         return nb_trim_mda + nb_trim_avpf
     
     def SAM(self):
-        nb_years = self._P.nb_sam
-        if '_control' in  nb_years.__dict__ :
-            var_control = self.info_ind[str(nb_years.control)]
-            nb_years = valbytranches_date(var_control, nb_years)
+        nb_years = valbytranches(self._P.nb_sam, self.info_ind)
         SAM = calculate_SAM(self.sal_RG, nb_years, time_step = 'month')
         return SAM
-        
-    def calculate_CP(self, trim_cot):
-        ''' Calcul du coefficient de proratisation '''
-        N_CP =  self._P.N_prorat
+    
+    def assurance_maj(self, trim_RG, trim_tot, agem):
+        ''' Détermination de la durée d'assurance corrigée (majoration quand départ à la retraite après 65 ans) introduite par la réforme Boulin '''
+        P = self._P
         date = self.datesim
-        if datetime.strptime("1948-01-01","%Y-%m-%d").date() <= date:
-            trim_cot = trim_cot + (120 - trim_cot)/2
-        if datetime.strptime("1983-01-01","%Y-%m-%d").date() <= date:
-            trim_cot = np.minimum(N_CP, trim_cot * (1 + np.maximum(0, age/ 3 - 260)))
-        CP = np.minimum(1, trim_cot / N_CP)
+
+        if date.year < 1983:
+            return trim_RG
+        elif date.year < 2004 :
+            trim_majo = np.maximum(0, math.ceil(agem/ 3 - 65 * 4))
+            elig_majo = ( trim_RG < P.N_CP )
+            trim_corr = trim_RG * ( 1 + P.tx_maj * trim_majo * elig_majo )
+            return trim_corr
+        else:
+            trim_majo = np.maximum(0, np.ceil(agem/ 3 - 65 * 4))
+            elig_majo = ( trim_tot < P.N_CP )
+            trim_corr = trim_RG * ( 1 + P.tx_maj * trim_majo * elig_majo )
+            return trim_corr  
+        
+    def calculate_CP(self, trim_RG):
+        ''' Calcul du coefficient de proratisation '''
+        P =  self._P
+        yearsim = self.datesim.year
+        N_CP = valbytranches(P.N_CP, self.info_ind)
+              
+        if 1948 <= yearsim and yearsim < 1972: 
+            trim_RG = trim_RG + (120 - trim_RG)/2
+        #TODO: voir si on ne met pas cette disposition spécifique de la loi Boulin dans la déclaration des paramètres directement
+        elif yearsim < 1973:
+            trim_RG = np.min(trim_RG, 128)
+        elif yearsim < 1974:
+            trim_RG = np.min(trim_RG, 136)            
+        elif yearsim < 1975:
+            trim_RG = np.min(trim_RG, 144)   
+        else:
+            trim_RG = np.minimum(N_CP, trim_RG)
+        CP = np.minimum(1, trim_RG / N_CP)
         return CP
+    
+    def decote(self, trim_tot, agem):
+        ''' Détermination de la décote à appliquer aux pensions '''
+        yearsim = self.datesim.year
+        P = self._P
+        tx_decote = valbytranches(P.decote.taux, self.info_ind)
+        print P.decote
+        age_annulation = valbytranches(P.decote.age_null, self.info_ind)
+        N_taux = valbytranches(P.plein.N_taux, self.info_ind)
+
+        if yearsim < 1983:
+            trim_decote = np.max(0, np.divide(age_annulation - agem, 4))
+        else:
+            #assert len(age_annulation) == len(agem)
+            #assert len(N_taux) == len(trim_tot)
+            decote_age = np.divide(age_annulation - agem, 4)
+            decote_cot = N_taux - trim_tot
+            assert len(decote_age) == len(decote_cot)
+
+            trim_decote = np.maximum(0, np.minimum(decote_age, decote_cot))
+        return trim_decote * tx_decote
+        
+        
+    def surcote(self, trim_tot, agem):
+        ''' Détermination de la surcote à appliquer aux pensions '''
+        yearsim = self.datesim.year
+        P = self._P
+        tx_surcote = valbytranches(P.surcote.taux, self.info_ind)
+        
+        
