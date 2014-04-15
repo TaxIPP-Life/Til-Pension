@@ -4,24 +4,23 @@ import numpy as np
 import pandas as pd
 from utils import interval_years, months_to_years
 
-chomage = 2
-avpf = 8
+chomage=2
+avpf=8
 
 def workstate_selection(table, code_regime = None, input_step = 'month', output_step = 'month', option = 'dummy'):
     ''' Input : monthly or yearly-table (lines: indiv, col: dates 'yyyymm') 
     Output : (0/1)-pandas matrix with 1 = indiv has worked at least one month during the civil year in this regime if yearly-table'''
     if not code_regime:
-        print "Indiquer le code identifiant du régime"
+        raise Exception("Indiquer le code identifiant du régime")
+        
     if input_step == output_step:
         selection = table.isin(code_regime).astype(int)
         table_code = table
     else: 
         year_start, year_end = interval_years(table)
-        selected_dates = []
-        for y in range(year_start, year_end): 
-            #selected_dates += [(str(y * 100 + m), 'int') for m in range(1,13 * (output_step == 'month'))]
-            selected_dates += [y * 100 + m for m in range(1,13 * (output_step == 'month'))]
-        #selection = np.zeros((table.shape[0],nb_col_output), dtype = selected_dates)
+        selected_dates = [100*year + 1 for year in range(year_start, year_end)]
+        if output_step == 'month':
+            selected_dates = [100*year + month + 1 for year in range(year_start, year_end) for month in range(12)]
         selection = pd.DataFrame(index = table.index, columns = selected_dates)
         table_code = pd.DataFrame(index = table.index, columns = selected_dates)
         for year in range(year_start, year_end) :
@@ -64,7 +63,7 @@ def unemployment_trimesters(table, code_regime = None, input_step = 'month'):
         return data
     
     def _calculate_trim_unemployment(data, step, code_regime):
-        ''' Détermination du vecteur d'output '''
+        ''' Détermination du vecteur donnant le nombre de trimestres comptabilisés comme chômage pour le RG '''
         unemp_trim = _select_unemployment(table, code_regime)
         nb_trim = unemp_trim.sum(axis = 1)
         
@@ -110,4 +109,3 @@ def calculate_SAM(sali, nb_years, time_step):
     sali['nb_years'] = nb_years.values
     sam = sali.apply(sum_sam, 1)
     return sam
-    

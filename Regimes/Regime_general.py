@@ -38,7 +38,7 @@ class Regime_general(PensionSimulation):
         self.info_child_father = None
         self.time_step = None
 
-    def load(self):
+    def load(self): 
         
         def _build_table(table, yearsim):
             table = table.reindex_axis(sorted(table.columns), axis=1)
@@ -50,7 +50,7 @@ class Regime_general(PensionSimulation):
             table = table.loc[:, selected_dates]
             table = table.reindex_axis(sorted(table.columns), axis=1)
             return table
-                        
+                       
         def _build_salmin(smic,avts):
             '''
             salaire trimestriel de référence minimum
@@ -114,7 +114,6 @@ class Regime_general(PensionSimulation):
         self.sal_RG = sal_selection
         return nb_trim_cot
         
-
     def nb_trim_ass(self):
         ''' Comptabilisation des périodes assimilées à des durées d'assurance
         Pour l"instant juste chômage workstate == 5 (considéré comme indemnisé) qui succède directement à une période de côtisation au RG workstate == [3,4]'''
@@ -213,7 +212,6 @@ class Regime_general(PensionSimulation):
         yearsim = self.datesim.year
         P = self._P
         tx_decote = valbytranches(P.decote.taux, self.info_ind)
-        print P.decote
         age_annulation = valbytranches(P.decote.age_null, self.info_ind)
         N_taux = valbytranches(P.plein.N_taux, self.info_ind)
 
@@ -228,7 +226,6 @@ class Regime_general(PensionSimulation):
 
             trim_decote = np.maximum(0, np.minimum(decote_age, decote_cot))
         return trim_decote * tx_decote
-        
         
     def surcote(self, trim_tot, agem):
         ''' Détermination de la surcote à appliquer aux pensions '''
