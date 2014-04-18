@@ -41,7 +41,6 @@ def workstate_selection(table, code_regime=None, input_step='month', output_step
         selection = table_code * selection
     return selection
     
-
 def select_unemployment(data, code_regime, option='dummy'):
     ''' Ne conserve que les périodes de chomage succédant directement à une période de cotisation au au régime
     TODO: A améliorer car boucle for très moche
@@ -132,6 +131,7 @@ def nb_trim_surcote(trim_by_year, date_surcote):
     if 'yearsurcote' in trim_by_year.columns:
         trim_by_year = trim_by_year.drop('yearsurcote', axis=1)
     yearmax = np.divide(max(trim_by_year.columns), 100)  
+    
     def _trim_surcote(row, year_max = yearmax):
         year_surcote = row['yearsurcote']
         row.drop('yearsurcote', inplace = True)
@@ -141,9 +141,8 @@ def nb_trim_surcote(trim_by_year, date_surcote):
             return sum(nb_trim)
         else:
             return 0
-    
+        
     yearsurcote = [date.year for date in date_surcote]
     trim_by_year['yearsurcote'] = yearsurcote
     nb_trim_surcote = trim_by_year.apply(_trim_surcote, axis = 1)
     return nb_trim_surcote
-    
