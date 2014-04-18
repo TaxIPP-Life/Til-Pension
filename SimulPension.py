@@ -183,14 +183,11 @@ class PensionSimulation(Simulation):
         if not isinstance(self.chunks_count, int):
             raise Exception("Chunks count must be an integer")
 
-    def compute(self):
-        """
-        Computes the output_table for a survey based simulation
-        """
-        
-    def taux(self, decote, surcote):
-        ''' Détermine le taux de liquidation à appliquer aux pensions '''
-        return decote
+
+    def calculate_taux(self, decote, surcote):
+        ''' Détermination du taux de liquidation à appliquer à la pension '''
+        taux_plein = self._P.plein.taux
+        return taux_plein * (1 - decote + surcote)
         
 
     

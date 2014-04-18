@@ -393,7 +393,7 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 	  <VALUE valeur= "7.84779069767" deb="1921-01-01" fin="1921-12-31"/>
 	  <VALUE valeur= "7.84779069767" deb="1920-01-01" fin="1920-12-31"/>
 	</CODE>
-    <CODE description= "Plafond de la sécurité sociale" code="plaf_ss" format="float">
+    <CODE description= "Plafond de la sécurité sociale" code="plaf_ss" format="float" longitudinal="true">
 	  <VALUE valeur= "131004.945715" deb="2100-01-01" fin="2100-12-01"/>
 	  <VALUE valeur= "129068.912034" deb="2099-01-01" fin="2099-12-31"/>
 	  <VALUE valeur= "127161.489689" deb="2098-01-01" fin="2098-12-31"/>
@@ -1298,44 +1298,23 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 	  </VALBYTRANCHES>
 	  </NODE>
 	  <NODE description="Surcote à appliquer en majoration du taux plein" code="surcote">
-	  <VALBYTRANCHES description="Coefficient de majoration à appliquer au taux plein" code="taux" format="percent">
-	    <VARCONTROL>
-		  <CONTROL valeur="date_cotis" deb="2004-01-01" fin="2100-12-31" format="date"/>
-	    </VARCONTROL> 
-	    <TRANCHE code ="tranche1">
-	      <SEUIL>
-  	        <VALUE valeur="1900-01-01" deb="1946-01-01" fin="2100-12-31"/>
-		  </SEUIL>
-		  <VALEUR>
+		  <CODE description="Coefficient de majoration à appliquer au taux plein pour les trimestres avant législation 2007" code="taux_07" format="percent">
 		    <VALUE valeur="0.025" deb="1946-01-01" fin="1982-12-31"/>
-		    <VALUE valeur="0.0" deb="1983-01-01" fin="2100-12-31"/>
-		  </VALEUR>
-		</TRANCHE>
-		<TRANCHE code ="tranche2">
-	      <SEUIL>
-  	        <VALUE valeur="2003-01-01" deb="2004-01-01" fin="2100-12-31"/>
-		  </SEUIL>
-		  <VALEUR>
-		    <VALUE valeur="0.075" deb="2004-01-01" fin="2100-12-31"/>
-		  </VALEUR>
-		</TRANCHE>
-		<TRANCHE code ="tranche3">
-	      <SEUIL>
-  	        <VALUE valeur="2004-01-01" deb="2007-01-01" fin="2100-12-31"/>
-		  </SEUIL>
-		  <VALEUR>
-		    <VALUE valeur="0.01" deb="2007-01-01" fin="2100-12-31"/>
-		  </VALEUR>
-		</TRANCHE>
-		<TRANCHE code ="tranche4">
-	      <SEUIL>
-  	        <VALUE valeur="2009-01-01" deb="2009-04-01" fin="2100-12-31"/>
-		  </SEUIL>
-		  <VALEUR>
-		    <VALUE valeur="0.0125" deb="2009-04-01" fin="2100-12-31"/>
-		  </VALEUR>
-		</TRANCHE>
-		</VALBYTRANCHES>
+			<VALUE valeur="0.0" deb="1983-01-01" fin="2003-12-31"/>
+			<VALUE valeur="0.0075" deb="2004-01-01" fin="2100-12-31"/>
+		  </CODE>
+		  <CODE description="Taux de la surcote pour les 4 premiers trimestres côtisés entre 01/01/2004 et 31/12/2008" code="taux_4trim" format="percent">
+			<VALUE valeur="0.0075" deb="2007-01-01" fin="2100-12-31"/>
+		  </CODE> 	
+		  <CODE description="Taux de la surcote pour trimestres supplémentaires aux 4 premiers trimestres côtisés entre 01/01/2004 et 31/12/2008" code="taux_5trim" format="percent">
+			<VALUE valeur="0.01" deb="2007-01-01" fin="2100-12-31"/>
+		  </CODE> 	
+		  <CODE description="Taux de la surcote pour les plus de 65 ans, trimestres côtisés entre 01/01/2004 et 31/12/2008" code="taux_65" format="percent">
+			<VALUE valeur="0.0125" deb="2007-01-01" fin="2100-12-31"/>
+		  </CODE> 
+		  <CODE description="Taux de la surcote pour les trimestres surcotés postérieurs aux 01/01/2007" code="taux" format="percent">
+			<VALUE valeur="0.0125" deb="2009-04-01" fin="2100-12-31"/>
+		  </CODE> 	
 	  </NODE>
   	  <CODE description="Age limite de départ à la retraite (en mois)" code="age_max" format="integer">
 		<VALUE valeur="840" deb="2010-01-01" fin="2100-12-31"/>
@@ -1343,7 +1322,7 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 	  </CODE> 
 	  <VALBYTRANCHES description="Age legal de depart à la retraite (en mois)" code="age_min" format="integer">
 	    <VARCONTROL>
-		  <CONTROL valeur="naiss" deb="2011-07-01" fin="2100-12-31" format="date"/>
+		  <CONTROL valeur="naiss" deb="2006-01" fin="2100-12-31" format="date"/> #TODO: fix this true deb is '2011-07-01'
 	    </VARCONTROL> 
 	    <TRANCHE code ="tranche1">
 	      <SEUIL>

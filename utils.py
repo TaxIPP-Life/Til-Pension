@@ -16,7 +16,7 @@ def interval_years(table):
     return year_start, year_end + 1
 
 
-def years_to_months(table, division = False):
+def years_to_months(table, division=False):
     ''' 
     input : yearly-table 
     output: monthly-table with :
@@ -70,3 +70,17 @@ def valbytranches(param, info_ind):
         return param_indiv
     else:
         return param
+    
+def table_selected_dates(table, first_year=None, last_year=None):
+    ''' La table d'input dont les colonnes sont des dates est renvoyées emputée des années postérieures à last_year (last_year incluse) 
+    et antérieures à first_year (first_year incluse) '''
+    dates_to_drop = []
+    if last_year:
+        for date in table.columns:
+            if int(date) > last_year * 100 + 1:
+                dates_to_drop.append(date)
+    if first_year:
+        for date in table.columns:
+            if int(date) < first_year * 100 + 1 :
+                dates_to_drop.append(date)
+    return table.drop(dates_to_drop, axis = 1)
