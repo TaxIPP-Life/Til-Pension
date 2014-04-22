@@ -317,3 +317,35 @@ class Regime_general(PensionSimulation):
             surcote_0408 = _trimestre_surcote_0408(trim_by_years_RG, trim_by_years, trim_maj, date_surcote, P.surcote)
             surcote_aft09 = _trimestre_surcote_after_09(trim_by_years_RG, date_surcote, P.surcote)
             return surcote_0304 + surcote_0408 + surcote_aft09   
+        
+    def minimum_contributif(self, pension_RG, pension, trim_RG, trim_cot, trim):
+        ''' MICO du régime général : allocation différentielle 
+        RQ : ASPA et minimum vieillesse sont gérés par OF
+        Il est attribué quels que soient les revenus dont dispose le retraité en plus de ses pensions : loyers, revenus du capital, activité professionnelle... 
+        + mécanisme de répartition si cotisations à plusieurs régimes'''
+        yearsim = self.datesim.year
+        
+        P = self._P
+        N_taux = valbytranches(P.plein.N_taux, self.info_ind)
+        N_CP = valbytranches(P.N_CP, self.info_ind)
+        
+        if yearsim < 2004:
+            mico = P.mico.entier 
+            # TODO: règle relativement complexe à implémenter de la limite de cumul (voir site CNAV)
+            return  np.maximum(0, mico - pension_RG) * np.minimum(1,np.divide(trim_cot, N_CP))
+        else:
+            mico_entier = P.mico.entier
+            mico_maj = P.mico.entier_maj
+            RG_exclusif = ( pension_RG == pension) | (trim <= N_taux)
+            mico_RG = mico_entier + np.minimum(1,np.divide(trim_cot, N_CP)) * (mico_maj - mico_entier)
+            mico =  mico_RG * ( RG_exclusif + (1 - RG_exclusif) * np.divide(trim_RG, trim))
+            return np.maximum(0, mico - pension_RG)
+        
+    def plafond_pension(self, pension_RG, pension_surcote_RG):
+        ''' plafonnement à 50% du PSS 
+        TODO: gérer les plus de 65 ans au 1er janvier 1983'''
+        PSS = self._Pcom.plaf_ss
+        taux_PSS = self._P.plafond
+        return np.minimum(pension_RG - pension_surcote_RG, taux_PSS * PSS) + pension_surcote_RG
+        
+            

@@ -48,7 +48,7 @@ def select_unemployment(data, code_regime, option='dummy'):
     data_col = data.columns[1:]
     previous_col = data.columns[0]
     unemp = data.copy().replace(code_regime, 0)
-    unemp.loc[unemp[previous_col] == chomage, previous_col] = 1
+    #unemp.loc[unemp[previous_col] == chomage, previous_col] = 1 -> A commenter si l'on ne veut pas comptabiliser les trimestres de chômage initiaux (Hypothèse)
     for col in data_col:
         selected_chom = (data[previous_col].isin(code_regime + [chomage]))& (data[col] == chomage)
         unemp.loc[selected_chom, col] = 1

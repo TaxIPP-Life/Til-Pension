@@ -125,6 +125,7 @@ if __name__ == '__main__':
         return data
     
     # 1 -- Importation des Baremes IPP
+    '''
     xlsxfile = pd.ExcelFile('Bareme_retraite.xlsx')
     # AVTS
     data = xlsxfile.parse('AVTS_montants (1962-2013)', index_col = None)
@@ -171,3 +172,16 @@ if __name__ == '__main__':
     smic =  np.array(data['Smic brut (horaire)'][:107])
     dates = np.array(data["Date d'effet"][:107])
     #from_excel_to_xml(data = smic, description = "Montant du smic horaire", code = "smic", format = "float", data_date = dates)
+    '''
+        # 4 --Importation des barèmes IPP retraite
+    xlsxfile = pd.ExcelFile('Retraite.xlsx')
+    # Paramètres généraux
+    data = xlsxfile.parse('MICO', index_col = None, header = True)
+    print data.columns
+    mico =  np.array(data['Minimum contributif'][1:42])
+    mico = _francs_to_euro(mico,13)
+    dates = np.array(data[u"Date d'entrée en vigueur"][1:42])
+    from_excel_to_xml(data = mico, description = "Minimum contributif (annuel)", code = "mico", format = "float", data_date = dates)
+    mico_maj =  np.array(data['Minimum contributif majoré'][1:12])
+    print mico_maj
+    from_excel_to_xml(data = mico_maj, description = "Minimum contributif majoré", code = "maj", format = "float", data_date = dates[:12])

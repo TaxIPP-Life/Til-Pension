@@ -1656,8 +1656,69 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 		  </VALEUR>
 		</TRANCHE>
 	  </VALBYTRANCHES>
-	  <CODE description= "Coefficient de majoration applicable à la durée d'assurance (par trimestre supplémentaire)" code="tx_maj" format="percent">
+	  <CODE description="Coefficient de majoration applicable à la durée d'assurance (par trimestre supplémentaire)" code="tx_maj" format="percent">
 	  	<VALUE valeur= "0.025" deb="1983-01-01" fin="2100-12-01"/>
+	  </CODE>
+	  <NODE description="Minimum contributif : montants rensignés annuellement et en euros" code="mico">
+	  	<CODE description= "Minimum contributif" code="entier" format="float">
+		  <VALUE valeur="7547.96" deb="2013-04-01" fin="2100-12-01"/>
+		  <VALUE valeur="7451.1" deb="2012-04-01" fin="2013-03-31"/>
+		  <VALUE valeur="7297.85" deb="2011-04-01" fin="2012-03-31"/>
+		  <VALUE valeur="7147.75" deb="2010-04-01" fin="2011-03-31"/>
+		  <VALUE valeur="7084.0" deb="2009-04-01" fin="2010-03-31"/>
+		  <VALUE valeur="7013.87" deb="2008-09-01" fin="2009-03-31"/>
+		  <VALUE valeur="6958.21" deb="2008-01-01" fin="2008-08-31"/>
+		  <VALUE valeur="6882.51" deb="2007-01-01" fin="2007-12-31"/>
+		  <VALUE valeur="6760.82" deb="2006-01-01" fin="2006-12-31"/>
+		  <VALUE valeur="6641.28" deb="2005-01-01" fin="2005-12-31"/>
+		  <VALUE valeur="6511.06" deb="2004-01-01" fin="2004-12-31"/>
+		  <VALUE valeur="6402.23" deb="2003-01-01" fin="2003-12-31"/>
+		  <VALUE valeur="6307.62" deb="2002-01-01" fin="2002-12-31"/>
+		  <VALUE valeur="6171.81078115" deb="2001-01-01" fin="2001-12-31"/>
+		  <VALUE valeur="6038.95511921" deb="2000-01-01" fin="2000-12-31"/>
+		  <VALUE valeur="6008.91060431" deb="1999-01-01" fin="1999-12-31"/>
+		  <VALUE valeur="5937.65930849" deb="1998-01-01" fin="1998-12-31"/>
+		  <VALUE valeur="5873.05628392" deb="1997-01-01" fin="1997-12-31"/>
+		  <VALUE valeur="5803.41636685" deb="1996-01-01" fin="1996-12-31"/>
+		  <VALUE valeur="5689.62436734" deb="1995-07-01" fin="1995-12-31"/>
+		  <VALUE valeur="5661.31928776" deb="1995-01-01" fin="1995-06-30"/>
+		  <VALUE valeur="5594.19019452" deb="1994-01-01" fin="1994-12-31"/>
+		  <VALUE valeur="5484.5005793" deb="1993-01-01" fin="1993-12-31"/>
+		  <VALUE valeur="5414.11823892" deb="1992-07-01" fin="1992-12-31"/>
+		  <VALUE valeur="5318.38831636" deb="1992-01-01" fin="1992-06-30"/>
+		  <VALUE valeur="5265.73114214" deb="1991-07-01" fin="1991-12-31"/>
+		  <VALUE valeur="5223.94048418" deb="1991-01-01" fin="1991-06-30"/>
+		  <VALUE valeur="5136.61808647" deb="1990-07-01" fin="1990-12-31"/>
+		  <VALUE valeur="5070.69943289" deb="1990-01-01" fin="1990-06-30"/>
+		  <VALUE valeur="4963.9749375" deb="1989-07-01" fin="1989-12-31"/>
+		  <VALUE valeur="4905.11464114" deb="1989-01-01" fin="1989-06-30"/>
+		  <VALUE valeur="4842.16720532" deb="1988-07-01" fin="1988-12-31"/>
+		  <VALUE valeur="4780.02774559" deb="1988-01-01" fin="1988-06-30"/>
+		  <VALUE valeur="4658.89688396" deb="1987-07-01" fin="1987-12-31"/>
+		  <VALUE valeur="4612.77059577" deb="1987-01-01" fin="1987-06-30"/>
+		  <VALUE valeur="4531.20922007" deb="1986-10-01" fin="1986-12-31"/>
+		  <VALUE valeur="4508.66516251" deb="1986-01-01" fin="1986-09-30"/>
+		  <VALUE valeur="4450.80187816" deb="1985-07-01" fin="1985-12-31"/>
+		  <VALUE valeur="4329.57497408" deb="1985-01-01" fin="1985-06-30"/>
+		  <VALUE valeur="4187.21263492" deb="1984-07-01" fin="1984-12-31"/>
+		  <VALUE valeur="4097.07909019" deb="1984-01-01" fin="1984-06-30"/>
+		</CODE>
+		<CODE description= "Minimum contributif majoré" code="entier_maj" format="float">
+		  <VALUE valeur="8247.85" deb="2013-04-01" fin="2100-12-01"/>
+		  <VALUE valeur="8142.01" deb="2012-04-01" fin="2013-03-31"/>
+		  <VALUE valeur="7974.55" deb="2011-04-01" fin="2012-03-31"/>
+		  <VALUE valeur="7810.53" deb="2010-04-01" fin="2011-03-31"/>
+		  <VALUE valeur="7740.87" deb="2009-04-01" fin="2010-03-31"/>
+		  <VALUE valeur="7664.23" deb="2008-09-01" fin="2009-03-31"/>
+		  <VALUE valeur="7603.41" deb="2008-01-01" fin="2008-08-31"/>
+		  <VALUE valeur="7301.64" deb="2007-01-01" fin="2007-12-31"/>
+		  <VALUE valeur="7172.54" deb="2006-01-01" fin="2006-12-31"/>
+		  <VALUE valeur="6840.51" deb="2005-01-01" fin="2005-12-31"/>
+		  <VALUE valeur="6706.39" deb="2004-01-01" fin="2004-12-31"/>
+		</CODE>
+	  </NODE>
+	  <CODE description="Montant maximum des pensions servies : Part du plafond du PSS" code="plafond" format="percent">
+		<VALUE valeur=".50" deb="1983-01-01" fin="2100-12-31"/>
 	  </CODE>
     </NODE>
   </NODE>  
