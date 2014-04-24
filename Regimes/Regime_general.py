@@ -11,7 +11,7 @@ import os
 parentdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.sys.path.insert(0,parentdir) 
 from SimulPension import PensionSimulation
-from utils import years_to_months, months_to_years, substract_months, valbytranches, table_selected_dates
+from utils import years_to_months, months_to_years, substract_months, valbytranches, table_selected_dates, build_long_values
 from pension_functions import calculate_SAM, nb_trim_surcote, sal_to_trimcot, unemployment_trimesters, workstate_selection
 
 code_avpf = 8
@@ -95,8 +95,11 @@ class Regime_general(PensionSimulation):
         yearsim = self.datesim.year
         self.workstate = _build_table(self.workstate, yearsim)
         self.sali = _build_table(self.sali, yearsim)
-        self.info_ind['naiss'] = _build_naiss(self.info_ind['agem'], self.datesim)
+        if 'naiss' not in self.info_ind.columns :
+            self.info_ind['naiss'] = _build_naiss(self.info_ind['agem'], self.datesim)
         # Salaires de référence (vecteur construit à partir des paramètres indiquant les salaires annuels de reférences)
+        print self._Plongitudinal
+        print self._Plongitudinal
         smic_long = self._Plongitudinal.common.smic
         avts_long = self._Plongitudinal.common.avts.montant
         self.salref = _build_salmin(smic_long, avts_long)
@@ -161,36 +164,26 @@ class Regime_general(PensionSimulation):
             return nb_trim
         
         # info_child est une DataFrame comportant trois colonnes : identifiant du parent, âge de l'enfant, nb d'enfants du parent ayant cet âge  
-        info_child_mere = self.info_child_mother
+        info_child_mother = self.info_child_mother
         list_id = self.sali.index.values
         yearsim = self.datesim.year
-        
-        nb_trim_mda = _mda(info_child_mere, list_id, yearsim)
+        if info_child_mother is not None:
+            nb_trim_mda = _mda(info_child_mother, list_id, yearsim)
+        else :
+            nb_trim_mda = 0
         nb_trim_avpf = _avpf(self.workstate, self.sali, self.time_step)
         return nb_trim_mda + nb_trim_avpf
     
     def SAM(self):
         ''' Calcul du salaire annuel moyen de référence : 
         notamment application du plafonnement à un PSS'''
-        plaf_ss = self._Plongitudinal.common.plaf_ss
         yearsim = self.datesim.year
-        
-        def _build_pss():
-            pss = DataFrame( {'year' : range(first_year_sal, yearsim), 'pss' : - np.ones(yearsim - first_year_sal)} ) 
-            pss_t = []
-            for year in range(first_year_sal, self.datesim.year):
-                pss_old = pss_t
-                pss_t = []
-                for key in plaf_ss.keys():
-                    if str(year) in key:
-                        pss_t.append(key)
-                if not pss_t:
-                    pss_t = pss_old
-                pss.loc[pss['year'] == year, 'pss'] = plaf_ss[pss_t[0]] 
-            return pss['pss'] 
-        
         nb_years = valbytranches(self._P.nb_sam, self.info_ind)
-        SAM = calculate_SAM(self.sal_RG, nb_years, time_step = 'month', plafond = _build_pss())
+        plafond = build_long_values(param_long=self._Plongitudinal.common.plaf_ss, first_year=first_year_sal, last_year=yearsim)
+        revalo = build_long_values(param_long=self._Plongitudinal.prive.RG.revalo, first_year=first_year_sal, last_year=yearsim)
+        for i in range(1, len(revalo)) :
+            revalo[:i] *= revalo[i]
+        SAM = calculate_SAM(self.sal_RG, nb_years, time_step='month', plafond=plafond, revalorisation=revalo)
         return SAM
     
     def assurance_maj(self, trim_RG, trim_tot, agem):
@@ -239,7 +232,6 @@ class Regime_general(PensionSimulation):
         tx_decote = valbytranches(P.decote.taux, self.info_ind)
         age_annulation = valbytranches(P.decote.age_null, self.info_ind)
         N_taux = valbytranches(P.plein.N_taux, self.info_ind)
-
         if yearsim < 1983:
             trim_decote = np.max(0, np.divide(age_annulation - agem, 4))
         else:
@@ -290,7 +282,7 @@ class Regime_general(PensionSimulation):
             nb_trim_65 = nb_trim_surcote(trim_selected, date_surcote_65)
             nb_trim = nb_trim_surcote(trim_selected, date_surcote) 
             nb_trim = nb_trim - nb_trim_65
-            return taux_65 * nb_trim_65 + taux_4trim * np.maximum(nb_trim,0) + taux_5trim * np.maximum(nb_trim-4, 0)
+            return taux_65 * nb_trim_65 + taux_4trim * np.maximum(np.minimum(nb_trim,4), 0) + taux_5trim * np.maximum(nb_trim - 4, 0)
         
         def _trimestre_surcote_after_09(trim_by_years_RG, date_surcote, P):
             ''' surcote associée aux trimestres côtisés après 2009 '''
@@ -324,7 +316,6 @@ class Regime_general(PensionSimulation):
         Il est attribué quels que soient les revenus dont dispose le retraité en plus de ses pensions : loyers, revenus du capital, activité professionnelle... 
         + mécanisme de répartition si cotisations à plusieurs régimes'''
         yearsim = self.datesim.year
-        
         P = self._P
         N_taux = valbytranches(P.plein.N_taux, self.info_ind)
         N_CP = valbytranches(P.N_CP, self.info_ind)

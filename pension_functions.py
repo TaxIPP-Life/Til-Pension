@@ -95,7 +95,7 @@ def sal_to_trimcot(sal_cot, salref, option='vector'):
         return nb_trim_cot
     
     
-def calculate_SAM(sali, nb_years, time_step, plafond=None):
+def calculate_SAM(sali, nb_years, time_step, plafond=None, revalorisation=None):
     ''' renvoie un vecteur des SAM 
     plaf : vecteur chronologique plafonnant les salaires (si abs pas de plafonnement)'''
     if time_step == 'month' :
@@ -104,7 +104,7 @@ def calculate_SAM(sali, nb_years, time_step, plafond=None):
     def sum_sam(data):
         nb_sali = data[-1]
         data = np.sort(data[:-1])
-        data = data[nb_sali:]
+        data = data[-nb_sali:]
         if nb_sali != 0 :
             sam = data.sum() / nb_sali
         else:
@@ -117,6 +117,9 @@ def calculate_SAM(sali, nb_years, time_step, plafond=None):
     if plafond is not None:
         assert sali.shape[1] == len(plafond)
         sali = np.minimum(sali, plafond) 
+    if revalorisation is not None:
+        assert sali.shape[1] == len(revalorisation)
+        sali = np.multiply(sali,revalorisation)
     nb_sali = (sali != 0).sum(1)
     nb_years[nb_sali < nb_years] = nb_sali[nb_sali < nb_years]
     sali['nb_years'] = nb_years.values
@@ -135,7 +138,7 @@ def nb_trim_surcote(trim_by_year, date_surcote):
     def _trim_surcote(row, year_max = yearmax):
         year_surcote = row['yearsurcote']
         row.drop('yearsurcote', inplace = True)
-        limit_index = year_max - year_surcote
+        limit_index = year_max - year_surcote + 1
         if limit_index>0:
             nb_trim = np.array(row)[- limit_index :]
             return sum(nb_trim)
