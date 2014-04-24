@@ -65,9 +65,9 @@ def compact_dated_node_json(dated_node_json, code = None):
         for key, value in dated_node_json['children'].iteritems():
             compact_node_dict[key] = compact_dated_node_json(value, code = key)
         return compact_node
-    if node_type in(u'Parameter', u'Longitudinal'):
+    if node_type == 'Parameter':
         return dated_node_json.get('value')
-    elif node_type == u'Scale': 
+    elif node_type == 'Scale':
         bareme = Bareme(name = code, option = dated_node_json.get('option'))
         for dated_slice_json in dated_node_json['slices']:
             base = dated_slice_json.get('base', 1)
@@ -87,23 +87,39 @@ def compact_dated_node_json(dated_node_json, code = None):
                 generation.addTranche(threshold, val)
         return generation
     
-def compact_long_dated_node_json(dated_node_json, code = None):
-    node_type = dated_node_json['@type']
+def compact_long_dated_node_json(long_node_json, code = None):
+    node_type = long_node_json['@type']
     if node_type == u'Node':
         compact_node_long = CompactNode()
         if code is None:
             # Root node always contains a datesim.
-            compact_node_long.datesim = datetime.date(*(int(fragment) for fragment in dated_node_json['datesim'].split('-')))
+            compact_node_long.datesim = datetime.date(*(int(fragment) for fragment in long_node_json['datesim'].split('-')))
         compact_node_long_dict = compact_node_long.__dict__
-        for key, value in dated_node_json['children'].iteritems():
+        for key, value in long_node_json['children'].iteritems():
             val = compact_long_dated_node_json(value, code = key)
             if val:
                 compact_node_long_dict[key] = val
         return compact_node_long
-    if node_type in(u'Parameter', u'Sacle', u'Generation'):
+    if node_type in(u'Parameter', u'Scale', u'Generation'):
         pass
-    elif node_type == u'Longitudinal':
-        return dated_node_json.get('long')
+    elif node_type == u'LongitudinalParam':
+        return long_node_json.get('values')
+       
+    elif node_type == u'LongitudinalScale':
+        long = long_node_json.get('values')
+        long_bareme = {}
+        for date in long.keys():
+            dated_node_json= long[date]
+            bareme = Bareme(name = code, option = long_node_json.get('option'))
+            for dated_slice_json in dated_node_json:
+                base = dated_slice_json.get('base', 1)
+                rate = dated_slice_json.get('rate')
+                threshold = dated_slice_json.get('threshold')
+                if rate is not None and threshold is not None:
+                    bareme.addTranche(threshold, rate * base)
+                bareme.marToMoy()
+            long_bareme[date] = bareme
+        return long_bareme
 
 def generate_dated_json_value(values_json, date_str):
     for value_json in values_json:
@@ -111,13 +127,12 @@ def generate_dated_json_value(values_json, date_str):
             return value_json['value']
     return None
 
-def generate_dated_json_long_value(values_json, date_str):
+def generate_long_json_value(values_json, date_str):
     long_series = {}
     for value_json in values_json:
         if value_json['from'] <= date_str:
             long_series[value_json['from']] = value_json['value']
     return long_series
-
 
 def generate_dated_legislation_json(node_json, date):
     date_str = date.isoformat()
@@ -125,11 +140,78 @@ def generate_dated_legislation_json(node_json, date):
     dated_node_json['datesim'] = date_str
     return dated_node_json
 
+def generate_long_legislation_json(node_json, date):
+    date_str = date.isoformat()
+    long_node_json = generate_long_node_json(node_json, date_str)
+    long_node_json['datesim'] = date_str
+    return long_node_json
+
+def clean_selected_dates(dates_list, final_date):
+    seen = set()
+    seen_add = seen.add
+    selected_dates = [ date for date in dates_list if date not in seen and not seen_add(date)]
+    selected_dates = [ date for date in selected_dates if date <= final_date]
+    return selected_dates
+
+def generate_long_node_json(node_json, date_str):
+    long_node_json = collections.OrderedDict()
+    is_long = False
+    for key, value in node_json.iteritems():
+        if key == 'children':
+            # Occurs when @type == 'Node'.
+            long_children_json = type(value)(
+                (child_code, long_child_json)
+                for child_code, long_child_json in (
+                    (child_code, generate_long_node_json(child_json, date_str))
+                    for child_code, child_json in value.iteritems()
+                    )
+                if long_child_json is not None
+                )
+            if not long_children_json:
+                return None
+            long_node_json[key] = long_children_json
+        elif key == 'longitudinal':
+            is_long = node_json[key]
+        elif key == 'slices' and is_long:
+            # Occurs when @type == 'Scale'.
+            long_node_json['@type'] = u'LongitudinalScale'
+            selected_dates = []
+            for slice_json in value:
+                for key, val in slice_json.iteritems():
+                    if key in ('base', 'rate', 'threshold'):
+                        dated_value = generate_long_json_value(val, date_str)
+                        selected_dates += dated_value.keys()
+            selected_dates = clean_selected_dates(selected_dates, date_str)
+            long_series ={}
+            for date in selected_dates:
+                dated_slices_json = [
+                    dated_slice_json
+                    for dated_slice_json in (
+                        generate_dated_slice_json(slice_json, date)
+                        for slice_json in value
+                        )
+                    if dated_slice_json is not None
+                    ]
+                if not dated_slices_json:
+                    return None
+                long_series[date] = dated_slices_json
+            long_node_json['values'] = long_series
+        elif key =='values' and is_long:
+            # Occurs when @type == 'Parameter'.
+            long_node_json['@type'] = u'LongitudinalParam'
+            long_values = generate_long_json_value(value, date_str)
+            long_node_json['values'] = long_values
+            if long_values is None:
+                return None           
+        elif key =='control' and long==True:
+            # Occurs when @type == 'Generation'.
+            long_node_json['control'] = dated_value
+        else:
+            long_node_json[key] = value
+    return long_node_json
 
 def generate_dated_node_json(node_json, date_str):
     dated_node_json = collections.OrderedDict()
-    long = False
-    long_series = collections.OrderedDict()
     for key, value in node_json.iteritems():
         if key == 'children':
             # Occurs when @type == 'Node'.
@@ -157,8 +239,6 @@ def generate_dated_node_json(node_json, date_str):
             if not dated_slices_json:
                 return None
             dated_node_json[key] = dated_slices_json
-        elif key == 'longitudinal':
-            long = node_json[key]
         elif (key == 'values') or (key == 'control'):
             # Occurs when @type == 'Parameter'.
             dated_value = generate_dated_json_value(value, date_str)
@@ -166,13 +246,8 @@ def generate_dated_node_json(node_json, date_str):
                 return None
             if key == 'values':
                 dated_node_json['value'] = dated_value
-                if long:
-                    print long
-                    dated_node_json['@type'] = u'Longitudinal'
-                    dated_node_json['long'] = generate_dated_json_long_value(value, date_str)
             if key == 'control':
-                dated_node_json['control'] = dated_value
-                
+                dated_node_json['control'] = dated_value   
         else:
             dated_node_json[key] = value
     return dated_node_json
@@ -189,6 +264,29 @@ def generate_dated_slice_json(slice_json, date_str):
             dated_slice_json[key] = value
     return dated_slice_json
 
+def generate_dated_long_json_scale(scale_json, date_str):
+    long_scale = {}
+    dated_slice_json = collections.OrderedDict()
+    selected_dates = []
+    for slice_json in scale_json:
+        for key, value in slice_json.iteritems():
+            if key in ('base', 'rate', 'threshold'):
+                dated_value = generate_long_json_value(value, date_str)
+                selected_dates += dated_value.keys()
+    seen = set()
+    seen_add = seen.add
+    selected_dates = [ date for date in selected_dates if date not in seen and not seen_add(date)]
+    for date in selected_dates:
+        dated_slices_json = [
+                dated_slice_json
+                for dated_slice_json in (
+                    generate_dated_slice_json(slice_json, date)
+                    for slice_json in value
+                    )
+                if dated_slice_json is not None
+                ]
+        long_scale[date] = dated_slices_json
+    return long_scale
 
 # Level-1 Converters
 

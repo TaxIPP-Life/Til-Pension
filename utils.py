@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import calendar
+import collections
 import datetime as dt
 import numpy as np
 import pandas as pd
@@ -84,3 +85,41 @@ def table_selected_dates(table, first_year=None, last_year=None):
             if int(date) < first_year * 100 + 1 :
                 dates_to_drop.append(date)
     return table.drop(dates_to_drop, axis = 1)
+
+        
+def build_long_values(param_long, first_year, last_year):   
+    ''' Cette fonction permet de traduire les paramètres longitudinaux en vecteur numpy 
+    comportant une valeur par année comprise en first_year et last_year '''
+    param = pd.DataFrame( {'year' : range(first_year, last_year), 'param' : - np.ones(last_year - first_year)} ) 
+    param_t = []
+    for year in range(first_year, last_year):
+        param_old = param_t
+        param_t = []
+        for key in param_long.keys():
+            if str(year) in key:
+                param_t.append(key)
+        if not param_t:
+            param_t = param_old
+        param.loc[param['year'] == year, 'param'] = param_long[param_t[0]] 
+    return param['param'] 
+
+def build_long_baremes(bareme_long, first_year, last_year, scale=None):   
+    ''' Cette fonction permet de traduire les barèmes longitudinaux en dictionnaire de bareme
+    comportant un barème par année comprise en first_year et last_year'''
+    baremes = collections.OrderedDict()
+    bareme_t = []
+    for year in range(first_year, last_year):
+        bareme_old = bareme_t
+        bareme_t = []
+        for key in bareme_long.keys():
+            if str(year) in key:
+                bareme_t.append(key)
+        if not bareme_t:
+            bareme_t = bareme_old
+        baremes[year] = bareme_long[bareme_t[0]]
+    if scale is not None:
+        from Param.Scales import scaleBaremes
+        assert len(scale) == len(baremes)
+        for year, val_scale in zip(baremes.keys(),scale):
+            baremes[year] = scaleBaremes(baremes[year], val_scale)
+    return baremes

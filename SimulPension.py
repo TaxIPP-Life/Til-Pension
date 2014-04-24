@@ -96,8 +96,9 @@ class Simulation(object):
                 state = conv.default_state)
             _, legislation_json = legislationsxml.transform_node_xml_json_to_json(legislation_xml_json)
             dated_legislation_json = legislations.generate_dated_legislation_json(legislation_json, self.datesim)
+            long_dated_legislation_json = legislations.generate_long_legislation_json(legislation_json, self.datesim)
             compact_legislation = legislations.compact_dated_node_json(dated_legislation_json)
-            compact_legislation_long = legislations.compact_long_dated_node_json(dated_legislation_json)
+            compact_legislation_long = legislations.compact_long_dated_node_json(long_dated_legislation_json)
         if param_default is None:
             self.P_default = copy.deepcopy(compact_legislation)
         else:
