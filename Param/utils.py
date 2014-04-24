@@ -65,7 +65,7 @@ def from_excel_to_xml(data, code, data_date, description, xml = 'test_xml', form
     if ascendant_date:
         data = data[::-1]
         data_date = data_date[::-1]
-        
+
     with open(xml, "w") as f:
         to_write = '<CODE description= "' + description + '" code="' + code + '" format="' + format + '">\n'
         f.write(to_write)
@@ -177,11 +177,50 @@ if __name__ == '__main__':
     xlsxfile = pd.ExcelFile('Retraite.xlsx')
     # Paramètres généraux
     data = xlsxfile.parse('MICO', index_col = None, header = True)
-    print data.columns
     mico =  np.array(data['Minimum contributif'][1:42])
     mico = _francs_to_euro(mico,13)
     dates = np.array(data[u"Date d'entrée en vigueur"][1:42])
-    from_excel_to_xml(data = mico, description = "Minimum contributif (annuel)", code = "mico", format = "float", data_date = dates)
+    #from_excel_to_xml(data = mico, description = "Minimum contributif (annuel)", code = "mico", format = "float", data_date = dates)
     mico_maj =  np.array(data['Minimum contributif majoré'][1:12])
-    print mico_maj
-    from_excel_to_xml(data = mico_maj, description = "Minimum contributif majoré", code = "maj", format = "float", data_date = dates[:12])
+    #from_excel_to_xml(data = mico_maj, description = "Minimum contributif majoré", code = "maj", format = "float", data_date = dates[:12])
+    
+    # Paramètres ARRCO
+    data = xlsxfile.parse('SALREF-ARRCO', index_col = None, header = True)
+    arrco =  np.array(data[u'Salaire de référence (en euros)'])
+    dates = np.array(data[u"Date d'entrée en vigueur"])
+    #from_excel_to_xml(data = arrco, description = "Salaires de référence pour validation des points (en euros)", code = "sal_ref", format = "float", data_date = dates)
+    
+    data = xlsxfile.parse('PT-ARRCO', index_col = None, header = True)
+    arrco =  np.array(data[u'Valeur du point ARRCO (en euros)'])[: -5]
+    dates = np.array(data[u"Date d'entrée en vigueur"])
+    dates = dates[:len(arrco)]
+    #from_excel_to_xml(data = arrco, description = "Valeur du point ARRCO (en euros)", code = "val_point", format = "float", data_date = dates)
+    
+    # Paramètres AGIRC
+    data = xlsxfile.parse('SALREF-AGIRC', index_col = None, header = True)
+    salref_agirc=  np.array(data[ u"Salaire de référence AGIRC (prix d'achat) en euros"])[:-3]
+    dates = np.array(data[u"Date d'entrée en vigueur"])[:-3]
+    #from_excel_to_xml(data = salref_agirc, description = "Salaires de référence pour validation des points (en euros)", code = "sal_ref", format = "float", data_date = dates)
+    
+    data = xlsxfile.parse('PT-AGIRC', index_col = None, header = True)
+    agirc =  np.array(data[u'Valeur du point AGIRC (en euros)'])[:-7].round(4)
+    dates = np.array(data[u"Date d'entrée en vigueur"])[:-7]
+    from_excel_to_xml(data = agirc, description = "Valeur du point AGIRC (en euros)", code = "val_point", format = "float", data_date = dates)
+    
+        # 5 -- Importation des paramètres Destinie :
+    # 5-1 : retraite de base
+    Retbase = pd.read_csv('ParamRetBase.csv', sep=";")
+    dates = np.array(Retbase['annee'])
+    revalo = np.array(Retbase['Reval SPC'])
+    #from_excel_to_xml(data = revalo, description = "Coefficient de revalorisation des pensions (coeff. Destinie)", code = "revalo", format = "float", data_date = dates, format_date = 'year', ascendant_date = True)
+    
+    # 5-2 : retraite complémentaire
+    Retcomp = pd.read_csv('ParamRetComp.csv', sep=";")
+    print Retcomp.columns
+    dates = np.array(Retcomp['annee'])
+    taux_1 = np.array(Retcomp['Tx  ARRCO tot Tranche 1'])
+    taux_2 = np.array(Retcomp['Tx ARRCO tot tranche 2'])
+    taux_appel = np.array(Retcomp["Taux d'appel ARRCO"])
+    salref =  np.array(Retcomp[u'Salaire de r_f_rence UNIRS/ ARRCO en euros'])[:69] #On ne prend qu'avant 1998 car après actualisé sur Barèmes IPP
+    vp_point =  np.array(Retcomp[u'VP UNIRS/ ARRCO en euros'])[:69] #On ne prend qu'avant 1998 car après actualisé sur Barèmes IPP
+    from_excel_to_xml(data = taux_1, description = "Taux d'acquisition des points pour le première tranche", code = "taux_ac", format = "float", data_date = dates, format_date = 'year', ascendant_date = True)

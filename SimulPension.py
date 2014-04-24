@@ -13,6 +13,7 @@ from xml.etree import ElementTree
 from Param import legislations_add_pension as legislations
 from Param import legislationsxml_add_pension as  legislationsxml
 from openfisca_core import conv
+from utils import build_long_values, build_long_baremes
 #from .columns import EnumCol, EnumPresta
 #from .taxbenefitsystems import TaxBenefitSystem
 
@@ -190,5 +191,27 @@ class PensionSimulation(Simulation):
         taux_plein = self._P.plein.taux
         return taux_plein * (1 - decote + surcote)
         
+    def nombre_points(self):
+        ''' détermine le nombre de point à liquidation de la pension dans les régimes complémentaires (pour l'instant Ok pour ARRCO/AGIRC)
+        Pour calculer ces points, il faut diviser la cotisation annuelle ouvrant des droits par le salaire de référence de l'année concernée 
+        et multiplier par le taux d'acquisition des points'''
+        regime = self.regime
+        first_year_sal = self.first_year
+        P = self._P.complementaire.__dict__[regime]
+        Plong = self._Plongitudinal.prive.complementaire.__dict__[regime]
+        sali = self.sali
+        print self.datesim
+        yearsim = self.datesim.year
+        
+        salref = build_long_values(Plong.sal_ref, first_year=first_year_sal, last_year=yearsim)
+        plaf_ss = self._Plongitudinal.common.plaf_ss
+        pss = build_long_values(plaf_ss, first_year=first_year_sal, last_year=yearsim)    
+        taux_cot = build_long_baremes(Plong.taux_cot_moy, first_year=first_year_sal, last_year=yearsim, scale=pss)
 
+        nb_points = pd.Series(np.zeros(len(sali.index)), index=sali.index)
+        assert len(salref) == sali.shape[1] == len(taux_cot)
+        for year in range(first_year_sal, yearsim):
+            nb_points += np.divide(taux_cot[year].calc(sali[year *100 + 1]),salref[year-first_year_sal]).round(2)
+
+        return nb_points
     
