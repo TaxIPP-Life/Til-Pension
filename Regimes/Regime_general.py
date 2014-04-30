@@ -12,15 +12,18 @@ parentdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.sys.path.insert(0,parentdir) 
 from SimulPension import PensionSimulation
 from utils import years_to_months, months_to_years, substract_months, valbytranches, table_selected_dates, build_long_values
-from pension_functions import calculate_SAM, nb_trim_surcote, sal_to_trimcot, unemployment_trimesters, workstate_selection
+from pension_functions import calculate_SAM, nb_trim_surcote, sal_to_trimcot, unemployment_trimesters, workstate_selection, id_test
 
 code_avpf = 8
+code_chomage = 5
 first_year_sal = 1949
+compare_destinie = True 
+sal_avpf = False
 
 def date_(year, month, day):
     return datetime.date(year, month, day)
 
-class Regime_general(PensionSimulation):
+class RegimeGeneral(PensionSimulation):
     
     def __init__(self, param_regime, param_common, param_longitudinal):
         PensionSimulation.__init__(self)
@@ -38,71 +41,6 @@ class Regime_general(PensionSimulation):
         self.info_child_father = None
         self.time_step = None
 
-    def load(self): 
-        
-        def _build_table(table, yearsim):
-            table = table.reindex_axis(sorted(table.columns), axis=1)
-            date_end = (yearsim - 1 )* 100 + 1
-            possible_dates = [year * 100 + month + 1 for year in range(first_year_sal, yearsim) for month in range(12)]
-            selected_dates = set(table.columns).intersection(possible_dates)
-            table = table.loc[:, selected_dates]
-            table = table.reindex_axis(sorted(table.columns), axis=1)
-            return table
-                       
-        def _build_salmin(smic,avts):
-            '''
-            salaire trimestriel de référence minimum
-            Rq : Toute la série chronologique est exprimé en euros
-            '''
-            yearsim = self.datesim.year
-            salmin = DataFrame( {'year' : range(first_year_sal, yearsim ), 'sal' : - np.ones(yearsim - first_year_sal)} ) 
-            avts_year = []
-            smic_year = []
-            for year in range(first_year_sal,1972):
-                avts_old = avts_year
-                avts_year = []
-                for key in avts.keys():
-                    if str(year) in key:
-                        avts_year.append(key)
-                if not avts_year:
-                    avts_year = avts_old
-                salmin.loc[salmin['year'] == year, 'sal'] = avts[avts_year[0]] 
-                
-            #TODO: Trancher si on calcule les droits à retraites en incluant le travail à l'année de simulation pour l'instant non (ex : si datesim = 2009 on considère la carrière en emploi jusqu'en 2008)
-            for year in range(1972,yearsim):
-                smic_old = smic_year
-                smic_year = []
-                for key in smic.keys():
-                    if str(year) in key:
-                        smic_year.append(key)
-                if not smic_year:
-                    smic_year = smic_old
-                if year <= 2013 :
-                    salmin.loc[salmin['year'] == year, 'sal'] = smic[smic_year[0]] * 200 
-                    if year <= 2001 :
-                        salmin.loc[salmin['year'] == year, 'sal'] = smic[smic_year[0]] * 200  / 6.5596
-                else:
-                    salmin.loc[salmin['year'] == year, 'sal'] = smic[smic_year[0]] * 150 
-            return salmin['sal']
-        
-        def _build_naiss(agem, datesim):
-            ''' Détermination de la date de naissance à partir de l'âge et de la date de simulation '''
-            naiss = agem.apply(lambda x: substract_months(datesim, x))
-            return naiss
-        
-        # Selection du déroulé de carrière qui nous intéresse (1949 (=first_year_sal) -> année de simulation)
-        # Rq : la selection peut se faire sur données mensuelles ou annuelles
-        yearsim = self.datesim.year
-        self.workstate = _build_table(self.workstate, yearsim)
-        self.sali = _build_table(self.sali, yearsim)
-        if 'naiss' not in self.info_ind.columns :
-            self.info_ind['naiss'] = _build_naiss(self.info_ind['agem'], self.datesim)
-        # Salaires de référence (vecteur construit à partir des paramètres indiquant les salaires annuels de reférences)
-        print self._Plongitudinal
-        print self._Plongitudinal
-        smic_long = self._Plongitudinal.common.smic
-        avts_long = self._Plongitudinal.common.avts.montant
-        self.salref = _build_salmin(smic_long, avts_long)
             
     def nb_trim_cot(self):
         ''' Nombre de trimestres côtisés pour le régime général 
@@ -112,8 +50,13 @@ class Regime_general(PensionSimulation):
         wk_selection = workstate_selection(self.workstate, code_regime = self.code_regime, input_step = self.time_step, output_step = 'month')
         sal_selection = wk_selection * years_to_months(self.sali, division = True) 
         nb_trim_cot = sal_to_trimcot(months_to_years(sal_selection), self.salref, self.datesim.year)
+        # sal_section = (sal_to_trimcot(months_to_years(sal_selection), self.salref, self.datesim.year, option='table') != 0) * sal_selection
+        # logiquement c'est mieux de garder que les salaires où il y a eu cotisation -> pour comparaison avec Pensipp plus simple de commenter
         self.sal_RG = sal_selection
         self.trim_by_years = sal_to_trimcot(months_to_years(sal_selection), self.salref, option = 'table')
+        #print 'workstate', self.workstate.ix[id_test]
+        #print sal_selection.ix[id_test]
+        #print nb_trim_cot.ix[id_test]
         return nb_trim_cot
         
     def nb_trim_ass(self):
@@ -158,10 +101,11 @@ class Regime_general(PensionSimulation):
             
         def _avpf(workstate, sali, input_step):
             ''' Allocation vieillesse des parents au foyer : nombre de trimestres acquis'''
-            avpf_selection = workstate_selection(workstate, code_regime = [code_avpf], input_step = input_step, output_step = 'month')
-            sal_avpf = avpf_selection * years_to_months(sali, division = True) 
-            nb_trim = sal_to_trimcot(months_to_years(sal_avpf), self.salref)
-            return nb_trim
+            avpf_selection = workstate_selection(workstate, code_regime = [code_avpf], input_step = input_step, output_step = 'year')
+            #avpf_selection = avpf_selection[[col_year for col_year in avpf_selection.columns if str(col_year)[-2:]=='01']]
+            sal_avpf = avpf_selection * np.divide(months_to_years(sali), self.salref) # Si certains salaires son déjà attribués à des états d'avpf on les conserve (cf.Destinie)
+            nb_trim = avpf_selection.sum(axis=1) * 4
+            return nb_trim, avpf_selection, sal_avpf
         
         # info_child est une DataFrame comportant trois colonnes : identifiant du parent, âge de l'enfant, nb d'enfants du parent ayant cet âge  
         info_child_mother = self.info_child_mother
@@ -171,7 +115,10 @@ class Regime_general(PensionSimulation):
             nb_trim_mda = _mda(info_child_mother, list_id, yearsim)
         else :
             nb_trim_mda = 0
-        nb_trim_avpf = _avpf(self.workstate, self.sali, self.time_step)
+        nb_trim_avpf, trim_avpf, sal_avpf = _avpf(self.workstate, self.sali, self.time_step)
+        # Les trimestres d'avpf sont comptabilisés dans le calcul du SAM
+        self.trim_avpf = trim_avpf
+        self.sal_avpf = sal_avpf * (trim_avpf != 0)
         return nb_trim_mda + nb_trim_avpf
     
     def SAM(self):
@@ -183,8 +130,21 @@ class Regime_general(PensionSimulation):
         revalo = build_long_values(param_long=self._Plongitudinal.prive.RG.revalo, first_year=first_year_sal, last_year=yearsim)
         for i in range(1, len(revalo)) :
             revalo[:i] *= revalo[i]
-        SAM = calculate_SAM(self.sal_RG, nb_years, time_step='month', plafond=plafond, revalorisation=revalo)
-        return SAM
+        def _sal_for_sam(sal_RG, trim_avpf, smic):
+            ''' construit la matrice des salaires de références '''
+            trim_avpf = table_selected_dates(trim_avpf, first_year = 1972)
+            sal_avpf = np.multiply((trim_avpf != 0), smic ) # * 2028 = 151.66 * 12 if horaires
+            dates_avpf = [date for date in sal_RG.columns if date >= 197201]
+            sal_RG.loc[:,dates_avpf] = sal_RG.loc[:,dates_avpf] + sal_avpf.loc[:,dates_avpf]
+            return sal_RG
+        
+        smic_long = build_long_values(param_long=self._Plongitudinal.common.smic_proj, first_year=1972, last_year=yearsim) # avant pas d'avpf
+        sal_sam = _sal_for_sam(months_to_years(self.sal_RG), self.trim_avpf, smic_long) #-> True legislation (on préfère la ligne suivante pour comparer Destinie)
+        if sal_avpf == True:
+            sal_sam = months_to_years(self.sal_RG) + self.sal_avpf 
+        SAM = calculate_SAM(sal_sam, nb_years, time_step='year', plafond=plafond, revalorisation=revalo)
+        self.sal_RG = sal_sam
+        return SAM.round(2)
     
     def assurance_maj(self, trim_RG, trim_tot, agem):
         ''' Détermination de la durée d'assurance corrigée introduite par la réforme Boulin
@@ -195,7 +155,7 @@ class Regime_general(PensionSimulation):
         if date.year < 1983:
             return trim_RG
         elif date.year < 2004 :
-            trim_majo = np.maximum(0, math.ceil(agem/ 3 - 65 * 4))
+            trim_majo = np.maximum(math.ceil(agem/ 3 - 65 * 4),0)
             elig_majo = ( trim_RG < P.N_CP )
             trim_corr = trim_RG * ( 1 + P.tx_maj * trim_majo * elig_majo )
             return trim_corr

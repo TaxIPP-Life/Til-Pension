@@ -13,10 +13,11 @@ from xml.etree import ElementTree
 from Param import legislations_add_pension as legislations
 from Param import legislationsxml_add_pension as  legislationsxml
 from openfisca_core import conv
-from utils import build_long_values, build_long_baremes
+from utils import build_long_values, build_long_baremes, valbytranches
 #from .columns import EnumCol, EnumPresta
 #from .taxbenefitsystems import TaxBenefitSystem
 
+first_year_sal = 1949 
 
 class Simulation(object):
     """
@@ -184,7 +185,72 @@ class PensionSimulation(Simulation):
 
         if not isinstance(self.chunks_count, int):
             raise Exception("Chunks count must be an integer")
-
+        
+    def load(self, salref = True): 
+        def _build_table(table, yearsim):
+            table = table.reindex_axis(sorted(table.columns), axis=1)
+            date_end = (yearsim - 1 )* 100 + 1
+            possible_dates = [year * 100 + month + 1 for year in range(first_year_sal, yearsim) for month in range(12)]
+            selected_dates = set(table.columns).intersection(possible_dates)
+            table = table.loc[:, selected_dates]
+            table = table.reindex_axis(sorted(table.columns), axis=1)
+            return table
+                       
+        def _build_salmin(smic,avts):
+            '''
+            salaire trimestriel de référence minimum
+            Rq : Toute la série chronologique est exprimé en euros
+            '''
+            yearsim = self.datesim.year
+            salmin = pd.DataFrame( {'year' : range(first_year_sal, yearsim ), 'sal' : - np.ones(yearsim - first_year_sal)} ) 
+            avts_year = []
+            smic_year = []
+            for year in range(first_year_sal,1972):
+                avts_old = avts_year
+                avts_year = []
+                for key in avts.keys():
+                    if str(year) in key:
+                        avts_year.append(key)
+                if not avts_year:
+                    avts_year = avts_old
+                salmin.loc[salmin['year'] == year, 'sal'] = avts[avts_year[0]] 
+                
+            #TODO: Trancher si on calcule les droits à retraites en incluant le travail à l'année de simulation pour l'instant non (ex : si datesim = 2009 on considère la carrière en emploi jusqu'en 2008)
+            for year in range(1972,yearsim):
+                smic_old = smic_year
+                smic_year = []
+                for key in smic.keys():
+                    if str(year) in key:
+                        smic_year.append(key)
+                if not smic_year:
+                    smic_year = smic_old
+                if year <= 2013 :
+                    salmin.loc[salmin['year'] == year, 'sal'] = smic[smic_year[0]] * 200 
+                    if year <= 2001 :
+                        salmin.loc[salmin['year'] == year, 'sal'] = smic[smic_year[0]] * 200  / 6.5596
+                else:
+                    salmin.loc[salmin['year'] == year, 'sal'] = smic[smic_year[0]] * 150 
+            return salmin['sal']
+        
+        def _build_naiss(agem, datesim):
+            ''' Détermination de la date de naissance à partir de l'âge et de la date de simulation '''
+            naiss = agem.apply(lambda x: substract_months(datesim, x))
+            return naiss
+        
+        # Selection du déroulé de carrière qui nous intéresse (1949 (=first_year_sal) -> année de simulation)
+        # Rq : la selection peut se faire sur données mensuelles ou annuelles
+        yearsim = self.datesim.year
+        self.workstate = _build_table(self.workstate, yearsim)
+        self.sali = _build_table(self.sali, yearsim)
+        self.workstate.to_csv('workstate.csv')
+        if 'naiss' not in self.info_ind.columns :
+            self.info_ind['naiss'] = _build_naiss(self.info_ind['agem'], self.datesim)
+        
+        if salref == True:     
+            # Salaires de référence (vecteur construit à partir des paramètres indiquant les salaires annuels de reférences)
+            smic_long = self._Plongitudinal.common.smic
+            avts_long = self._Plongitudinal.common.avts.montant
+            self.salref = _build_salmin(smic_long, avts_long)
 
     def calculate_taux(self, decote, surcote):
         ''' Détermination du taux de liquidation à appliquer à la pension '''
@@ -192,26 +258,68 @@ class PensionSimulation(Simulation):
         return taux_plein * (1 - decote + surcote)
         
     def nombre_points(self):
-        ''' détermine le nombre de point à liquidation de la pension dans les régimes complémentaires (pour l'instant Ok pour ARRCO/AGIRC)
+        ''' Détermine le nombre de point à liquidation de la pension dans les régimes complémentaires (pour l'instant Ok pour ARRCO/AGIRC)
         Pour calculer ces points, il faut diviser la cotisation annuelle ouvrant des droits par le salaire de référence de l'année concernée 
         et multiplier par le taux d'acquisition des points'''
         regime = self.regime
         first_year_sal = self.first_year
         P = self._P.complementaire.__dict__[regime]
         Plong = self._Plongitudinal.prive.complementaire.__dict__[regime]
-        sali = self.sali
-        print self.datesim
+        sali = self.sal_regime * (self.workstate.isin(self.code_regime))
         yearsim = self.datesim.year
-        
         salref = build_long_values(Plong.sal_ref, first_year=first_year_sal, last_year=yearsim)
         plaf_ss = self._Plongitudinal.common.plaf_ss
         pss = build_long_values(plaf_ss, first_year=first_year_sal, last_year=yearsim)    
         taux_cot = build_long_baremes(Plong.taux_cot_moy, first_year=first_year_sal, last_year=yearsim, scale=pss)
-
-        nb_points = pd.Series(np.zeros(len(sali.index)), index=sali.index)
+        def _nb_points(sali, taux_cot, salref, first_year, last_year):
+            nb_points = pd.Series(np.zeros(len(sali.index)), index=sali.index)
+            
+            for year in range(first_year, last_year):
+                points_acquis = np.divide(taux_cot[year].calc(sali[year *100 + 1]), salref[year-first_year_sal]).round(2) 
+                gmp = P.gmp
+                print year, taux_cot[year], sali.ix[1926 ,year *100 + 1], salref[year-first_year_sal]
+                print 'result', pd.Series(points_acquis, index=sali.index).ix[1926]
+                nb_points += np.maximum(points_acquis, gmp) * (points_acquis > 0)
+            return nb_points
+        
         assert len(salref) == sali.shape[1] == len(taux_cot)
-        for year in range(first_year_sal, yearsim):
-            nb_points += np.divide(taux_cot[year].calc(sali[year *100 + 1]),salref[year-first_year_sal]).round(2)
-
-        return nb_points
+        if self.regime == 'arrco':
+            nb_points_98 = _nb_points(sali, taux_cot, salref, first_year_sal, min(1999,yearsim))
+            index = nb_points_98.index
+            nb_points9911 = pd.Series(np.zeros(len(index)), index=index)
+            nb_points12_ = pd.Series(np.zeros(len(index)), index=index)
+            if yearsim >= 1999:
+                nb_points9911 = _nb_points(sali, taux_cot, salref, 1999, min(2012,yearsim))
+            if yearsim >= 2012:
+                nb_points12_ = _nb_points(sali, taux_cot, salref,  2012, yearsim)
+            return nb_points_98, nb_points9911, nb_points12_
+        
+        if self.regime == 'agirc':
+            nb_points_11 = _nb_points(sali, taux_cot, salref, first_year_sal, min(2012,yearsim))
+            index = nb_points_11.index
+            nb_points12_ = pd.Series(np.zeros(len(index)), index=index)
+            if yearsim >= 2012:
+                nb_points12_ = _nb_points(sali, taux_cot, salref,  2012, yearsim)   
+            return nb_points_11, nb_points12_
     
+    def coeff_age(self, agem, trim):
+        ''' TODO: add surcote  pour avant 1955 '''
+        regime = self.regime
+        P = self._P.complementaire.__dict__[regime]
+        coef_mino = P.coef_mino
+        age_annulation_decote = valbytranches(self._P.RG.decote.age_null, self.info_ind) 
+        N_taux = valbytranches(self._P.RG.plein.N_taux, self.info_ind)
+        diff_age = np.maximum(np.divide(age_annulation_decote - agem, 12), 0)
+        coeff_min = pd.Series(np.zeros(len(agem)), index=agem.index)
+        coeff_maj = pd.Series(np.zeros(len(agem)), index=agem.index)
+        for nb_annees, coef_mino in coef_mino._tranches:
+            coeff_min += (diff_age == nb_annees) * coef_mino
+        if self.datesim.year <= 1955:
+            maj_age = np.maximum(np.divide(agem - age_annulation_decote, 12), 0)
+            coeff_maj = maj_age * 0.05
+            return coeff_min + coeff_maj
+        elif  self.datesim.year < 1983:
+            return coeff_min
+        elif self.datesim.year >= 1983:
+            # A partir de cette date, la minoration ne s'applique que si la durée de cotisation au régime général est inférieure à celle requise pour le taux plein
+            return  coeff_min * (N_taux > trim) + (N_taux <= trim)             
