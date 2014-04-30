@@ -147,9 +147,9 @@ if __name__ == '__main__':
     avtsold = _oldfrancs_to_francs(avtsold, 2)
     avtsold = _francs_to_euro(avtsold, 0)
     from_excel_to_xml(data = avtsold, description = "AVTS", code = "avtsold", format = "float", data_date = dates)
-    
+    '''
         # 2 -- Importation du Excel ParamSociaux
-    xlsxfile = pd.ExcelFile('ParamSociaux.xls')
+    xlsxfile = pd.ExcelFile('ParamSociaux2.xls')
     # Paramètres généraux
     data = xlsxfile.parse('ParamGene', index_col = None, header = True)
     dates = np.array(data['Indice Prix'].index)
@@ -159,12 +159,12 @@ if __name__ == '__main__':
     plaf_ss =  np.array(data['Plafond SS'])
     #from_excel_to_xml(data = plaf_ss, description = "Plafond de la sécurité sociale", code = "plaf_ss", format = "float", data_date = dates, ascendant_date = True, format_date = 'year')
     
-    smic = np.array(data['SMIC']/2028)
-    #from_excel_to_xml(data = smic, description = "SMIC horaire projeté à partir du SMPT", code = "smic_proj", format = "float", data_date = dates, ascendant_date = True, format_date = 'year')
+    smic = np.array((data['SMIC']).round(2))
+    from_excel_to_xml(data = smic, description = "SMIC horaire projeté à partir du SMPT ", code = "smic_proj", format = "float", data_date = dates, ascendant_date = True, format_date = 'year')
     
     smpt = np.array(data['SMPT '])
     #from_excel_to_xml(data = smpt, description = "SMPT - Hypothèse d'évolution selon le scénario C du COR + inflation", code = "smpt", format = "float", data_date = dates, ascendant_date = True, format_date = 'year')
-    
+    '''
         # 3 -- Importation du Excel Bareme_Emploi
     xlsxfile = pd.ExcelFile('Bareme_Emploi.xlsx')
     # Paramètres généraux
@@ -205,7 +205,7 @@ if __name__ == '__main__':
     data = xlsxfile.parse('PT-AGIRC', index_col = None, header = True)
     agirc =  np.array(data[u'Valeur du point AGIRC (en euros)'])[:-7].round(4)
     dates = np.array(data[u"Date d'entrée en vigueur"])[:-7]
-    from_excel_to_xml(data = agirc, description = "Valeur du point AGIRC (en euros)", code = "val_point", format = "float", data_date = dates)
+    #from_excel_to_xml(data = agirc, description = "Valeur du point AGIRC (en euros)", code = "val_point", format = "float", data_date = dates)
     
         # 5 -- Importation des paramètres Destinie :
     # 5-1 : retraite de base
@@ -223,4 +223,4 @@ if __name__ == '__main__':
     taux_appel = np.array(Retcomp["Taux d'appel ARRCO"])
     salref =  np.array(Retcomp[u'Salaire de r_f_rence UNIRS/ ARRCO en euros'])[:69] #On ne prend qu'avant 1998 car après actualisé sur Barèmes IPP
     vp_point =  np.array(Retcomp[u'VP UNIRS/ ARRCO en euros'])[:69] #On ne prend qu'avant 1998 car après actualisé sur Barèmes IPP
-    from_excel_to_xml(data = taux_1, description = "Taux d'acquisition des points pour le première tranche", code = "taux_ac", format = "float", data_date = dates, format_date = 'year', ascendant_date = True)
+    #from_excel_to_xml(data = taux_1, description = "Taux d'acquisition des points pour le première tranche", code = "taux_ac", format = "float", data_date = dates, format_date = 'year', ascendant_date = True)
