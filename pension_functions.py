@@ -6,7 +6,8 @@ from utils import interval_years, months_to_years
 from datetime import datetime
 
 chomage=2
-avpf=8
+avpf = 8
+id_test = 21310 # 28332 #1882 #1851 #, 18255
 
 def workstate_selection(table, code_regime=None, input_step='month', output_step='month', option='dummy'):
     ''' Input : monthly or yearly-table (lines: indiv, col: dates 'yyyymm') 
@@ -42,7 +43,7 @@ def workstate_selection(table, code_regime=None, input_step='month', output_step
     return selection
     
 def select_unemployment(data, code_regime, option='dummy'):
-    ''' Ne conserve que les périodes de chomage succédant directement à une période de cotisation au au régime
+    ''' Ne conserve que les périodes de chomage succédant directement à une période de cotisation au régime
     TODO: A améliorer car boucle for très moche
     Rq : on fait l'hypothèse que les personnes étant au chômage en t0 côtisent au RG '''
     data_col = data.columns[1:]
@@ -115,13 +116,17 @@ def calculate_SAM(sali, nb_years, time_step, plafond=None, revalorisation=None):
     assert max(sali.index) == max(nb_years.index)
     sali = sali.fillna(0) 
     if plafond is not None:
+        #print sali.ix[id_test,:]
         assert sali.shape[1] == len(plafond)
         sali = np.minimum(sali, plafond) 
+        #print sali.ix[id_test,:]
     if revalorisation is not None:
         assert sali.shape[1] == len(revalorisation)
         sali = np.multiply(sali,revalorisation)
+        #print sali.ix[id_test,:]
     nb_sali = (sali != 0).sum(1)
     nb_years[nb_sali < nb_years] = nb_sali[nb_sali < nb_years]
+    #print sali.ix[id_test]
     sali['nb_years'] = nb_years.values
     sam = sali.apply(sum_sam, 1)
     return sam
@@ -149,3 +154,23 @@ def nb_trim_surcote(trim_by_year, date_surcote):
     trim_by_year['yearsurcote'] = yearsurcote
     nb_trim_surcote = trim_by_year.apply(_trim_surcote, axis = 1)
     return nb_trim_surcote
+
+def nb_pac(info_child, index):
+    info_child['enf_pac'] = ( info_child['age_enf'] <= 18) * ( info_child['age_enf'] >= 0 )
+    info = info_child.groupby(['id_parent', 'enf_pac']).size().reset_index()
+    info = info.loc[info['enf_pac'] == True].drop('enf_pac', 1)
+    info.columns = ['id_parent', 'nb_pac']
+    info.index = info['id_parent']
+    nb_pac= pd.Series(np.zeros(len(index)), index=index)
+    nb_pac += info['nb_pac']
+    return nb_pac.fillna(0)
+
+def nb_born(info_child, index):
+    info_child['enf_born'] =  ( info_child['age_enf'] >= 0 )
+    info = info_child.groupby(['id_parent', 'enf_born']).size().reset_index()
+    info = info.loc[info['enf_born'] == True].drop('enf_born', 1)
+    info.columns = ['id_parent', 'nb_born']
+    info.index = info['id_parent']
+    nb_born= pd.Series(np.zeros(len(index)), index=index)
+    nb_born += info['nb_born']
+    return nb_born.fillna(0)

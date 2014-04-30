@@ -6,6 +6,7 @@ import datetime as dt
 import numpy as np
 import pandas as pd
 
+from datetime import date
 
 def interval_years(table):
     table = pd.DataFrame(table)
@@ -100,7 +101,7 @@ def build_long_values(param_long, first_year, last_year):
                 param_t.append(key)
         if not param_t:
             param_t = param_old
-        param.loc[param['year'] == year, 'param'] = param_long[param_t[0]] 
+        param.loc[param['year'] == year, 'param'] = param_long[param_t[0]] # Hypothèse sous-jacente : on prend la première valeur de l'année
     return param['param'] 
 
 def build_long_baremes(bareme_long, first_year, last_year, scale=None):   
@@ -123,3 +124,16 @@ def build_long_baremes(bareme_long, first_year, last_year, scale=None):
         for year, val_scale in zip(baremes.keys(),scale):
             baremes[year] = scaleBaremes(baremes[year], val_scale)
     return baremes
+
+def calculate_age(birth_date, date):
+    ''' calculate age at date thanks birthdate '''
+    def _age(birthdate):
+        try: 
+            birthday = birthdate.replace(year=date.year)
+        except ValueError: # raised when birth date is February 29 and the current year is not a leap year
+            birthday = birthdate.replace(year=date.year, month=birthdate.month+1, day=1)
+        if birthday > date:
+            return date.year - birthdate.year - 1
+        else:
+            return date.year - birthdate.year
+    return birth_date.apply(_age)
