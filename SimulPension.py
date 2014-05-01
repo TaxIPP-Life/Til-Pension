@@ -13,7 +13,7 @@ from xml.etree import ElementTree
 from Param import legislations_add_pension as legislations
 from Param import legislationsxml_add_pension as  legislationsxml
 from openfisca_core import conv
-from utils import build_long_values, build_long_baremes, valbytranches
+from utils import build_long_values, build_long_baremes, valbytranches, substract_months
 #from .columns import EnumCol, EnumPresta
 #from .taxbenefitsystems import TaxBenefitSystem
 
@@ -257,51 +257,36 @@ class PensionSimulation(Simulation):
         taux_plein = self._P.plein.taux
         return taux_plein * (1 - decote + surcote)
         
-    def nombre_points(self):
+    def nombre_points(self, first_year = first_year_sal, last_year = None):
         ''' Détermine le nombre de point à liquidation de la pension dans les régimes complémentaires (pour l'instant Ok pour ARRCO/AGIRC)
         Pour calculer ces points, il faut diviser la cotisation annuelle ouvrant des droits par le salaire de référence de l'année concernée 
         et multiplier par le taux d'acquisition des points'''
+        yearsim = self.datesim.year
+        last_year_sali = yearsim - 1
+        if last_year == None:
+            last_year = last_year_sali
         regime = self.regime
         first_year_sal = self.first_year
         P = self._P.complementaire.__dict__[regime]
         Plong = self._Plongitudinal.prive.complementaire.__dict__[regime]
         sali = self.sal_regime * (self.workstate.isin(self.code_regime))
-        yearsim = self.datesim.year
         salref = build_long_values(Plong.sal_ref, first_year=first_year_sal, last_year=yearsim)
         plaf_ss = self._Plongitudinal.common.plaf_ss
         pss = build_long_values(plaf_ss, first_year=first_year_sal, last_year=yearsim)    
         taux_cot = build_long_baremes(Plong.taux_cot_moy, first_year=first_year_sal, last_year=yearsim, scale=pss)
-        def _nb_points(sali, taux_cot, salref, first_year, last_year):
-            nb_points = pd.Series(np.zeros(len(sali.index)), index=sali.index)
-            
-            for year in range(first_year, last_year):
-                points_acquis = np.divide(taux_cot[year].calc(sali[year *100 + 1]), salref[year-first_year_sal]).round(2) 
-                gmp = P.gmp
-                print year, taux_cot[year], sali.ix[1926 ,year *100 + 1], salref[year-first_year_sal]
-                print 'result', pd.Series(points_acquis, index=sali.index).ix[1926]
-                nb_points += np.maximum(points_acquis, gmp) * (points_acquis > 0)
-            return nb_points
-        
         assert len(salref) == sali.shape[1] == len(taux_cot)
-        if self.regime == 'arrco':
-            nb_points_98 = _nb_points(sali, taux_cot, salref, first_year_sal, min(1999,yearsim))
-            index = nb_points_98.index
-            nb_points9911 = pd.Series(np.zeros(len(index)), index=index)
-            nb_points12_ = pd.Series(np.zeros(len(index)), index=index)
-            if yearsim >= 1999:
-                nb_points9911 = _nb_points(sali, taux_cot, salref, 1999, min(2012,yearsim))
-            if yearsim >= 2012:
-                nb_points12_ = _nb_points(sali, taux_cot, salref,  2012, yearsim)
-            return nb_points_98, nb_points9911, nb_points12_
+        nb_points = pd.Series(np.zeros(len(sali.index)), index=sali.index)
         
-        if self.regime == 'agirc':
-            nb_points_11 = _nb_points(sali, taux_cot, salref, first_year_sal, min(2012,yearsim))
-            index = nb_points_11.index
-            nb_points12_ = pd.Series(np.zeros(len(index)), index=index)
-            if yearsim >= 2012:
-                nb_points12_ = _nb_points(sali, taux_cot, salref,  2012, yearsim)   
-            return nb_points_11, nb_points12_
-    
+        if last_year_sali < first_year:
+            return nb_points
+        for year in range(first_year, min(last_year_sali, last_year) + 1):
+            points_acquis = np.divide(taux_cot[year].calc(sali[year *100 + 1]), salref[year-first_year_sal]).round(2) 
+            gmp = P.gmp
+            #print year, taux_cot[year], sali.ix[1926 ,year *100 + 1], salref[year-first_year_sal]
+            #print 'result', pd.Series(points_acquis, index=sali.index).ix[1926]
+            nb_points += np.maximum(points_acquis, gmp) * (points_acquis > 0)
+        return nb_points       
+ 
     def coeff_age(self, agem, trim):
         ''' TODO: add surcote  pour avant 1955 '''
         regime = self.regime
