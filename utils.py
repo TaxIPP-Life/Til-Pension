@@ -53,7 +53,7 @@ def months_to_years(table):
     return new_table.astype(float)
 
 
-def substract_months(sourcedate,months):
+def substract_months(sourcedate, months):
     ''' fonction soustrayant le nombre de "months" donné à la "sourcedate" indiquée '''
     month = sourcedate.month - 1 - months
     year = sourcedate.year + month / 12
@@ -74,20 +74,15 @@ def valbytranches(param, info_ind):
         return param
     
 def table_selected_dates(table, first_year=None, last_year=None):
-    ''' La table d'input dont les colonnes sont des dates est renvoyées emputée des années postérieures à last_year (last_year incluse) 
+    ''' La table d'input dont les colonnes sont des dates est renvoyées emputée des années postérieures à last_year (last_year non-incluse) 
     et antérieures à first_year (first_year incluse) '''
-    dates_to_drop = []
-    if last_year:
-        for date in table.columns:
-            if int(date) > last_year * 100 + 1:
-                dates_to_drop.append(date)
-    if first_year:
-        for date in table.columns:
-            if int(date) < first_year * 100 + 1 :
-                dates_to_drop.append(date)
-    return table.drop(dates_to_drop, axis = 1)
+    table = table.reindex_axis(sorted(table.columns), axis=1)
+    possible_dates = [100*year + month + 1 for year in range(first_year, last_year) for month in range(12)]
+    selected_dates = set(table.columns).intersection(possible_dates)
+    table = table.loc[:, selected_dates]
+    table = table.reindex_axis(sorted(table.columns), axis=1)
+    return table
 
-        
 def build_long_values(param_long, first_year, last_year):   
     ''' Cette fonction permet de traduire les paramètres longitudinaux en vecteur numpy 
     comportant une valeur par année comprise en first_year et last_year '''
@@ -137,3 +132,9 @@ def calculate_age(birth_date, date):
         else:
             return date.year - birthdate.year
     return birth_date.apply(_age)
+
+
+def build_naiss(agem, datesim):
+    ''' Détermination de la date de naissance à partir de l'âge et de la date de simulation '''
+    naiss = agem.apply(lambda x: substract_months(datesim, int(x)))
+    return naiss

@@ -21,20 +21,19 @@ class AGIRC(PensionSimulation):
     ''' L'Association générale des institutions de retraite des cadres gère le régime de retraite des cadres du secteur privé 
     de l’industrie, du commerce, des services et de l’agriculture. '''
     
-    def __init__(self, workstate_table, sal_RG, param_regime, param_common, param_longitudinal):
+    def __init__(self, param_regime, param_common, param_longitudinal):
         PensionSimulation.__init__(self)
         self.regime = 'agirc'
         self.code_regime = [4]
+        
         self._P = param_regime
         self._Pcom = param_common
         self._Plongitudinal = param_longitudinal
-        self.workstate  = workstate_table
-        self.sal_regime = sal_RG
-        self.first_year = first_year_sal
+
         self.info_ind = None
         self.info_child_mother = None
         self.info_child_father = None
-        self.first_year = first_year_sal
+        
         
     def majoration_enf(self, nb_points, coeff_age, agem):
         ''' Application de la majoration pour enfants à charge. Deux types de majorations peuvent s'appliquer :
@@ -73,29 +72,28 @@ class AGIRC(PensionSimulation):
 class ARRCO(PensionSimulation):
     ''' L'association pour le régime de retraite complémentaire des salariés gère le régime de retraite complémentaire de l’ensemble 
     des salariés du secteur privé de l’industrie, du commerce, des services et de l’agriculture, cadres compris. '''
-    def __init__(self, workstate_table, sal_RG, param_regime, param_common, param_longitudinal):
+    def __init__(self, param_regime, param_common, param_longitudinal):
         PensionSimulation.__init__(self)
         self.regime = 'arrco'
         self.code_regime = [3,4]
         self.code_noncadre = 3
         self.code_cadre = 4
+        
         self._P = param_regime
         self._Pcom = param_common
         self._Plongitudinal = param_longitudinal
-        self.workstate  = workstate_table
-        self.sal_regime = sal_RG
-        self.info_ind = None
+        
         self.info_child_mother = None
         self.info_child_father = None
-        self.first_year = first_year_sal
+        self.sal_regime = None
         
     def build_sal_regime(self):
         ''' Cette fonction plafonne les salaires des cadres 1 pss pour qu'il ne paye que la première tranche '''
-        sali = self.sal_regime
+        sali = self.sali
         cadre_selection = (self.workstate == self.code_cadre)
         noncadre_selection = (self.workstate == self.code_noncadre)
         yearsim = self.datesim.year
-        
+        sali.to_csv('saliarrco.csv')
         plaf_ss = self._Plongitudinal.common.plaf_ss
         pss = build_long_values(plaf_ss, first_year=first_year_sal, last_year=yearsim)    
         self.sal_regime = sali * noncadre_selection + np.minimum(sali, pss) * cadre_selection

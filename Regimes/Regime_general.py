@@ -11,8 +11,8 @@ import os
 parentdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.sys.path.insert(0,parentdir) 
 from SimulPension import PensionSimulation
-from utils import years_to_months, months_to_years, substract_months, valbytranches, table_selected_dates, build_long_values
-from pension_functions import calculate_SAM, nb_trim_surcote, sal_to_trimcot, unemployment_trimesters, workstate_selection, id_test
+from utils import years_to_months, months_to_years, valbytranches, table_selected_dates, build_long_values
+from pension_functions import calculate_SAM, nb_trim_surcote, sal_to_trimcot, unemployment_trimesters, workstate_selection
 
 code_avpf = 8
 code_chomage = 5
@@ -34,21 +34,61 @@ class RegimeGeneral(PensionSimulation):
         self._Pcom = param_common
         self._Plongitudinal = param_longitudinal
         
-        self.workstate  = None
-        self.sali = None
-        self.info_ind = None
         self.info_child_mother = None
         self.info_child_father = None
-        self.time_step = None
 
+     
+    def build_salref(self):
+            '''
+            salaire trimestriel de référence minimum
+            Rq : Toute la série chronologique est exprimé en euros
+            '''
+            yearsim = self.datesim.year
+            salmin = pd.DataFrame( {'year' : range(first_year_sal, yearsim ), 'sal' : - np.ones(yearsim - first_year_sal)} ) 
+            avts_year = []
+            smic_year = []
+            smic_long = self._Plongitudinal.common.smic
+            avts_long = self._Plongitudinal.common.avts.montant
+            for year in range(first_year_sal,1972):
+                avts_old = avts_year
+                avts_year = []
+                for key in avts_long.keys():
+                    if str(year) in key:
+                        avts_year.append(key)
+                if not avts_year:
+                    avts_year = avts_old
+                salmin.loc[salmin['year'] == year, 'sal'] = avts_long[avts_year[0]] 
+                
+            #TODO: Trancher si on calcule les droits à retraites en incluant le travail à l'année de simulation pour l'instant non (ex : si datesim = 2009 on considère la carrière en emploi jusqu'en 2008)
+            for year in range(1972,yearsim):
+                smic_old = smic_year
+                smic_year = []
+                for key in smic_long.keys():
+                    if str(year) in key:
+                        smic_year.append(key)
+                if not smic_year:
+                    smic_year = smic_old
+                if year <= 2013 :
+                    salmin.loc[salmin['year'] == year, 'sal'] = smic_long[smic_year[0]] * 200 
+                    if year <= 2001 :
+                        salmin.loc[salmin['year'] == year, 'sal'] = smic_long[smic_year[0]] * 200  / 6.5596
+                else:
+                    salmin.loc[salmin['year'] == year, 'sal'] = smic_long[smic_year[0]] * 150 
+            self.salref = salmin['sal']
+        
             
     def nb_trim_cot(self):
         ''' Nombre de trimestres côtisés pour le régime général 
         ref : code de la sécurité sociale, article R351-9
          '''
         # Selection des salaires à prendre en compte dans le décompte (mois où il y a eu côtisation au régime)
-        wk_selection = workstate_selection(self.workstate, code_regime = self.code_regime, input_step = self.time_step, output_step = 'month')
-        sal_selection = wk_selection * years_to_months(self.sali, division = True) 
+        sali = self.sali.copy()
+        sali.to_csv('salinb.csv')
+        time_step = self.time_step
+        if time_step == 'year':
+            sali = years_to_months(sali, division=True) 
+        wk_selection = workstate_selection(self.workstate, code_regime = self.code_regime, input_step = time_step, output_step='month')
+        sal_selection = wk_selection * sali
         nb_trim_cot = sal_to_trimcot(months_to_years(sal_selection), self.salref, self.datesim.year)
         # sal_section = (sal_to_trimcot(months_to_years(sal_selection), self.salref, self.datesim.year, option='table') != 0) * sal_selection
         # logiquement c'est mieux de garder que les salaires où il y a eu cotisation -> pour comparaison avec Pensipp plus simple de commenter
@@ -57,6 +97,7 @@ class RegimeGeneral(PensionSimulation):
         #print 'workstate', self.workstate.ix[id_test]
         #print sal_selection.ix[id_test]
         #print nb_trim_cot.ix[id_test]
+        self.sali.to_csv('test.csv')
         return nb_trim_cot
         
     def nb_trim_ass(self):
@@ -103,8 +144,9 @@ class RegimeGeneral(PensionSimulation):
             ''' Allocation vieillesse des parents au foyer : nombre de trimestres acquis'''
             avpf_selection = workstate_selection(workstate, code_regime = [code_avpf], input_step = input_step, output_step = 'year')
             #avpf_selection = avpf_selection[[col_year for col_year in avpf_selection.columns if str(col_year)[-2:]=='01']]
-            sal_avpf = avpf_selection * np.divide(months_to_years(sali), self.salref) # Si certains salaires son déjà attribués à des états d'avpf on les conserve (cf.Destinie)
+            sal_avpf = avpf_selection * np.divide(sali, self.salref) # Si certains salaires son déjà attribués à des états d'avpf on les conserve (cf.Destinie)
             nb_trim = avpf_selection.sum(axis=1) * 4
+            sali.to_csv('test_saliRG.csv')
             return nb_trim, avpf_selection, sal_avpf
         
         # info_child est une DataFrame comportant trois colonnes : identifiant du parent, âge de l'enfant, nb d'enfants du parent ayant cet âge  
@@ -132,7 +174,7 @@ class RegimeGeneral(PensionSimulation):
             revalo[:i] *= revalo[i]
         def _sal_for_sam(sal_RG, trim_avpf, smic):
             ''' construit la matrice des salaires de références '''
-            trim_avpf = table_selected_dates(trim_avpf, first_year = 1972)
+            trim_avpf = table_selected_dates(trim_avpf, first_year = 1972, last_year=yearsim)
             sal_avpf = np.multiply((trim_avpf != 0), smic ) # * 2028 = 151.66 * 12 if horaires
             dates_avpf = [date for date in sal_RG.columns if date >= 197201]
             sal_RG.loc[:,dates_avpf] = sal_RG.loc[:,dates_avpf] + sal_avpf.loc[:,dates_avpf]

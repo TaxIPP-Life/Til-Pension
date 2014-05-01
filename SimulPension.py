@@ -161,7 +161,13 @@ class PensionSimulation(Simulation):
     def __init__(self, survey_filename = None):
         Simulation.__init__(self)
         self.survey_filename = survey_filename
-                
+        self.workstate = None
+        self.sali = None
+        self.code_regime = None
+        self.regime = None
+        self.info_ind = None
+        self.time_step = None
+        
     def set_config(self, **kwargs):
         """
         Configures the SurveySimulation
@@ -185,73 +191,10 @@ class PensionSimulation(Simulation):
 
         if not isinstance(self.chunks_count, int):
             raise Exception("Chunks count must be an integer")
-        
-    def load(self, salref = True): 
-        def _build_table(table, yearsim):
-            table = table.reindex_axis(sorted(table.columns), axis=1)
-            date_end = (yearsim - 1 )* 100 + 1
-            possible_dates = [year * 100 + month + 1 for year in range(first_year_sal, yearsim) for month in range(12)]
-            selected_dates = set(table.columns).intersection(possible_dates)
-            table = table.loc[:, selected_dates]
-            table = table.reindex_axis(sorted(table.columns), axis=1)
-            return table
-                       
-        def _build_salmin(smic,avts):
-            '''
-            salaire trimestriel de référence minimum
-            Rq : Toute la série chronologique est exprimé en euros
-            '''
-            yearsim = self.datesim.year
-            salmin = pd.DataFrame( {'year' : range(first_year_sal, yearsim ), 'sal' : - np.ones(yearsim - first_year_sal)} ) 
-            avts_year = []
-            smic_year = []
-            for year in range(first_year_sal,1972):
-                avts_old = avts_year
-                avts_year = []
-                for key in avts.keys():
-                    if str(year) in key:
-                        avts_year.append(key)
-                if not avts_year:
-                    avts_year = avts_old
-                salmin.loc[salmin['year'] == year, 'sal'] = avts[avts_year[0]] 
-                
-            #TODO: Trancher si on calcule les droits à retraites en incluant le travail à l'année de simulation pour l'instant non (ex : si datesim = 2009 on considère la carrière en emploi jusqu'en 2008)
-            for year in range(1972,yearsim):
-                smic_old = smic_year
-                smic_year = []
-                for key in smic.keys():
-                    if str(year) in key:
-                        smic_year.append(key)
-                if not smic_year:
-                    smic_year = smic_old
-                if year <= 2013 :
-                    salmin.loc[salmin['year'] == year, 'sal'] = smic[smic_year[0]] * 200 
-                    if year <= 2001 :
-                        salmin.loc[salmin['year'] == year, 'sal'] = smic[smic_year[0]] * 200  / 6.5596
-                else:
-                    salmin.loc[salmin['year'] == year, 'sal'] = smic[smic_year[0]] * 150 
-            return salmin['sal']
-        
-        def _build_naiss(agem, datesim):
-            ''' Détermination de la date de naissance à partir de l'âge et de la date de simulation '''
-            naiss = agem.apply(lambda x: substract_months(datesim, x))
-            return naiss
-        
-        # Selection du déroulé de carrière qui nous intéresse (1949 (=first_year_sal) -> année de simulation)
-        # Rq : la selection peut se faire sur données mensuelles ou annuelles
-        yearsim = self.datesim.year
-        self.workstate = _build_table(self.workstate, yearsim)
-        self.sali = _build_table(self.sali, yearsim)
-        self.workstate.to_csv('workstate.csv')
-        if 'naiss' not in self.info_ind.columns :
-            self.info_ind['naiss'] = _build_naiss(self.info_ind['agem'], self.datesim)
-        
-        if salref == True:     
-            # Salaires de référence (vecteur construit à partir des paramètres indiquant les salaires annuels de reférences)
-            smic_long = self._Plongitudinal.common.smic
-            avts_long = self._Plongitudinal.common.avts.montant
-            self.salref = _build_salmin(smic_long, avts_long)
 
+    def build_sal_regime(self):
+        self.sal_regime = self.sali*(self.workstate.isin(self.code_regime))
+        
     def calculate_taux(self, decote, surcote):
         ''' Détermination du taux de liquidation à appliquer à la pension '''
         taux_plein = self._P.plein.taux
@@ -266,14 +209,16 @@ class PensionSimulation(Simulation):
         if last_year == None:
             last_year = last_year_sali
         regime = self.regime
-        first_year_sal = self.first_year
         P = self._P.complementaire.__dict__[regime]
         Plong = self._Plongitudinal.prive.complementaire.__dict__[regime]
-        sali = self.sal_regime * (self.workstate.isin(self.code_regime))
+        sali = self.sal_regime
         salref = build_long_values(Plong.sal_ref, first_year=first_year_sal, last_year=yearsim)
         plaf_ss = self._Plongitudinal.common.plaf_ss
         pss = build_long_values(plaf_ss, first_year=first_year_sal, last_year=yearsim)    
         taux_cot = build_long_baremes(Plong.taux_cot_moy, first_year=first_year_sal, last_year=yearsim, scale=pss)
+        print taux_cot
+        print sali.shape
+        print salref
         assert len(salref) == sali.shape[1] == len(taux_cot)
         nb_points = pd.Series(np.zeros(len(sali.index)), index=sali.index)
         if last_year_sali < first_year:
