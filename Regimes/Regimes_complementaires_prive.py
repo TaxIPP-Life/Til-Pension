@@ -93,7 +93,6 @@ class ARRCO(PensionSimulation):
         cadre_selection = (self.workstate == self.code_cadre)
         noncadre_selection = (self.workstate == self.code_noncadre)
         yearsim = self.datesim.year
-        sali.to_csv('saliarrco.csv')
         plaf_ss = self._Plongitudinal.common.plaf_ss
         pss = build_long_values(plaf_ss, first_year=first_year_sal, last_year=yearsim)    
         self.sal_regime = sali * noncadre_selection + np.minimum(sali, pss) * cadre_selection

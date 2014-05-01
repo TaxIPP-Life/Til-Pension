@@ -83,7 +83,6 @@ class RegimeGeneral(PensionSimulation):
          '''
         # Selection des salaires à prendre en compte dans le décompte (mois où il y a eu côtisation au régime)
         sali = self.sali.copy()
-        sali.to_csv('salinb.csv')
         time_step = self.time_step
         if time_step == 'year':
             sali = years_to_months(sali, division=True) 
@@ -97,7 +96,6 @@ class RegimeGeneral(PensionSimulation):
         #print 'workstate', self.workstate.ix[id_test]
         #print sal_selection.ix[id_test]
         #print nb_trim_cot.ix[id_test]
-        self.sali.to_csv('test.csv')
         return nb_trim_cot
         
     def nb_trim_ass(self):
@@ -146,7 +144,6 @@ class RegimeGeneral(PensionSimulation):
             #avpf_selection = avpf_selection[[col_year for col_year in avpf_selection.columns if str(col_year)[-2:]=='01']]
             sal_avpf = avpf_selection * np.divide(sali, self.salref) # Si certains salaires son déjà attribués à des états d'avpf on les conserve (cf.Destinie)
             nb_trim = avpf_selection.sum(axis=1) * 4
-            sali.to_csv('test_saliRG.csv')
             return nb_trim, avpf_selection, sal_avpf
         
         # info_child est une DataFrame comportant trois colonnes : identifiant du parent, âge de l'enfant, nb d'enfants du parent ayant cet âge  
