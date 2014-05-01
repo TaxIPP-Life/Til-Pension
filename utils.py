@@ -13,7 +13,12 @@ def interval_years(table):
     if 'id' in table.columns:
         table = table.drop(['id'], axis = 1)
     table = table.reindex_axis(sorted(table.columns), axis=1)
-    year_start = int(str(table.columns[0])[0:4])
+    try:
+        year_start = int(str(table.columns[0])[0:4])
+    except:
+        import pdb
+        pdb.set_trace()
+        
     year_end = int(str(table.columns[-1])[0:4])
     return year_start, year_end + 1
 

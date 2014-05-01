@@ -13,7 +13,7 @@ from xml.etree import ElementTree
 from Param import legislations_add_pension as legislations
 from Param import legislationsxml_add_pension as  legislationsxml
 from openfisca_core import conv
-from utils import build_long_values, build_long_baremes, valbytranches
+from utils import build_long_values, build_long_baremes, valbytranches, substract_months
 #from .columns import EnumCol, EnumPresta
 #from .taxbenefitsystems import TaxBenefitSystem
 
@@ -275,11 +275,11 @@ class PensionSimulation(Simulation):
             nb_points = pd.Series(np.zeros(len(sali.index)), index=sali.index)
             
             for year in range(first_year, last_year):
-                points_acquis = np.divide(taux_cot[year].calc(sali[year *100 + 1]), salref[year-first_year_sal]).round(2) 
+                points_acquis = np.divide(taux_cot[year].calc(sali[year*100 + 1]), salref[year-first_year_sal]).round(2) 
                 gmp = P.gmp
-                print year, taux_cot[year], sali.ix[1926 ,year *100 + 1], salref[year-first_year_sal]
+                print year, taux_cot[year], sali.ix[1926, year*100 + 1], salref[year-first_year_sal]
                 print 'result', pd.Series(points_acquis, index=sali.index).ix[1926]
-                nb_points += np.maximum(points_acquis, gmp) * (points_acquis > 0)
+                nb_points += np.maximum(points_acquis, gmp)*(points_acquis > 0)
             return nb_points
         
         assert len(salref) == sali.shape[1] == len(taux_cot)
@@ -291,7 +291,7 @@ class PensionSimulation(Simulation):
             if yearsim >= 1999:
                 nb_points9911 = _nb_points(sali, taux_cot, salref, 1999, min(2012,yearsim))
             if yearsim >= 2012:
-                nb_points12_ = _nb_points(sali, taux_cot, salref,  2012, yearsim)
+                nb_points12_ = _nb_points(sali, taux_cot, salref, 2012, yearsim)
             return nb_points_98, nb_points9911, nb_points12_
         
         if self.regime == 'agirc':
@@ -299,7 +299,7 @@ class PensionSimulation(Simulation):
             index = nb_points_11.index
             nb_points12_ = pd.Series(np.zeros(len(index)), index=index)
             if yearsim >= 2012:
-                nb_points12_ = _nb_points(sali, taux_cot, salref,  2012, yearsim)   
+                nb_points12_ = _nb_points(sali, taux_cot, salref, 2012, yearsim)   
             return nb_points_11, nb_points12_
     
     def coeff_age(self, agem, trim):
