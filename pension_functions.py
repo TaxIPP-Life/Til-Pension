@@ -139,21 +139,18 @@ def nb_trim_surcote(trim_by_year, date_surcote):
     if 'yearsurcote' in trim_by_year.columns:
         trim_by_year = trim_by_year.drop('yearsurcote', axis=1)
     yearmax = np.divide(max(trim_by_year.columns), 100)  
-    
-    def _trim_surcote(row, year_max = yearmax):
-        year_surcote = row['yearsurcote']
-        row.drop('yearsurcote', inplace = True)
-        limit_index = year_max - year_surcote + 1
-        if limit_index>0:
-            nb_trim = np.array(row)[- limit_index :]
-            return sum(nb_trim)
-        else:
-            return 0
-        
-    yearsurcote = [date.year for date in date_surcote]
-    trim_by_year['yearsurcote'] = yearsurcote
-    nb_trim_surcote = trim_by_year.apply(_trim_surcote, axis = 1)
-    return nb_trim_surcote
+
+#     yearsurcote = [date.year for date in date_surcote]
+    limit_index = np.array([yearmax - date.year + 1 for date in date_surcote])
+
+    output = pd.Series(0, index=trim_by_year.index)
+    ncol = trim_by_year.shape[1]
+    #TODO: remove condition on ncol, it should not occur with a good use
+    for limit in range(min(max(limit_index), ncol)):
+        to_keep = limit_index > limit
+        output[to_keep] += trim_by_year.iloc[to_keep, -(limit+1)]
+            
+    return output
 
 def nb_pac(info_child, index):
     info_child['enf_pac'] = ( info_child['age_enf'] <= 18) * ( info_child['age_enf'] >= 0 )
