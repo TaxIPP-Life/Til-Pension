@@ -170,27 +170,13 @@ class PensionSimulation(Simulation):
         
     def set_config(self, **kwargs):
         """
-        Configures the SurveySimulation
-
-        Parameters
-        ----------
-        TODO:
-        survey_filename
-        num_table
+        Configures the PensionSimulation
         """
         # Setting general attributes and getting the specific ones
         specific_kwargs = self._set_config(**kwargs)
         for key, val in specific_kwargs.iteritems():
             if hasattr(self, key):
                 setattr(self, key, val)
-                
-
-        if self.num_table not in [1,3] :
-            raise Exception("OpenFisca can be run with 1 or 3 tables only, "
-                            " please, choose between both.")
-
-        if not isinstance(self.chunks_count, int):
-            raise Exception("Chunks count must be an integer")
 
     def build_sal_regime(self):
         self.sal_regime = self.sali*(self.workstate.isin(self.code_regime))
