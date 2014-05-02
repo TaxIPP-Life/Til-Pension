@@ -12,7 +12,7 @@ parentdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.sys.path.insert(0,parentdir) 
 from SimulPension import PensionSimulation
 from utils import years_to_months, months_to_years, valbytranches, table_selected_dates, build_long_values
-from pension_functions import calculate_SAM, nb_trim_surcote, sal_to_trimcot, unemployment_trimesters, workstate_selection
+from pension_functions import calculate_SAM, nb_trim_surcote, sal_to_trimcot, unemployment_trimesters, translate_frequency
 
 code_avpf = 8
 code_chomage = 5
@@ -86,8 +86,9 @@ class RegimeGeneral(PensionSimulation):
         time_step = self.time_step
         if time_step == 'year':
             sali = years_to_months(sali, division=True) 
-        wk_selection = workstate_selection(self.workstate, code_regime = self.code_regime, input_step = time_step, output_step='month')
-        sal_selection = wk_selection * sali
+        wk_selection = self.workstate.isin(self.code_regime)
+        wk_selection = translate_frequency(wk_selection, input_frequency=time_step, output_frequency='month')
+        sal_selection = wk_selection*sali
         nb_trim_cot = sal_to_trimcot(months_to_years(sal_selection), self.salref, self.datesim.year)
         # sal_section = (sal_to_trimcot(months_to_years(sal_selection), self.salref, self.datesim.year, option='table') != 0) * sal_selection
         # logiquement c'est mieux de garder que les salaires où il y a eu cotisation -> pour comparaison avec Pensipp plus simple de commenter
@@ -138,9 +139,10 @@ class RegimeGeneral(PensionSimulation):
                 mda.loc[mda['mda'] < 2, 'mda'] = 0
                 return mda['mda'].astype(int)
             
-        def _avpf(workstate, sali, input_step):
+        def _avpf(workstate, sali, input_frequency):
             ''' Allocation vieillesse des parents au foyer : nombre de trimestres acquis'''
-            avpf_selection = workstate_selection(workstate, code_regime = [code_avpf], input_step = input_step, output_step = 'year')
+            avpf_selection = workstate.isin([code_avpf])
+            avpf_selection = translate_frequency(avpf_selection, input_frequency=input_frequency, output_frequency='year')
             #avpf_selection = avpf_selection[[col_year for col_year in avpf_selection.columns if str(col_year)[-2:]=='01']]
             sal_avpf = avpf_selection * np.divide(sali, self.salref) # Si certains salaires son déjà attribués à des états d'avpf on les conserve (cf.Destinie)
             nb_trim = avpf_selection.sum(axis=1) * 4
