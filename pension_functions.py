@@ -2,7 +2,7 @@
 
 import numpy as np
 import pandas as pd
-from utils import interval_years, months_to_years
+from utils import interval_years, sum_by_years
 from datetime import datetime
 import pdb
 
@@ -10,24 +10,22 @@ chomage=2
 avpf = 8
 id_test = 21310 # 28332 #1882 #1851 #, 18255
 
-def translate_frequency(table, input_frequency='month', output_frequency='month', method='useless'):
+def translate_frequency(table, input_frequency='month', output_frequency='month', method=None):
     '''method should eventually control how to switch from month based table to year based table
-        so far we assume year is True if January is True '''
-    assert all( table.dtypes == 'bool')
+        so far we assume year is True if January is True 
+        '''
     if input_frequency == output_frequency:
         return table
     if output_frequency == 'year': # if True here, input_frequency=='month'
         detected_years = set([date // 100 for date in table.columns])
         output_dates = [100*x + 1 for x in detected_years]
         #here we could do more complex
-        output_table = table.loc[:, output_dates]
-        return output_table
+        if method is None:
+            return table.loc[:, output_dates]
+        if method is 'sum':
+            pdb.set_trace()
+            return output_table
     if output_frequency == 'month': # if True here, input_frequency=='year'
-        output_dates = [x + k for x in table.columns for k in range(12)]
-        output_table = pd.DataFrame(index=table.index, columns=output_dates)
-        output_table.loc[:,table.columns] = table
-        output_table.fillna(method='ffill', axis=1, inplace=True)
-        
         output_dates = [x + k for k in range(12) for x in table.columns ]
         output_table1 = pd.DataFrame(np.tile(table, 12), index=table.index, columns=output_dates)
         return output_table1.reindex_axis(sorted(output_table1.columns), axis=1)       
@@ -91,7 +89,7 @@ def calculate_SAM(sali, nb_years, time_step, plafond=None, revalorisation=None):
     ''' renvoie un vecteur des SAM 
     plaf : vecteur chronologique plafonnant les salaires (si abs pas de plafonnement)'''
     if time_step == 'month' :
-        sali = months_to_years(sali)
+        sali = sum_by_years(sali)
 #     pdb.set_trace()
     def sum_sam(data):
         nb_sali = data[-1]

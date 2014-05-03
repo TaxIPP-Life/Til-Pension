@@ -17,31 +17,7 @@ def interval_years(table):
     year_end = int(str(table.columns[-1])[0:4])
     return year_start, year_end + 1
 
-
-def years_to_months(table, division=False):
-    ''' 
-    input : yearly-table 
-    output: monthly-table with :
-        - division == False : val[yyyymm] = val[yyyy]
-        - division == True : val[yyyymm] = val[yyyy] / 12
-    '''
-    #TODO: use only numpy
-    if 'id' in table.columns:
-        table = table.drop(['id'], axis = 1)
-        
-    year_start, year_end = interval_years(table)
-    for year in range(year_start, year_end) :
-        for i in range(2,13):
-            date = year * 100 + i
-            table[date] = table[ year * 100 + 1 ]
-    table = table.reindex_axis(sorted(table.columns), axis=1)
-    table = np.array(table)
-    if division == True:
-        table = np.around(np.divide(table, 12), decimals = 3)
-    return table
-
-
-def months_to_years(table):
+def sum_by_years(table):
     year_start, year_end = interval_years(table)
     new_table = pd.DataFrame(index = table.index, columns = [(year * 100 + 1) for year in range(year_start, year_end)]).fillna(0)
     for year in range(year_start, year_end) :
@@ -50,6 +26,8 @@ def months_to_years(table):
             date = year * 100 + i
             year_data += table[date]
         new_table.loc[:, year * 100 + 1] = year_data
+    import pdb
+    pdb.set_trace()
     return new_table.astype(float)
 
 

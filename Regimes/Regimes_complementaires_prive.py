@@ -12,7 +12,7 @@ parentdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.sys.path.insert(0,parentdir) 
 
 from SimulPension import PensionSimulation
-from utils import years_to_months, months_to_years, substract_months, valbytranches, table_selected_dates, build_long_values, build_long_baremes
+from utils import sum_by_years, substract_months, valbytranches, table_selected_dates, build_long_values, build_long_baremes
 from pension_functions import calculate_SAM, nb_trim_surcote, sal_to_trimcot, unemployment_trimesters
 
 first_year_sal = 1949
