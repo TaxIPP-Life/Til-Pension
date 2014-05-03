@@ -2,7 +2,7 @@
 
 import numpy as np
 import pandas as pd
-from utils import interval_years, sum_by_years
+from utils import sum_by_years
 from datetime import datetime
 import pdb
 

@@ -8,27 +8,14 @@ import pandas as pd
 
 from datetime import date
 
-def interval_years(table):
-    table = pd.DataFrame(table)
-    if 'id' in table.columns:
-        table = table.drop(['id'], axis = 1)
-    table = table.reindex_axis(sorted(table.columns), axis=1)
-    year_start = int(str(table.columns[0])[0:4])
-    year_end = int(str(table.columns[-1])[0:4])
-    return year_start, year_end + 1
-
 def sum_by_years(table):
-    year_start, year_end = interval_years(table)
-    new_table = pd.DataFrame(index = table.index, columns = [(year * 100 + 1) for year in range(year_start, year_end)]).fillna(0)
-    for year in range(year_start, year_end) :
-        year_data = table[ year * 100 + 1 ]
-        for i in range(2,13):
-            date = year * 100 + i
-            year_data += table[date]
-        new_table.loc[:, year * 100 + 1] = year_data
-    import pdb
-    pdb.set_trace()
-    return new_table.astype(float)
+    years = set([x//100 for x in table.columns])
+    years_columns = [100*year + 1 for year in years]
+    output = table.loc[:,years_columns]
+    for month in range(1,12):
+        month_to_add = [year + month for year in years_columns]
+        output += table.loc[:, month_to_add].values
+    return output
 
 
 def substract_months(sourcedate, months):
