@@ -216,7 +216,6 @@ if __name__ == '__main__':
     
     # 5-2 : retraite complémentaire
     Retcomp = pd.read_csv('ParamRetComp.csv', sep=";")
-    print Retcomp.columns
     dates = np.array(Retcomp['annee'])
     taux_1 = np.array(Retcomp['Tx  ARRCO tot Tranche 1'])
     taux_2 = np.array(Retcomp['Tx ARRCO tot tranche 2'])

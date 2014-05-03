@@ -90,7 +90,6 @@ def calculate_SAM(sali, nb_years, time_step, plafond=None, revalorisation=None):
     plaf : vecteur chronologique plafonnant les salaires (si abs pas de plafonnement)'''
     if time_step == 'month' :
         sali = sum_by_years(sali)
-#     pdb.set_trace()
     def sum_sam(data):
         nb_sali = data[-1]
         data = np.sort(data[:-1])
@@ -101,21 +100,17 @@ def calculate_SAM(sali, nb_years, time_step, plafond=None, revalorisation=None):
             sam = 0
         return sam
 
-    # deux tables aient le même index (pd.DataFrame({'sali' : sali.index.values, 'nb_years': nb_years.index.values}).to_csv('testindex.csv'))
+    # deux tables aient le même index (pd.DataFrame({'sali': sali.index.values, 'nb_years': nb_years.index.values}).to_csv('testindex.csv'))
     assert max(sali.index) == max(nb_years.index)
     sali = sali.fillna(0) 
     if plafond is not None:
-        #print sali.ix[id_test,:]
         assert sali.shape[1] == len(plafond)
         sali = np.minimum(sali, plafond) 
-        #print sali.ix[id_test,:]
     if revalorisation is not None:
         assert sali.shape[1] == len(revalorisation)
         sali = np.multiply(sali,revalorisation)
-        #print sali.ix[id_test,:]
     nb_sali = (sali != 0).sum(1)
     nb_years[nb_sali < nb_years] = nb_sali[nb_sali < nb_years]
-    #print sali.ix[id_test]
     sali['nb_years'] = nb_years.values
     sam = sali.apply(sum_sam, 1)
     return sam

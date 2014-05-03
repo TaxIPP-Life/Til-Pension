@@ -202,9 +202,6 @@ class PensionSimulation(Simulation):
         plaf_ss = self._Plongitudinal.common.plaf_ss
         pss = build_long_values(plaf_ss, first_year=first_year_sal, last_year=yearsim)    
         taux_cot = build_long_baremes(Plong.taux_cot_moy, first_year=first_year_sal, last_year=yearsim, scale=pss)
-        print taux_cot
-        print sali.shape
-        print salref
         assert len(salref) == sali.shape[1] == len(taux_cot)
         nb_points = pd.Series(np.zeros(len(sali.index)), index=sali.index)
         if last_year_sali < first_year:
