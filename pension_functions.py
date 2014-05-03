@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 from utils import interval_years, months_to_years
 from datetime import datetime
+import pdb
 
 chomage=2
 avpf = 8
@@ -139,23 +140,3 @@ def nb_trim_surcote(trim_by_year, date_surcote):
         output[to_keep] += trim_by_year.iloc[to_keep, -(limit+1)]
             
     return output
-
-def nb_pac(info_child, index):
-    info_child['enf_pac'] = ( info_child['age_enf'] <= 18) * ( info_child['age_enf'] >= 0 )
-    info = info_child.groupby(['id_parent', 'enf_pac']).size().reset_index()
-    info = info.loc[info['enf_pac'] == True].drop('enf_pac', 1)
-    info.columns = ['id_parent', 'nb_pac']
-    info.index = info['id_parent']
-    nb_pac= pd.Series(np.zeros(len(index)), index=index)
-    nb_pac += info['nb_pac']
-    return nb_pac.fillna(0)
-
-def nb_born(info_child, index):
-    info_child['enf_born'] =  ( info_child['age_enf'] >= 0 )
-    info = info_child.groupby(['id_parent', 'enf_born']).size().reset_index()
-    info = info.loc[info['enf_born'] == True].drop('enf_born', 1)
-    info.columns = ['id_parent', 'nb_born']
-    info.index = info['id_parent']
-    nb_born= pd.Series(np.zeros(len(index)), index=index)
-    nb_born += info['nb_born']
-    return nb_born.fillna(0)
