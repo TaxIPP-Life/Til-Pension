@@ -61,7 +61,7 @@ def unemployment_trimesters(table, code_regime = None, input_step = 'month', out
             return np.divide(nb_trim, 3).round(), unemp_trim
         else:
             assert step == 'year'
-            return 4 * nb_trim, unemp_trim
+            return 4*nb_trim, unemp_trim
         
     table = table.isin(code_regime + [chomage])
     table = translate_frequency(table, input_frequency=input_step, output_frequency=input_step)

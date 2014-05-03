@@ -184,7 +184,7 @@ class PensionSimulation(Simulation):
     def calculate_taux(self, decote, surcote):
         ''' Détermination du taux de liquidation à appliquer à la pension '''
         taux_plein = self._P.plein.taux
-        return taux_plein * (1 - decote + surcote)
+        return taux_plein*(1 - decote + surcote)
         
     def nombre_points(self, first_year=first_year_sal, last_year=None):
         ''' Détermine le nombre de point à liquidation de la pension dans les régimes complémentaires (pour l'instant Ok pour ARRCO/AGIRC)
@@ -214,7 +214,7 @@ class PensionSimulation(Simulation):
             gmp = P.gmp
             #print year, taux_cot[year], sali.ix[1926 ,year *100 + 1], salref[year-first_year_sal]
             #print 'result', pd.Series(points_acquis, index=sali.index).ix[1926]
-            nb_points += np.maximum(points_acquis, gmp) * (points_acquis > 0)
+            nb_points += np.maximum(points_acquis, gmp)*(points_acquis > 0)
         return nb_points       
  
     def coeff_age(self, agem, trim):
@@ -228,13 +228,13 @@ class PensionSimulation(Simulation):
         coeff_min = pd.Series(np.zeros(len(agem)), index=agem.index)
         coeff_maj = pd.Series(np.zeros(len(agem)), index=agem.index)
         for nb_annees, coef_mino in coef_mino._tranches:
-            coeff_min += (diff_age == nb_annees) * coef_mino
+            coeff_min += (diff_age == nb_annees)*coef_mino
         if self.datesim.year <= 1955:
             maj_age = np.maximum(np.divide(agem - age_annulation_decote, 12), 0)
-            coeff_maj = maj_age * 0.05
+            coeff_maj = maj_age*0.05
             return coeff_min + coeff_maj
         elif  self.datesim.year < 1983:
             return coeff_min
         elif self.datesim.year >= 1983:
             # A partir de cette date, la minoration ne s'applique que si la durée de cotisation au régime général est inférieure à celle requise pour le taux plein
-            return  coeff_min * (N_taux > trim) + (N_taux <= trim)             
+            return  coeff_min*(N_taux > trim) + (N_taux <= trim)             

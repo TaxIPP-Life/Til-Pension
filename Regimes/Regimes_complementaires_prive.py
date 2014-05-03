@@ -13,7 +13,7 @@ os.sys.path.insert(0,parentdir)
 
 from SimulPension import PensionSimulation
 from utils import sum_by_years, substract_months, valbytranches, table_selected_dates, build_long_values, build_long_baremes
-from pension_functions import calculate_SAM, nb_trim_surcote, sal_to_trimcot, unemployment_trimesters
+from pension_functions import calculate_SAM, sal_to_trimcot, unemployment_trimesters
 
 first_year_sal = 1949
 
@@ -51,16 +51,16 @@ class AGIRC(PensionSimulation):
         taux_born = P.maj_enf.born
         taux_born11 = P.maj_enf.born11
         nb_born = self.info_ind['nb_born']
-        nb_points_11 = coeff_age * self.nombre_points(last_year = 2011)
-        nb_points12_ = coeff_age * self.nombre_points(first_year = 2012) 
+        nb_points_11 = coeff_age*self.nombre_points(last_year = 2011)
+        nb_points12_ = coeff_age*self.nombre_points(first_year = 2012) 
         points_born_11 = nb_points_11*(nb_born)*taux_born11
         points_born12_ = nb_points12_*taux_born
         points_born = (points_born_11 + points_born12_)*(nb_born >= 3)
         
         # Comparaison de la situation la plus avantageuse
         val_point = P.val_point
-        majo_born = val_point * points_born
-        majo_pac = val_point * points_pac
+        majo_born = val_point*points_born
+        majo_pac = val_point*points_pac
         yearnaiss = self.datesim.year - np.divide(agem, 12)
 #        if yearnaiss <= 1951:
 #            plafond = P.maj_enf.plaf_pac
@@ -93,7 +93,7 @@ class ARRCO(PensionSimulation):
         yearsim = self.datesim.year
         plaf_ss = self._Plongitudinal.common.plaf_ss
         pss = build_long_values(plaf_ss, first_year=first_year_sal, last_year=yearsim)    
-        self.sal_regime = sali * noncadre_selection + np.minimum(sali, pss) * cadre_selection
+        self.sal_regime = sali*noncadre_selection + np.minimum(sali, pss)*cadre_selection
         
     def majoration_enf(self, nb_points, agem):
         ''' Application de la majoration pour enfants à charge. Deux types de majorations peuvent s'appliquer :
@@ -118,8 +118,8 @@ class ARRCO(PensionSimulation):
         
         # Comparaison de la situation la plus avantageuse
         val_point = P.val_point
-        majo_born = val_point * points_born
-        majo_pac = val_point * points_pac
+        majo_born = val_point*points_born
+        majo_pac = val_point*points_pac
         yearnaiss = self.datesim.year - np.divide(agem,12)
         if self.datesim.year >= 2013:
             plafond = P.maj_enf.plaf_pac
