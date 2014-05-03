@@ -24,11 +24,13 @@ def translate_frequency(table, input_frequency='month', output_frequency='month'
         return output_table
     if output_frequency == 'month': # if True here, input_frequency=='year'
         output_dates = [x + k for x in table.columns for k in range(12)]
-        #here we could do more complex
         output_table = pd.DataFrame(index=table.index, columns=output_dates)
         output_table.loc[:,table.columns] = table
         output_table.fillna(method='ffill', axis=1, inplace=True)
-        return output_table        
+        
+        output_dates = [x + k for k in range(12) for x in table.columns ]
+        output_table1 = pd.DataFrame(np.tile(table, 12), index=table.index, columns=output_dates)
+        return output_table1.reindex_axis(sorted(output_table1.columns), axis=1)       
     
 def select_unemployment(data, code_regime, option='dummy'):
     ''' Ne conserve que les périodes de chomage succédant directement à une période de cotisation au régime
@@ -90,7 +92,7 @@ def calculate_SAM(sali, nb_years, time_step, plafond=None, revalorisation=None):
     plaf : vecteur chronologique plafonnant les salaires (si abs pas de plafonnement)'''
     if time_step == 'month' :
         sali = months_to_years(sali)
-
+#     pdb.set_trace()
     def sum_sam(data):
         nb_sali = data[-1]
         data = np.sort(data[:-1])
