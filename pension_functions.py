@@ -4,31 +4,11 @@ import numpy as np
 import pandas as pd
 import pdb
 
-from utils import _isin, sum_by_years
+from utils import _isin, sum_by_years, translate_frequency
 
 chomage=2
 avpf = 8
-id_test = 21310 # 28332 #1882 #1851 #, 18255
-
-def translate_frequency(table, input_frequency='month', output_frequency='month', method=None):
-    '''method should eventually control how to switch from month based table to year based table
-        so far we assume year is True if January is True 
-        '''
-    if input_frequency == output_frequency:
-        return table
-    if output_frequency == 'year': # if True here, input_frequency=='month'
-        detected_years = set([date // 100 for date in table.columns])
-        output_dates = [100*x + 1 for x in detected_years]
-        #here we could do more complex
-        if method is None:
-            return table.loc[:, output_dates]
-        if method is 'sum':
-            pdb.set_trace()
-            return output_table
-    if output_frequency == 'month': # if True here, input_frequency=='year'
-        output_dates = [x + k for k in range(12) for x in table.columns ]
-        output_table1 = pd.DataFrame(np.tile(table, 12), index=table.index, columns=output_dates)
-        return output_table1.reindex_axis(sorted(output_table1.columns), axis=1)       
+id_test = 21310 # 28332 #1882 #1851 #, 18255   
     
 def select_unemployment(data, code_regime, option='dummy'):
     ''' Ne conserve que les périodes de chomage succédant directement à une période de cotisation au régime

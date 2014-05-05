@@ -2,6 +2,7 @@
 
 import calendar
 import collections
+import pdb
 import datetime as dt
 import numpy as np
 import pandas as pd
@@ -107,3 +108,23 @@ def build_naiss(agem, datesim):
 def _isin(table, selected_values):
     selection = np.in1d(table, selected_values).reshape(table.shape)
     return pd.DataFrame(selection, index=table.index.copy(), columns=table.columns.copy())
+
+def translate_frequency(table, input_frequency='month', output_frequency='month', method=None):
+    '''method should eventually control how to switch from month based table to year based table
+        so far we assume year is True if January is True 
+        '''
+    if input_frequency == output_frequency:
+        return table
+    if output_frequency == 'year': # if True here, input_frequency=='month'
+        detected_years = set([date // 100 for date in table.columns])
+        output_dates = [100*x + 1 for x in detected_years]
+        #here we could do more complex
+        if method is None:
+            return table.loc[:, output_dates]
+        if method is 'sum':
+            pdb.set_trace()
+            return 
+    if output_frequency == 'month': # if True here, input_frequency=='year'
+        output_dates = [x + k for k in range(12) for x in table.columns ]
+        output_table1 = pd.DataFrame(np.tile(table, 12), index=table.index, columns=output_dates)
+        return output_table1.reindex_axis(sorted(output_table1.columns), axis=1)  
