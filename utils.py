@@ -6,6 +6,7 @@ import pdb
 import datetime as dt
 import numpy as np
 import pandas as pd
+from pandas import DataFrame
 
 from datetime import date
 
@@ -52,7 +53,7 @@ def table_selected_dates(table, first_year=None, last_year=None):
 def build_long_values(param_long, first_year, last_year):   
     ''' Cette fonction permet de traduire les paramètres longitudinaux en vecteur numpy 
     comportant une valeur par année comprise en first_year et last_year '''
-    param = pd.DataFrame( {'year' : range(first_year, last_year), 'param' : - np.ones(last_year - first_year)} ) 
+    param = DataFrame( {'year' : range(first_year, last_year), 'param' : - np.ones(last_year - first_year)} ) 
     param_t = []
     for year in range(first_year, last_year):
         param_old = param_t
@@ -107,7 +108,7 @@ def build_naiss(agem, datesim):
 
 def _isin(table, selected_values):
     selection = np.in1d(table, selected_values).reshape(table.shape)
-    return pd.DataFrame(selection, index=table.index.copy(), columns=table.columns.copy())
+    return DataFrame(selection, index=table.index.copy(), columns=table.columns.copy())
 
 def translate_frequency(table, input_frequency='month', output_frequency='month', method=None):
     '''method should eventually control how to switch from month based table to year based table
@@ -115,16 +116,32 @@ def translate_frequency(table, input_frequency='month', output_frequency='month'
         '''
     if input_frequency == output_frequency:
         return table
-    if output_frequency == 'year': # if True here, input_frequency=='month'
-        detected_years = set([date // 100 for date in table.columns])
-        output_dates = [100*x + 1 for x in detected_years]
-        #here we could do more complex
-        if method is None:
-            return table.loc[:, output_dates]
-        if method is 'sum':
-            pdb.set_trace()
-            return 
-    if output_frequency == 'month': # if True here, input_frequency=='year'
-        output_dates = [x + k for k in range(12) for x in table.columns ]
-        output_table1 = pd.DataFrame(np.tile(table, 12), index=table.index, columns=output_dates)
-        return output_table1.reindex_axis(sorted(output_table1.columns), axis=1)  
+    
+    if isinstance(table, DataFrame):
+        if output_frequency == 'year': # if True here, input_frequency=='month'
+            detected_years = set([date // 100 for date in table.columns])
+            output_dates = [100*x + 1 for x in detected_years]
+            #here we could do more complex
+            if method is None:
+                return table.loc[:, output_dates]
+            if method is 'sum':
+                pdb.set_trace()
+                return 
+        if output_frequency == 'month': # if True here, input_frequency=='year'
+            output_dates = [x + k for k in range(12) for x in table.columns ]
+            output_table1 = DataFrame(np.tile(table, 12), index=table.index, columns=output_dates)
+            return output_table1.reindex_axis(sorted(output_table1.columns), axis=1)  
+        
+    if isinstance(table, np.ndarray):
+        assert table.shape[1] % 12 == 0 #TODO: to remove eventually
+        nb_years = table.shape[1] // 12
+        if output_frequency == 'year': # if True here, input_frequency=='month'
+            output_dates = [12*x for x in xrange(nb_years)]
+            #here we could do more complex
+            if method is None:
+                return table[:, output_dates]
+            if method is 'sum':
+                pdb.set_trace()
+                return 
+        if output_frequency == 'month': # if True here, input_frequency=='year'
+            return np.repeat(table, 12, axis=1)         
