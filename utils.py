@@ -62,7 +62,7 @@ def build_long_values(param_long, first_year, last_year):
         if not param_t:
             param_t = param_old
         param.loc[param['year'] == year, 'param'] = param_long[param_t[0]] # Hypothèse sous-jacente : on prend la première valeur de l'année
-    return param['param'] 
+    return np.array(param['param'])
 
 def build_long_baremes(bareme_long, first_year, last_year, scale=None):   
     ''' Cette fonction permet de traduire les barèmes longitudinaux en dictionnaire de bareme
@@ -103,3 +103,7 @@ def build_naiss(agem, datesim):
     ''' Détermination de la date de naissance à partir de l'âge et de la date de simulation '''
     naiss = agem.apply(lambda x: substract_months(datesim, int(x)))
     return naiss
+
+def _isin(table, selected_values):
+    selection = np.in1d(table, selected_values).reshape(table.shape)
+    return pd.DataFrame(selection, index=table.index.copy(), columns=table.columns.copy())

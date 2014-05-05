@@ -13,7 +13,7 @@ from xml.etree import ElementTree
 from Param import legislations_add_pension as legislations
 from Param import legislationsxml_add_pension as  legislationsxml
 from openfisca_core import conv
-from utils import build_long_values, build_long_baremes, valbytranches, substract_months
+from utils import build_long_values, build_long_baremes, _isin, valbytranches
 #from .columns import EnumCol, EnumPresta
 #from .taxbenefitsystems import TaxBenefitSystem
 
@@ -179,7 +179,7 @@ class PensionSimulation(Simulation):
                 setattr(self, key, val)
 
     def build_sal_regime(self):
-        self.sal_regime = self.sali*(self.workstate.isin(self.code_regime))
+        self.sal_regime = self.sali*_isin(self.workstate,self.code_regime)
         
     def calculate_taux(self, decote, surcote):
         ''' Détermination du taux de liquidation à appliquer à la pension '''

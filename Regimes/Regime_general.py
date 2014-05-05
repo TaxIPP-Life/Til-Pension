@@ -2,8 +2,6 @@
 import math
 import numpy as np
 import pandas as pd
-
-from pandas import DataFrame
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 
@@ -11,7 +9,7 @@ import os
 parentdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.sys.path.insert(0,parentdir) 
 from SimulPension import PensionSimulation
-from utils import sum_by_years, valbytranches, table_selected_dates, build_long_values
+from utils import _isin, sum_by_years, valbytranches, table_selected_dates, build_long_values
 from pension_functions import calculate_SAM, nb_trim_surcote, sal_to_trimcot, unemployment_trimesters, translate_frequency
 
 code_avpf = 8
@@ -89,7 +87,8 @@ class RegimeGeneral(PensionSimulation):
             sali = translate_frequency(self.sali, input_frequency='year', output_frequency='month')
             sali = np.around(np.divide(sali, 12), decimals=3)
             
-        wk_selection = self.workstate.isin(self.code_regime)
+        wk_selection = _isin(self.workstate, self.code_regime)
+        #wk_selection.to_csv('testwork.csv')
         wk_selection = translate_frequency(wk_selection, input_frequency=time_step, output_frequency='month')
         sal_selection = wk_selection*sali
 
@@ -97,7 +96,7 @@ class RegimeGeneral(PensionSimulation):
         # sal_section = (sal_to_trimcot(sum_by_years(sal_selection), self.salref, self.datesim.year, option='table') != 0)*sal_selection
         # logiquement c'est mieux de garder que les salaires où il y a eu cotisation -> pour comparaison avec Pensipp plus simple de commenter
         self.sal_RG = sal_selection
-        self.trim_by_years = sal_to_trimcot(sum_by_years(sal_selection), self.salref, option = 'table')
+        self.trim_by_years = sal_to_trimcot(sum_by_years(sal_selection), self.salref, option='table')
         return nb_trim_cot
         
     def nb_trim_ass(self):
@@ -128,7 +127,7 @@ class RegimeGeneral(PensionSimulation):
                 return mda
             elif yearsim <1975:
                 # loi Boulin du 31 décembre 1971 
-                mda.loc[info_child.index.values, 'mda'] = 4*info_child.values
+                mda.iloc[info_child.index.values, 'mda'] = 4*info_child.values
                 mda.loc[mda['mda'] < 2, 'mda'] = 0
                 return mda.astype(int)
             elif yearsim <2004:
@@ -143,7 +142,7 @@ class RegimeGeneral(PensionSimulation):
             
         def _avpf(workstate, sali, input_frequency):
             ''' Allocation vieillesse des parents au foyer : nombre de trimestres acquis'''
-            avpf_selection = workstate.isin([code_avpf])
+            avpf_selection = _isin(workstate,[code_avpf])
             avpf_selection = translate_frequency(avpf_selection, input_frequency=input_frequency, output_frequency='year')
             #avpf_selection = avpf_selection[[col_year for col_year in avpf_selection.columns if str(col_year)[-2:]=='01']]
             sal_avpf = avpf_selection*np.divide(sali, self.salref) # Si certains salaires son déjà attribués à des états d'avpf on les conserve (cf.Destinie)
@@ -178,16 +177,15 @@ class RegimeGeneral(PensionSimulation):
             trim_avpf = table_selected_dates(trim_avpf, first_year = 1972, last_year=yearsim)
             sal_avpf = np.multiply((trim_avpf != 0), smic ) #*2028 = 151.66*12 if horaires
             dates_avpf = [date for date in sal_RG.columns if date >= 197201]
-            sal_RG.loc[:,dates_avpf] = sal_RG.loc[:,dates_avpf] + sal_avpf.loc[:,dates_avpf]
-            return sal_RG
+            sal_RG.loc[:,dates_avpf] += sal_avpf.loc[:,dates_avpf]
+            return np.round(sal_RG,2)
         
         smic_long = build_long_values(param_long=self._Plongitudinal.common.smic_proj, first_year=1972, last_year=yearsim) # avant pas d'avpf
-        sal_sam = _sal_for_sam(sum_by_years(self.sal_RG), self.trim_avpf, smic_long) #-> True legislation (on préfère la ligne suivante pour comparer Destinie)
-        if sal_avpf == True:
-            sal_sam = sum_by_years(self.sal_RG) + self.sal_avpf 
+        sal_sam = _sal_for_sam(sum_by_years(self.sal_RG), self.trim_avpf, smic_long)
         SAM = calculate_SAM(sal_sam, nb_years, time_step='year', plafond=plafond, revalorisation=revalo)
         self.sal_RG = sal_sam
-        return SAM.round(2)
+        #print "plafond : {},revalo : {}, sal_sam: {}, calculate_sam:{}".format(t1-t0,t2-t1,t3 -t2, t4 - t3)
+        return np.round(SAM,2)
     
     def assurance_maj(self, trim_RG, trim_tot, agem):
         ''' Détermination de la durée d'assurance corrigée introduite par la réforme Boulin
@@ -257,12 +255,14 @@ class RegimeGeneral(PensionSimulation):
             ''' Détermine la date individuelle a partir de laquelle il y a surcote ( a atteint l'âge légal de départ en retraite + côtisé le nombre de trimestres cible 
             Rq : pour l'instant on pourrait ne renvoyer que l'année'''
             trim_cum = trim_by_years.cumsum(axis=1)
-            years_surcote = np.greater(trim_cum.T,(N_t - trim_maj.fillna(0))).T
-            nb_years_surcote = years_surcote.sum(axis=1)
+            trim_limit = np.array((N_t - trim_maj.fillna(0)))
+            years_surcote = np.greater(trim_cum.T,trim_limit)
+            nb_years_surcote = years_surcote.sum(axis=0)
             #nb_years_surcote = trim_cum.apply(lambda col: np.greater(col,(N_t - trim_maj.fillna(0))), axis = 0) 
             date_cond_trim = (nb_years_surcote).apply(lambda y: date - relativedelta(years = int(y) ))
             date_cond_age = (agem - agemin).apply(lambda m: date - relativedelta(months = int(m)))
             return np.maximum(date_cond_age, date_cond_trim)
+
         
         def _trimestre_surcote_0304(trim_by_years_RG, date_surcote, P):
             ''' surcote associée aux trimestres côtisés entre 2003 et 2004 

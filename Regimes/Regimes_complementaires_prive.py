@@ -1,19 +1,12 @@
 # -*- coding:utf-8 -*-
-import math
 import numpy as np
-import pandas as pd
-
-from pandas import DataFrame
-from datetime import datetime
-from dateutil.relativedelta import relativedelta
-
 import os
+
 parentdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.sys.path.insert(0,parentdir) 
 
 from SimulPension import PensionSimulation
-from utils import sum_by_years, substract_months, valbytranches, table_selected_dates, build_long_values, build_long_baremes
-from pension_functions import calculate_SAM, sal_to_trimcot, unemployment_trimesters
+from utils import build_long_values
 
 first_year_sal = 1949
 
@@ -61,7 +54,7 @@ class AGIRC(PensionSimulation):
         val_point = P.val_point
         majo_born = val_point*points_born
         majo_pac = val_point*points_pac
-        yearnaiss = self.datesim.year - np.divide(agem, 12)
+#        yearnaiss = self.datesim.year - np.divide(agem, 12)
 #        if yearnaiss <= 1951:
 #            plafond = P.maj_enf.plaf_pac
 #            majo_pac = np.minimum(majo_pac, plafond)

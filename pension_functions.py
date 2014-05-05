@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
-
+#import bottleneck as bn
 import numpy as np
 import pandas as pd
-from utils import sum_by_years
-from datetime import datetime
 import pdb
+
+from utils import _isin, sum_by_years
 
 chomage=2
 avpf = 8
@@ -39,7 +39,7 @@ def select_unemployment(data, code_regime, option='dummy'):
     unemp = data.copy().replace(code_regime, 0)
     #unemp.loc[unemp[previous_col] == chomage, previous_col] = 1 -> A commenter si l'on ne veut pas comptabiliser les trimestres de chômage initiaux (Hypothèse)
     for col in data_col:
-        selected_chom = (data[previous_col].isin(code_regime + [chomage]))& (data[col] == chomage)
+        selected_chom = np.in1d(data[previous_col],code_regime + [chomage]) & (data[col] == chomage)
         unemp.loc[selected_chom, col] = 1
         previous_col = col
     if option == 'code':
@@ -63,7 +63,7 @@ def unemployment_trimesters(table, code_regime = None, input_step = 'month', out
             assert step == 'year'
             return 4*nb_trim, unemp_trim
         
-    table = table.isin(code_regime + [chomage])
+    table = _isin(table, code_regime + [chomage])
     table = translate_frequency(table, input_frequency=input_step, output_frequency=input_step)
     nb_trim_chom, unemp_trim = _calculate_trim_unemployment(table, step = input_step, code_regime = code_regime)
     if output == 'table_unemployement':
@@ -88,32 +88,38 @@ def sal_to_trimcot(sal_cot, salref, option='vector'):
 def calculate_SAM(sali, nb_years, time_step, plafond=None, revalorisation=None):
     ''' renvoie un vecteur des SAM 
     plaf : vecteur chronologique plafonnant les salaires (si abs pas de plafonnement)'''
+    assert max(sali.index) == max(nb_years.index)
+    nb_sali = (sali != 0).sum(1)
+    nb_years[nb_sali < nb_years] = nb_sali[nb_sali < nb_years]
+    sali = sali.fillna(0) 
+    sali = np.array(sali)
     if time_step == 'month' :
         sali = sum_by_years(sali)
     def sum_sam(data):
         nb_sali = data[-1]
+        #data = -bn.partsort(-data, nb_sali)[:nb_sali]
         data = np.sort(data[:-1])
         data = data[-nb_sali:]
-        if nb_sali != 0 :
-            sam = data.sum() / nb_sali
-        else:
+        if nb_sali == 0 :
             sam = 0
+        else:
+            sam = data.sum() / nb_sali
         return sam
 
     # deux tables aient le même index (pd.DataFrame({'sali': sali.index.values, 'nb_years': nb_years.index.values}).to_csv('testindex.csv'))
-    assert max(sali.index) == max(nb_years.index)
-    sali = sali.fillna(0) 
+
     if plafond is not None:
         assert sali.shape[1] == len(plafond)
         sali = np.minimum(sali, plafond) 
     if revalorisation is not None:
         assert sali.shape[1] == len(revalorisation)
         sali = np.multiply(sali,revalorisation)
-    nb_sali = (sali != 0).sum(1)
-    nb_years[nb_sali < nb_years] = nb_sali[nb_sali < nb_years]
-    sali['nb_years'] = nb_years.values
-    sam = sali.apply(sum_sam, 1)
-    return sam
+    sali_sam = np.zeros((sali.shape[0],sali.shape[1]+1))
+    sali_sam[:,:-1] = sali
+    sali_sam[:,-1] = nb_years.values
+    sam = np.apply_along_axis(sum_sam, axis=1, arr=sali_sam)
+    #sali.apply(sum_sam, 1)
+    return pd.Series(sam, index = nb_years.index)
 
 def nb_trim_surcote(trim_by_year, date_surcote):
     ''' Cette fonction renvoie le vecteur du nombre de trimestres surcotés à partir de :
