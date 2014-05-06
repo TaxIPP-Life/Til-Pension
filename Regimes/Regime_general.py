@@ -254,15 +254,19 @@ class RegimeGeneral(PensionSimulation):
         def _date_surcote(trim_by_years, trim_maj, agem, agemin = age_min, N_t = N_taux, date = self.datesim):
             ''' Détermine la date individuelle a partir de laquelle il y a surcote ( a atteint l'âge légal de départ en retraite + côtisé le nombre de trimestres cible 
             Rq : pour l'instant on pourrait ne renvoyer que l'année'''
-            trim_cum = trim_by_years.cumsum(axis=1)
+            date_liam = date.year*100 + 1
+            cumul_trim = trim_by_years.cumsum(axis=1)
             trim_limit = np.array((N_t - trim_maj.fillna(0)))
-            years_surcote = np.greater(trim_cum.T,trim_limit)
+            years_surcote = np.greater(cumul_trim.T,trim_limit)
             nb_years_surcote = years_surcote.sum(axis=0)
-            #nb_years_surcote = trim_cum.apply(lambda col: np.greater(col,(N_t - trim_maj.fillna(0))), axis = 0) 
-            date_cond_trim = (nb_years_surcote).apply(lambda y: date - relativedelta(years = int(y) ))
-            date_cond_age = (agem - agemin).apply(lambda m: date - relativedelta(months = int(m)))
-            return np.maximum(date_cond_age, date_cond_trim)
+            #date_cond_trim = (nb_years_surcote).apply(lambda y: date - relativedelta(years = int(y) ))
+            #date_cond_age = (agem - agemin).apply(lambda m: date - relativedelta(months = int(m)))
+            #return np.maximum(date_cond_age, date_cond_trim)
+            date_surcote = [int(max(date_liam - year_surcote*100, 
+                                    date_liam - month_trim//12*100 - month_trim%12))
+                            for year_surcote, month_trim in zip(nb_years_surcote, agem-agemin)]
 
+            return date_surcote
         
         def _trimestre_surcote_0304(trim_by_years_RG, date_surcote, P):
             ''' surcote associée aux trimestres côtisés entre 2003 et 2004 

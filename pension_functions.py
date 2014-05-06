@@ -104,22 +104,19 @@ def calculate_SAM(sali, nb_years, time_step, plafond=None, revalorisation=None):
 def nb_trim_surcote(trim_by_year, date_surcote):
     ''' Cette fonction renvoie le vecteur du nombre de trimestres surcotés à partir de :
     - la table du nombre de trimestre comptablisé au sein du régime par année
-    - le vecteur des dates à partir desquelles les individus surcote (détermination sur cotisations tout régime confondu)
-    TODO: Comptabilisation plus fine pour surcote en cours d'années'''
+    - le vecteur des dates (format yyyymm) à partir desquelles les individus surcote (détermination sur cotisations tout régime confondu)
+    '''
     if 'yearsurcote' in trim_by_year.columns:
         trim_by_year = trim_by_year.drop('yearsurcote', axis=1)
-    yearmax = np.divide(max(trim_by_year.columns), 100)  
-
-#     yearsurcote = [date.year for date in date_surcote]
-    limit_index = np.array([yearmax - date.year + 1 for date in date_surcote])
-
+    yearmax = max(trim_by_year.columns) // 100
+    yearmin = min(date_surcote) // 100
+    # Possible dates for surcote :
+    dates_surcote = [date for date in trim_by_year.columns
+                      if date//100 >= yearmin and date//100 <= yearmax]
     output = pd.Series(0, index=trim_by_year.index)
-    ncol = trim_by_year.shape[1]
-    #TODO: remove condition on ncol, it should not occur with a good use
-    for limit in range(min(max(limit_index), ncol)):
-        to_keep = limit_index > limit
-        output[to_keep] += trim_by_year.iloc[to_keep, -(limit+1)]
-            
+    for date in dates_surcote:
+        to_keep = (date >= date_surcote) 
+        output[to_keep] += trim_by_year.loc[to_keep, date]
     return output
 
 def count_enf_pac(info_child, index):
