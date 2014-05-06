@@ -2868,6 +2868,10 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 			</TRANCHE>
 		</VALBYTRANCHES>
    	   <NODE description="Fonction publique sédentaire" code="sedentaire" >
+   	   	<CODE description="Durée d'assurance pour ouverture de droits à pension" code="N_min" format="integer">
+	  	  <VALUE valeur= "180" deb="1949-01-01" fin="2011-06-31"/>
+	  	  <VALUE valeur= "24" deb="2011-07-01" fin="2100-12-31"/>
+	  	</CODE>
    	   	  <VALBYTRANCHES description="Age limite de la fonction publique sédentaire par génération" code="age_max" format="integer">
 		    <VARCONTROL>
 			  <CONTROL valeur="naiss" deb="1994-01-01" fin="2100-12-31" format="date"/> # True value : 01/07/2001
@@ -3004,7 +3008,16 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 		   </VALBYTRANCHES>
    	   </NODE>
    	   <NODE description="Fonction publique active" code="actif" >
-   	   	 <VALBYTRANCHES description="Age limite de la fonction publique active par génération" code="age_max" format="integer">
+   	   	<CODE description="Durée d'assurance pour ouverture de droits à pension" code="N_min" format="integer">
+	  	  <VALUE valeur= "180" deb="1949-01-01" fin="2011-06-31"/>
+	  	  <VALUE valeur= "184" deb="2011-01-01" fin="2011-12-31"/>
+	  	  <VALUE valeur= "189" deb="2012-01-01" fin="2012-12-31"/>
+	  	  <VALUE valeur= "189" deb="2012-01-01" fin="2012-12-31"/>
+	  	  <VALUE valeur= "194" deb="2013-01-01" fin="2013-12-31"/>
+	  	  <VALUE valeur= "199" deb="2014-01-01" fin="2014-12-31"/>
+	  	  <VALUE valeur= "204" deb="2015-01-01" fin="2100-12-31"/>
+	  	</CODE>
+	  	<VALBYTRANCHES description="Age limite de la fonction publique active par génération" code="age_max" format="integer">
 		    <VARCONTROL>
 			  <CONTROL valeur="naiss" deb="1994-01-01" fin="2100-12-31" format="date"/> # True value : 01/07/2001
 		    </VARCONTROL> 
