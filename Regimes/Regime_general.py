@@ -9,7 +9,7 @@ import os
 parentdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.sys.path.insert(0,parentdir) 
 from SimulPension import PensionSimulation
-from utils import _isin, sum_by_years, valbytranches, table_selected_dates, build_long_values, translate_frequency
+from utils_pension import _isin, sum_by_years, valbytranches, table_selected_dates, build_long_values, translate_frequency
 from pension_functions import calculate_SAM, nb_trim_surcote, sal_to_trimcot, unemployment_trimesters
 
 code_avpf = 8
@@ -31,9 +31,6 @@ class RegimeGeneral(PensionSimulation):
         self._P = param_regime
         self._Pcom = param_common
         self._Plongitudinal = param_longitudinal
-        
-        self.info_child_mother = None
-        self.info_child_father = None
 
      
     def build_salref(self):
@@ -122,7 +119,6 @@ class RegimeGeneral(PensionSimulation):
             mda = pd.DataFrame({'mda': np.zeros(len(list_id))}, index=list_id)
             # TODO: distinguer selon l'âge des enfants après 2003
             # ligne suivante seulement if info_child['age_enf'].min() > 16 :
-            info_child = info_child.groupby('id_parent')['nb_enf'].sum()
             if yearsim < 1972 :
                 return mda
             elif yearsim <1975:
@@ -149,12 +145,11 @@ class RegimeGeneral(PensionSimulation):
             nb_trim = avpf_selection.sum(axis=1)*4
             return nb_trim, avpf_selection, sal_avpf
         
-        # info_child est une DataFrame comportant trois colonnes : identifiant du parent, âge de l'enfant, nb d'enfants du parent ayant cet âge  
-        info_child_mother = self.info_child_mother
+        child_mother = self.info_ind.loc[self.info_ind['sexe'] == 1, 'nb_born']
         list_id = self.sali.index.values
         yearsim = self.datesim.year
-        if info_child_mother is not None:
-            nb_trim_mda = _mda(info_child_mother, list_id, yearsim)
+        if child_mother is not None:
+            nb_trim_mda = _mda(child_mother, list_id, yearsim)
         else :
             nb_trim_mda = 0
         nb_trim_avpf, trim_avpf, sal_avpf = _avpf(self.workstate, self.sali, self.time_step)
