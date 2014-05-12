@@ -10,11 +10,11 @@ chomage=2
 avpf = 8
 id_test = 21310 # 28332 #1882 #1851 #, 18255   
     
-def select_unemployment(data, code_regime, option='dummy'):
+def select_unemployment(data, code_regime, option='dummy', data_type='numpy'):
     ''' Ne conserve que les périodes de chomage succédant directement à une période de cotisation au régime
     TODO: A améliorer car boucle for très moche
     Rq : on fait l'hypothèse que les personnes étant au chômage en t0 côtisent au RG '''
-    if isinstance(data, np.ndarray):
+    if data_type == 'numpy':
         unemp = np.zeros((data.shape[0],data.shape[1]))
         unemp[:,0] = (data[:,0] == chomage)
         #unemp.loc[unemp[previous_col] == chomage, previous_col] = 1 -> A commenter si l'on ne veut pas comptabiliser les trimestres de chômage initiaux (Hypothèse)
@@ -25,7 +25,7 @@ def select_unemployment(data, code_regime, option='dummy'):
         unemp[:,1:] = selected_chom
         return unemp
     
-    if isinstance(data, pd.DataFrame):
+    if data_type == 'pandas':
         data_col = data.columns[1:]
         previous_col = data.columns[0]
         unemp = data.copy().replace(code_regime, 0)
@@ -63,14 +63,14 @@ def unemployment_trimesters(table, code_regime = None, input_step = 'month', out
     else:
         return nb_trim_chom
 
-def sal_to_trimcot(sal_cot, salref, option='vector'):
+def sal_to_trimcot(sal_cot, salref, option='vector', data_type='numpy'):
     ''' A partir de la table des salaires annuels côtisés au sein du régime, on détermine le vecteur du nombre de trimestres côtisés jusqu'à la date mentionnée
     sal_cot : table ne contenant que les salaires annuels cotisés au sein du régime (lignes : individus / colonnes : date)
     salref : vecteur des salaires minimum (annuels) à comparer pour obtenir le nombre de trimestre
     last_year: dernière année (exclue) jusqu'à laquelle on déompte le nombre de trimestres'''
-    if isinstance(sal_cot, np.ndarray):
+    if data_type == 'numpy':
         sal_cot[np.isnan(sal_cot)] = 0
-    else:
+    if data_type == 'pandas':
         sal_cot = sal_cot.fillna(0)
     nb_trim_cot = np.minimum(np.divide(sal_cot,salref).astype(int), 4)
     if option == 'table':
@@ -80,14 +80,14 @@ def sal_to_trimcot(sal_cot, salref, option='vector'):
         return nb_trim_cot
     
     
-def calculate_SAM(sali, nb_years_pd, time_step, plafond=None, revalorisation=None):
+def calculate_SAM(sali, nb_years_pd, time_step, plafond=None, revalorisation=None, data_type='numpy'):
     ''' renvoie un vecteur des SAM 
     plaf : vecteur chronologique plafonnant les salaires (si abs pas de plafonnement)'''
     
     nb_sali = (sali != 0).sum(1)
     nb_years = np.array(nb_years_pd)
     nb_years[nb_sali < nb_years] = nb_sali[nb_sali < nb_years]
-    if isinstance(sali, pd.DataFrame):
+    if data_type == 'pandas':
         assert max(sali.index) == max(nb_years.index)
         sali = sali.fillna(0) 
         sali = np.array(sali)

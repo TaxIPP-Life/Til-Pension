@@ -186,7 +186,7 @@ class PensionSimulation(Simulation):
         taux_plein = self._P.plein.taux
         return taux_plein*(1 - decote + surcote)
         
-    def nombre_points(self, first_year=first_year_sal, last_year=None):
+    def nombre_points(self, first_year=first_year_sal, last_year=None, data_type='numpy'):
         ''' Détermine le nombre de point à liquidation de la pension dans les régimes complémentaires (pour l'instant Ok pour ARRCO/AGIRC)
         Pour calculer ces points, il faut diviser la cotisation annuelle ouvrant des droits par le salaire de référence de l'année concernée 
         et multiplier par le taux d'acquisition des points'''
@@ -203,7 +203,7 @@ class PensionSimulation(Simulation):
         taux_cot = build_long_baremes(Plong.taux_cot_moy, first_year=first_year_sal, last_year=yearsim, scale=pss)
         sali = self.sal_regime
         assert len(salref) == sali.shape[1] == len(taux_cot)
-        if isinstance(sali, pd.DataFrame):
+        if data_type == 'pandas':
             nb_points = pd.Series(np.zeros(len(sali.index)), index=sali.index)
             if last_year_sali < first_year:
                 return nb_points
@@ -214,7 +214,7 @@ class PensionSimulation(Simulation):
                 #print 'result', pd.Series(points_acquis, index=sali.index).ix[1926]
                 nb_points += np.maximum(points_acquis, gmp)*(points_acquis > 0)
             return nb_points
-        if isinstance(sali, np.ndarray):
+        if data_type == 'numpy':
             nb_points = np.zeros(sali.shape[0])
             if last_year_sali < first_year:
                 return nb_points

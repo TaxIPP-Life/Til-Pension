@@ -106,14 +106,15 @@ def build_naiss(agem, datesim):
     naiss = agem.apply(lambda x: substract_months(datesim, int(x)))
     return naiss
 
-def _isin(table, selected_values):
+def _isin(table, selected_values, data_type='numpy'):
     selection = np.in1d(table, selected_values).reshape(table.shape)
-    if isinstance(table, DataFrame):
+    if data_type == 'pandas':
         return DataFrame(selection, index=table.index.copy(), columns=table.columns.copy())
-    if isinstance(table, np.ndarray):
+    if data_type == 'numpy':
         return selection
 
-def translate_frequency(table, input_frequency='month', output_frequency='month', method=None):
+def translate_frequency(table, input_frequency='month', output_frequency='month', method=None,
+                         data_type='numpy'):
     '''method should eventually control how to switch from month based table to year based table
         so far we assume year is True if January is True 
         idea : format_table as an argument instead of testing with isinstance
@@ -121,7 +122,7 @@ def translate_frequency(table, input_frequency='month', output_frequency='month'
     if input_frequency == output_frequency:
         return table
     
-    if isinstance(table, DataFrame):
+    if data_type == 'pandas':
         if output_frequency == 'year': # if True here, input_frequency=='month'
             detected_years = set([date // 100 for date in table.columns])
             output_dates = [100*x + 1 for x in detected_years]
@@ -136,7 +137,7 @@ def translate_frequency(table, input_frequency='month', output_frequency='month'
             output_table1 = DataFrame(np.tile(table, 12), index=table.index, columns=output_dates)
             return output_table1.reindex_axis(sorted(output_table1.columns), axis=1)  
         
-    if isinstance(table, np.ndarray):
+    if data_type == 'numpy':
         if output_frequency == 'year': # if True here, input_frequency=='month'
             assert table.shape[1] % 12 == 0 #TODO: to remove eventually
             nb_years = table.shape[1] // 12
@@ -153,4 +154,4 @@ def translate_frequency(table, input_frequency='month', output_frequency='month'
 
         if output_frequency == 'month': # if True here, input_frequency=='year'
             return np.repeat(table, 12, axis=1)    
-            #return np.kron(table, np.ones(12))  
+            #return np.kron(table, np.ones(12))
