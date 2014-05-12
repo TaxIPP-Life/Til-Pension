@@ -171,17 +171,16 @@ class RegimeGeneral(PensionSimulation):
         revalo = build_long_values(param_long=self._Plongitudinal.prive.RG.revalo, first_year=first_year_sal, last_year=yearsim)
         for i in range(1, len(revalo)) :
             revalo[:i] *= revalo[i]
-        def _sal_for_sam(sal_RG, trim_avpf, smic):
+        def _sal_for_sam(sal_RG, trim_avpf, smic, data_type='numpy'):
             ''' construit la matrice des salaires de références '''
-
-            if isinstance(sal_RG, np.ndarray):
+            if data_type == 'numpy':
                 # TODO: check if annual step in sal_avpf and sal_RG
                 first_ix_avpf = 1972 - first_year_sal
                 trim_avpf = trim_avpf[:,first_ix_avpf:]
                 sal_avpf = np.multiply((trim_avpf != 0), smic ) #*2028 = 151.66*12 if horaires
                 sal_RG[:,first_ix_avpf] += sal_avpf[:,first_ix_avpf]
                 return np.round(sal_RG,2)
-            if isinstance(sal_RG, pd.DataFrame):
+            if data_type == 'pandas':
                 trim_avpf = table_selected_dates(trim_avpf, self.dates, first_year=1972, last_year=yearsim)
                 sal_avpf = np.multiply((trim_avpf != 0), smic ) #*2028 = 151.66*12 if horaires
                 dates_avpf = [date for date in sal_RG.columns if date >= 197201]
