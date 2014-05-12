@@ -69,7 +69,7 @@ class RegimeGeneral(PensionSimulation):
                         salmin.loc[salmin['year'] == year, 'sal'] = 200*smic_long[smic_year[0]]/6.5596
                 else:
                     salmin.loc[salmin['year'] == year, 'sal'] = 150*smic_long[smic_year[0]]
-            self.salref = salmin['sal']
+            self.salref = np.array(salmin['sal'])
         
             
     def nb_trim_cot(self):
@@ -89,11 +89,12 @@ class RegimeGeneral(PensionSimulation):
         wk_selection = translate_frequency(wk_selection, input_frequency=time_step, output_frequency='month')
         sal_selection = wk_selection*sali
 
-        nb_trim_cot = sal_to_trimcot(sum_by_years(sal_selection), self.salref, self.datesim.year)
+        nb_trim_cot, trim_by_years = sal_to_trimcot(translate_frequency(sal_selection, input_frequency='month', output_frequency='year', method='sum'),
+                                                    self.salref, option='table')
         # sal_section = (sal_to_trimcot(sum_by_years(sal_selection), self.salref, self.datesim.year, option='table') != 0)*sal_selection
         # logiquement c'est mieux de garder que les salaires où il y a eu cotisation -> pour comparaison avec Pensipp plus simple de commenter
         self.sal_RG = sal_selection
-        self.trim_by_years = sal_to_trimcot(sum_by_years(sal_selection), self.salref, option='table')
+        self.trim_by_years = trim_by_years
         return nb_trim_cot
         
     def nb_trim_ass(self):
@@ -106,7 +107,10 @@ class RegimeGeneral(PensionSimulation):
         nb_trim_chom, table_chom = unemployment_trimesters(self.workstate, code_regime=self.code_regime,
                                                             input_step=self.time_step, output='table_unemployement')
         nb_trim_ass = nb_trim_chom # TODO: + nb_trim_war + ....
-        self.trim_by_years += table_chom
+        self.trim_by_years = pd.DataFrame(self.trim_by_years + table_chom, 
+                                          columns=[year*100 + 1 for year in range(first_year_sal, self.datesim.year)],
+                                          index=self.info_ind.index)
+        
         return nb_trim_ass
             
     def nb_trim_maj(self):
@@ -146,7 +150,7 @@ class RegimeGeneral(PensionSimulation):
             return nb_trim, avpf_selection, sal_avpf
         
         child_mother = self.info_ind.loc[self.info_ind['sexe'] == 1, 'nb_born']
-        list_id = self.sali.index.values
+        list_id = self.info_ind.index
         yearsim = self.datesim.year
         if child_mother is not None:
             nb_trim_mda = _mda(child_mother, list_id, yearsim)
@@ -169,14 +173,24 @@ class RegimeGeneral(PensionSimulation):
             revalo[:i] *= revalo[i]
         def _sal_for_sam(sal_RG, trim_avpf, smic):
             ''' construit la matrice des salaires de références '''
-            trim_avpf = table_selected_dates(trim_avpf, first_year = 1972, last_year=yearsim)
-            sal_avpf = np.multiply((trim_avpf != 0), smic ) #*2028 = 151.66*12 if horaires
-            dates_avpf = [date for date in sal_RG.columns if date >= 197201]
-            sal_RG.loc[:,dates_avpf] += sal_avpf.loc[:,dates_avpf]
-            return np.round(sal_RG,2)
-        
+
+            if isinstance(sal_RG, np.ndarray):
+                # TODO: check if annual step in sal_avpf and sal_RG
+                first_ix_avpf = 1972 - first_year_sal
+                trim_avpf = trim_avpf[:,first_ix_avpf:]
+                sal_avpf = np.multiply((trim_avpf != 0), smic ) #*2028 = 151.66*12 if horaires
+                sal_RG[:,first_ix_avpf] += sal_avpf[:,first_ix_avpf]
+                return np.round(sal_RG,2)
+            if isinstance(sal_RG, pd.DataFrame):
+                trim_avpf = table_selected_dates(trim_avpf, first_year=1972, last_year=yearsim)
+                sal_avpf = np.multiply((trim_avpf != 0), smic ) #*2028 = 151.66*12 if horaires
+                dates_avpf = [date for date in sal_RG.columns if date >= 197201]
+                sal_RG.loc[:,dates_avpf] += sal_avpf.loc[:,dates_avpf]
+                return np.round(sal_RG,2)
+                    
         smic_long = build_long_values(param_long=self._Plongitudinal.common.smic_proj, first_year=1972, last_year=yearsim) # avant pas d'avpf
-        sal_sam = _sal_for_sam(sum_by_years(self.sal_RG), self.trim_avpf, smic_long)
+        sal_RG_yearly = translate_frequency(self.sal_RG, input_frequency='month', output_frequency='year', method='sum')
+        sal_sam = _sal_for_sam(sal_RG_yearly, self.trim_avpf, smic_long)
         SAM = calculate_SAM(sal_sam, nb_years, time_step='year', plafond=plafond, revalorisation=revalo)
         self.sal_RG = sal_sam
         #print "plafond : {},revalo : {}, sal_sam: {}, calculate_sam:{}".format(t1-t0,t2-t1,t3 -t2, t4 - t3)

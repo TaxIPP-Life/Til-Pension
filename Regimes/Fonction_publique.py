@@ -38,7 +38,7 @@ class FonctionPublique(PensionSimulation):
         self.info_child_mother = None
         self.info_child_father = None
         self.time_step = None
-        
+        self.format_table = 'numpy' #format des tables 'sali' et 'workstate'
         
     def trim_service(self):
         ''' Cette fonction pertmet de calculer la durée de service dans FP
@@ -65,8 +65,8 @@ class FonctionPublique(PensionSimulation):
         self._P.age_min_vec = age_min
         
         # age limite = age limite associée à la catégorie de l’emploi exercé en dernier lieu
-        last_wk = self.workstate.iloc[:,-1]
-        fp = last_wk.isin(self.code_regime)
+        last_wk = self.workstate[:,-1]
+        fp = _isin(last_wk, self.code_regime)
         actif = (last_wk == self.code_actif)
         sedentaire = fp*(1 - actif)
         age_max_s = valbytranches(P.sedentaire.age_max, self.info_ind)

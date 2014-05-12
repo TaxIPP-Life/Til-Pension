@@ -108,11 +108,15 @@ def build_naiss(agem, datesim):
 
 def _isin(table, selected_values):
     selection = np.in1d(table, selected_values).reshape(table.shape)
-    return DataFrame(selection, index=table.index.copy(), columns=table.columns.copy())
+    if isinstance(table, DataFrame):
+        return DataFrame(selection, index=table.index.copy(), columns=table.columns.copy())
+    if isinstance(table, np.ndarray):
+        return selection
 
 def translate_frequency(table, input_frequency='month', output_frequency='month', method=None):
     '''method should eventually control how to switch from month based table to year based table
         so far we assume year is True if January is True 
+        idea : format_table as an argument instead of testing with isinstance
         '''
     if input_frequency == output_frequency:
         return table
@@ -133,15 +137,20 @@ def translate_frequency(table, input_frequency='month', output_frequency='month'
             return output_table1.reindex_axis(sorted(output_table1.columns), axis=1)  
         
     if isinstance(table, np.ndarray):
-        assert table.shape[1] % 12 == 0 #TODO: to remove eventually
-        nb_years = table.shape[1] // 12
         if output_frequency == 'year': # if True here, input_frequency=='month'
+            assert table.shape[1] % 12 == 0 #TODO: to remove eventually
+            nb_years = table.shape[1] // 12
             output_dates = [12*x for x in xrange(nb_years)]
             #here we could do more complex
             if method is None:
                 return table[:, output_dates]
             if method is 'sum':
-                pdb.set_trace()
-                return 
+                output = table[:, output_dates].copy()
+                for month in range(1,12):
+                    month_to_add = [year*12 + month for year in xrange(nb_years)]
+                    output += table[:, month_to_add]
+                return output
+
         if output_frequency == 'month': # if True here, input_frequency=='year'
-            return np.repeat(table, 12, axis=1)         
+            return np.repeat(table, 12, axis=1)    
+            #return np.kron(table, np.ones(12))  

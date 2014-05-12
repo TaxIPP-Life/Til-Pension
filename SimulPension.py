@@ -197,22 +197,35 @@ class PensionSimulation(Simulation):
         regime = self.regime
         P = self._P.complementaire.__dict__[regime]
         Plong = self._Plongitudinal.prive.complementaire.__dict__[regime]
-        sali = self.sal_regime
         salref = build_long_values(Plong.sal_ref, first_year=first_year_sal, last_year=yearsim)
         plaf_ss = self._Plongitudinal.common.plaf_ss
         pss = build_long_values(plaf_ss, first_year=first_year_sal, last_year=yearsim)    
         taux_cot = build_long_baremes(Plong.taux_cot_moy, first_year=first_year_sal, last_year=yearsim, scale=pss)
+        sali = self.sal_regime
         assert len(salref) == sali.shape[1] == len(taux_cot)
-        nb_points = pd.Series(np.zeros(len(sali.index)), index=sali.index)
-        if last_year_sali < first_year:
+        if isinstance(sali, pd.DataFrame):
+            nb_points = pd.Series(np.zeros(len(sali.index)), index=sali.index)
+            if last_year_sali < first_year:
+                return nb_points
+            for year in range(first_year, min(last_year_sali, last_year) + 1):
+                points_acquis = np.divide(taux_cot[year].calc(sali[year*100 + 1]), salref[year-first_year_sal]).round(2) 
+                gmp = P.gmp
+                #print year, taux_cot[year], sali.ix[1926 ,year *100 + 1], salref[year-first_year_sal]
+                #print 'result', pd.Series(points_acquis, index=sali.index).ix[1926]
+                nb_points += np.maximum(points_acquis, gmp)*(points_acquis > 0)
             return nb_points
-        for year in range(first_year, min(last_year_sali, last_year) + 1):
-            points_acquis = np.divide(taux_cot[year].calc(sali[year*100 + 1]), salref[year-first_year_sal]).round(2) 
-            gmp = P.gmp
-            #print year, taux_cot[year], sali.ix[1926 ,year *100 + 1], salref[year-first_year_sal]
-            #print 'result', pd.Series(points_acquis, index=sali.index).ix[1926]
-            nb_points += np.maximum(points_acquis, gmp)*(points_acquis > 0)
-        return nb_points       
+        if isinstance(sali, np.ndarray):
+            nb_points = np.zeros(sali.shape[0])
+            if last_year_sali < first_year:
+                return nb_points
+            for year in range(first_year, min(last_year_sali, last_year) + 1):
+                ix_year = year - first_year
+                points_acquis = np.divide(taux_cot[year].calc(sali[:,ix_year]), salref[year-first_year_sal]).round(2) 
+                gmp = P.gmp
+                #print year, taux_cot[year], sali.ix[1926 ,year *100 + 1], salref[year-first_year_sal]
+                #print 'result', pd.Series(points_acquis, index=sali.index).ix[1926]
+                nb_points += np.maximum(points_acquis, gmp)*(points_acquis > 0)
+            return nb_points
  
     def coeff_age(self, agem, trim):
         ''' TODO: add surcote  pour avant 1955 '''

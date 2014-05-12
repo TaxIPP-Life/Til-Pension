@@ -14,17 +14,29 @@ def select_unemployment(data, code_regime, option='dummy'):
     ''' Ne conserve que les périodes de chomage succédant directement à une période de cotisation au régime
     TODO: A améliorer car boucle for très moche
     Rq : on fait l'hypothèse que les personnes étant au chômage en t0 côtisent au RG '''
-    data_col = data.columns[1:]
-    previous_col = data.columns[0]
-    unemp = data.copy().replace(code_regime, 0)
-    #unemp.loc[unemp[previous_col] == chomage, previous_col] = 1 -> A commenter si l'on ne veut pas comptabiliser les trimestres de chômage initiaux (Hypothèse)
-    for col in data_col:
-        selected_chom = np.in1d(data[previous_col],code_regime + [chomage]) & (data[col] == chomage)
-        unemp.loc[selected_chom, col] = 1
-        previous_col = col
-    if option == 'code':
-        unemp = unemp.replace(1, chomage)
-    return unemp == 1
+    if isinstance(data, np.ndarray):
+        unemp = np.zeros((data.shape[0],data.shape[1]))
+        unemp[:,0] = (data[:,0] == chomage)
+        #unemp.loc[unemp[previous_col] == chomage, previous_col] = 1 -> A commenter si l'on ne veut pas comptabiliser les trimestres de chômage initiaux (Hypothèse)
+        previous_chom_reg = np.in1d(data[:,:-1],code_regime + [chomage]).reshape(data[:,:-1].shape)
+        unemp = (data[:,1:] == chomage)
+        selected_chom = previous_chom_reg*unemp
+        unemp = np.zeros((data.shape[0],data.shape[1]))
+        unemp[:,1:] = selected_chom
+        return unemp
+    
+    if isinstance(data, pd.DataFrame):
+        data_col = data.columns[1:]
+        previous_col = data.columns[0]
+        unemp = data.copy().replace(code_regime, 0)
+        #unemp.loc[unemp[previous_col] == chomage, previous_col] = 1 -> A commenter si l'on ne veut pas comptabiliser les trimestres de chômage initiaux (Hypothèse)
+        for col in data_col:
+            selected_chom = np.in1d(data[previous_col],code_regime + [chomage]) & (data[col] == chomage)
+            unemp.loc[selected_chom, col] = 1
+            previous_col = col
+        if option == 'code':
+            unemp = unemp.replace(1, chomage)
+        return unemp == 1
 
 def unemployment_trimesters(table, code_regime = None, input_step = 'month', output = None):
     ''' Input : monthly or yearly-table (lines: indiv, col: dates 'yyyymm') 
@@ -56,23 +68,29 @@ def sal_to_trimcot(sal_cot, salref, option='vector'):
     sal_cot : table ne contenant que les salaires annuels cotisés au sein du régime (lignes : individus / colonnes : date)
     salref : vecteur des salaires minimum (annuels) à comparer pour obtenir le nombre de trimestre
     last_year: dernière année (exclue) jusqu'à laquelle on déompte le nombre de trimestres'''
-    sal_cot = sal_cot.fillna(0)
+    if isinstance(sal_cot, np.ndarray):
+        sal_cot[np.isnan(sal_cot)] = 0
+    else:
+        sal_cot = sal_cot.fillna(0)
     nb_trim_cot = np.minimum(np.divide(sal_cot,salref).astype(int), 4)
     if option == 'table':
-        return nb_trim_cot
+        return nb_trim_cot.sum(axis=1), nb_trim_cot
     else :
         nb_trim_cot = nb_trim_cot.sum(axis=1)
         return nb_trim_cot
     
     
-def calculate_SAM(sali, nb_years, time_step, plafond=None, revalorisation=None):
+def calculate_SAM(sali, nb_years_pd, time_step, plafond=None, revalorisation=None):
     ''' renvoie un vecteur des SAM 
     plaf : vecteur chronologique plafonnant les salaires (si abs pas de plafonnement)'''
-    assert max(sali.index) == max(nb_years.index)
+    
     nb_sali = (sali != 0).sum(1)
+    nb_years = np.array(nb_years_pd)
     nb_years[nb_sali < nb_years] = nb_sali[nb_sali < nb_years]
-    sali = sali.fillna(0) 
-    sali = np.array(sali)
+    if isinstance(sali, pd.DataFrame):
+        assert max(sali.index) == max(nb_years.index)
+        sali = sali.fillna(0) 
+        sali = np.array(sali)
     if time_step == 'month' :
         sali = sum_by_years(sali)
     def sum_sam(data):
@@ -96,10 +114,10 @@ def calculate_SAM(sali, nb_years, time_step, plafond=None, revalorisation=None):
         sali = np.multiply(sali,revalorisation)
     sali_sam = np.zeros((sali.shape[0],sali.shape[1]+1))
     sali_sam[:,:-1] = sali
-    sali_sam[:,-1] = nb_years.values
+    sali_sam[:,-1] = nb_years
     sam = np.apply_along_axis(sum_sam, axis=1, arr=sali_sam)
     #sali.apply(sum_sam, 1)
-    return pd.Series(sam, index = nb_years.index)
+    return pd.Series(sam, index = nb_years_pd.index)
 
 def nb_trim_surcote(trim_by_year, date_surcote):
     ''' Cette fonction renvoie le vecteur du nombre de trimestres surcotés à partir de :
