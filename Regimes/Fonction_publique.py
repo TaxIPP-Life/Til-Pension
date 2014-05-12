@@ -11,7 +11,7 @@ import os
 parentdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.sys.path.insert(0,parentdir) 
 from SimulPension import PensionSimulation
-from utils import _isin, build_long_values, sum_by_years, substract_months, translate_frequency, valbytranches, table_selected_dates
+from utils_pension import _isin, build_long_values, sum_by_years, substract_months, translate_frequency, valbytranches, table_selected_dates
 from pension_functions import calculate_SAM, sal_to_trimcot, unemployment_trimesters
 code_avpf = 8
 code_chomage = 5

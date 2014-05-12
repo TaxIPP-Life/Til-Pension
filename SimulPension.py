@@ -13,7 +13,7 @@ from xml.etree import ElementTree
 from Param import legislations_add_pension as legislations
 from Param import legislationsxml_add_pension as  legislationsxml
 from openfisca_core import conv
-from utils import build_long_values, build_long_baremes, _isin, valbytranches
+from utils_pension import build_long_values, build_long_baremes, _isin, valbytranches
 #from .columns import EnumCol, EnumPresta
 #from .taxbenefitsystems import TaxBenefitSystem
 
