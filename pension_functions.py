@@ -76,8 +76,7 @@ def sal_to_trimcot(sal_cot, salref, option='vector', data_type='numpy'):
     if option == 'table':
         return nb_trim_cot.sum(axis=1), nb_trim_cot
     else :
-        nb_trim_cot = nb_trim_cot.sum(axis=1)
-        return nb_trim_cot
+        return nb_trim_cot.sum(axis=1)
     
     
 def calculate_SAM(sali, nb_years_pd, time_step, plafond=None, revalorisation=None, data_type='numpy'):

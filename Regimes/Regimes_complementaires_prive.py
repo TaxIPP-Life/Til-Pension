@@ -117,5 +117,4 @@ class ARRCO(PensionSimulation):
         if self.datesim.year >= 2013:
             plafond = P.maj_enf.plaf_pac
             majo_pac = np.minimum(majo_pac[(yearnaiss <= 1951)], plafond)
-            #pd.Series(np.zeros(len(index)), index=index)
         return np.maximum(majo_born, majo_pac)

@@ -34,42 +34,42 @@ class RegimeGeneral(PensionSimulation):
 
      
     def build_salref(self):
-            '''
-            salaire trimestriel de référence minimum
-            Rq : Toute la série chronologique est exprimé en euros
-            '''
-            yearsim = self.datesim.year
-            salmin = pd.DataFrame( {'year' : range(first_year_sal, yearsim ), 'sal' : - np.ones(yearsim - first_year_sal)} ) 
+        '''
+        salaire trimestriel de référence minimum
+        Rq : Toute la série chronologique est exprimé en euros
+        '''
+        yearsim = self.datesim.year
+        salmin = pd.DataFrame( {'year' : range(first_year_sal, yearsim ), 'sal' : - np.ones(yearsim - first_year_sal)} ) 
+        avts_year = []
+        smic_year = []
+        smic_long = self._Plongitudinal.common.smic
+        avts_long = self._Plongitudinal.common.avts.montant
+        for year in range(first_year_sal,1972):
+            avts_old = avts_year
             avts_year = []
+            for key in avts_long.keys():
+                if str(year) in key:
+                    avts_year.append(key)
+            if not avts_year:
+                avts_year = avts_old
+            salmin.loc[salmin['year'] == year, 'sal'] = avts_long[avts_year[0]] 
+            
+        #TODO: Trancher si on calcule les droits à retraites en incluant le travail à l'année de simulation pour l'instant non (ex : si datesim = 2009 on considère la carrière en emploi jusqu'en 2008)
+        for year in range(1972,yearsim):
+            smic_old = smic_year
             smic_year = []
-            smic_long = self._Plongitudinal.common.smic
-            avts_long = self._Plongitudinal.common.avts.montant
-            for year in range(first_year_sal,1972):
-                avts_old = avts_year
-                avts_year = []
-                for key in avts_long.keys():
-                    if str(year) in key:
-                        avts_year.append(key)
-                if not avts_year:
-                    avts_year = avts_old
-                salmin.loc[salmin['year'] == year, 'sal'] = avts_long[avts_year[0]] 
-                
-            #TODO: Trancher si on calcule les droits à retraites en incluant le travail à l'année de simulation pour l'instant non (ex : si datesim = 2009 on considère la carrière en emploi jusqu'en 2008)
-            for year in range(1972,yearsim):
-                smic_old = smic_year
-                smic_year = []
-                for key in smic_long.keys():
-                    if str(year) in key:
-                        smic_year.append(key)
-                if not smic_year:
-                    smic_year = smic_old
-                if year <= 2013 :
-                    salmin.loc[salmin['year'] == year, 'sal'] = 200*smic_long[smic_year[0]]
-                    if year <= 2001 :
-                        salmin.loc[salmin['year'] == year, 'sal'] = 200*smic_long[smic_year[0]]/6.5596
-                else:
-                    salmin.loc[salmin['year'] == year, 'sal'] = 150*smic_long[smic_year[0]]
-            self.salref = np.array(salmin['sal'])
+            for key in smic_long.keys():
+                if str(year) in key:
+                    smic_year.append(key)
+            if not smic_year:
+                smic_year = smic_old
+            if year <= 2013 :
+                salmin.loc[salmin['year'] == year, 'sal'] = 200*smic_long[smic_year[0]]
+                if year <= 2001 :
+                    salmin.loc[salmin['year'] == year, 'sal'] = 200*smic_long[smic_year[0]]/6.5596
+            else:
+                salmin.loc[salmin['year'] == year, 'sal'] = 150*smic_long[smic_year[0]]
+        self.salref = np.array(salmin['sal'])
         
             
     def nb_trim_cot(self):
@@ -107,9 +107,8 @@ class RegimeGeneral(PensionSimulation):
         nb_trim_chom, table_chom = unemployment_trimesters(self.workstate, code_regime=self.code_regime,
                                                             input_step=self.time_step, output='table_unemployement')
         nb_trim_ass = nb_trim_chom # TODO: + nb_trim_war + ....
-        self.trim_by_years = pd.DataFrame(self.trim_by_years + table_chom, 
-                                          columns=[year*100 + 1 for year in range(first_year_sal, self.datesim.year)],
-                                          index=self.info_ind.index)
+        dates_trim_by_year = [year*100 + 1 for year in range(first_year_sal, self.datesim.year)]
+        self.trim_by_years = (self.trim_by_years + table_chom, dates_trim_by_year)
         
         return nb_trim_ass
             
@@ -259,7 +258,7 @@ class RegimeGeneral(PensionSimulation):
         N_taux = valbytranches(P.plein.N_taux, self.info_ind)
         age_min = valbytranches(P.age_min, self.info_ind)
 
-        def _date_surcote(trim_by_years, trim_maj, agem, agemin = age_min, N_t = N_taux, date = self.datesim):
+        def _date_surcote(trim_by_years, trim_maj, agem, agemin=age_min, N_t=N_taux, date=self.datesim):
             ''' Détermine la date individuelle a partir de laquelle il y a surcote ( a atteint l'âge légal de départ en retraite + côtisé le nombre de trimestres cible 
             Rq : pour l'instant on pourrait ne renvoyer que l'année'''
             date_liam = date.year*100 + 1
@@ -280,6 +279,8 @@ class RegimeGeneral(PensionSimulation):
             ''' surcote associée aux trimestres côtisés entre 2003 et 2004 
             TODO : structure pas approprié pour les réformes du type 'et si on surcotait avant 2003, ça donnerait quoi?'''
             taux_surcote = P.taux_4trim
+            import pdb
+            pdb.set_trace()
             trim_selected = table_selected_dates(trim_by_years_RG, self.dates, first_year=2003, last_year=2004)
             nb_trim = nb_trim_surcote(trim_selected, date_surcote)
             return taux_surcote*nb_trim
@@ -316,6 +317,8 @@ class RegimeGeneral(PensionSimulation):
             trim_surcote = nb_trim_surcote(trim_by_years_RG, date_surcote)
             return trim_surcote*taux_surcote 
         elif yearsim < 2010:
+            import pdb
+            pdb.set_trace()
             surcote_0304 = _trimestre_surcote_0304(trim_by_years_RG, date_surcote, P.surcote)
             surcote_0408 = _trimestre_surcote_0408(trim_by_years_RG, trim_by_years, trim_maj, date_surcote, P.surcote)
             return surcote_0304 + surcote_0408
@@ -338,12 +341,12 @@ class RegimeGeneral(PensionSimulation):
         if yearsim < 2004:
             mico = P.mico.entier 
             # TODO: règle relativement complexe à implémenter de la limite de cumul (voir site CNAV)
-            return  np.maximum(0, mico - pension_RG)*np.minimum(1,np.divide(trim_cot, N_CP))
+            return  np.maximum(0, mico - pension_RG)*np.minimum(1, np.divide(trim_cot, N_CP))
         else:
             mico_entier = P.mico.entier
             mico_maj = P.mico.entier_maj
             RG_exclusif = ( pension_RG == pension) | (trim <= N_taux)
-            mico_RG = mico_entier + np.minimum(1,np.divide(trim_cot, N_CP))*(mico_maj - mico_entier)
+            mico_RG = mico_entier + np.minimum(1, np.divide(trim_cot, N_CP))*(mico_maj - mico_entier)
             mico =  mico_RG*( RG_exclusif + (1 - RG_exclusif)*np.divide(trim_RG, trim))
             return np.maximum(0, mico - pension_RG)
         

@@ -1,9 +1,7 @@
 # -*- coding:utf-8 -*-
 import math
 import numpy as np
-import pandas as pd
 
-from pandas import DataFrame
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 
