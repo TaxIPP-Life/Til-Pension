@@ -40,15 +40,19 @@ def valbytranches(param, info_ind):
     else:
         return param
     
-def table_selected_dates(table, first_year=None, last_year=None):
+def table_selected_dates(table, dates, first_year=None, last_year=None):
     ''' La table d'input dont les colonnes sont des dates est renvoyées emputée des années postérieures à last_year (last_year non-incluse) 
     et antérieures à first_year (first_year incluse) '''
-    table = table.reindex_axis(sorted(table.columns), axis=1)
-    possible_dates = [100*year + month + 1 for year in range(first_year, last_year) for month in range(12)]
-    selected_dates = set(table.columns).intersection(possible_dates)
-    table = table.loc[:, selected_dates]
-    table = table.reindex_axis(sorted(table.columns), axis=1)
-    return table
+    try:
+        idx1 = dates.index(100*first_year + 1)
+    except:
+        idx1 = 0
+    try:
+        idx2 = dates.index(100*(last_year + 1) + 1)
+    except:
+        idx2 = len(dates)
+    idx_to_take = range(idx1, idx2)
+    return table[:,idx_to_take]
 
 def build_long_values(param_long, first_year, last_year):   
     ''' Cette fonction permet de traduire les paramètres longitudinaux en vecteur numpy 

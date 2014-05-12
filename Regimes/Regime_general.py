@@ -182,7 +182,7 @@ class RegimeGeneral(PensionSimulation):
                 sal_RG[:,first_ix_avpf] += sal_avpf[:,first_ix_avpf]
                 return np.round(sal_RG,2)
             if isinstance(sal_RG, pd.DataFrame):
-                trim_avpf = table_selected_dates(trim_avpf, first_year=1972, last_year=yearsim)
+                trim_avpf = table_selected_dates(trim_avpf, self.dates, first_year=1972, last_year=yearsim)
                 sal_avpf = np.multiply((trim_avpf != 0), smic ) #*2028 = 151.66*12 if horaires
                 dates_avpf = [date for date in sal_RG.columns if date >= 197201]
                 sal_RG.loc[:,dates_avpf] += sal_avpf.loc[:,dates_avpf]
@@ -281,7 +281,7 @@ class RegimeGeneral(PensionSimulation):
             ''' surcote associée aux trimestres côtisés entre 2003 et 2004 
             TODO : structure pas approprié pour les réformes du type 'et si on surcotait avant 2003, ça donnerait quoi?'''
             taux_surcote = P.taux_4trim
-            trim_selected = table_selected_dates(trim_by_years_RG, first_year=2003, last_year=2004)
+            trim_selected = table_selected_dates(trim_by_years_RG, self.dates, first_year=2003, last_year=2004)
             nb_trim = nb_trim_surcote(trim_selected, date_surcote)
             return taux_surcote*nb_trim
         
@@ -291,7 +291,7 @@ class RegimeGeneral(PensionSimulation):
             taux_4trim = P.taux_4trim
             taux_5trim = P.taux_5trim
             taux_65 = P.taux_65
-            trim_selected = table_selected_dates(trim_by_years_RG, first_year=2004, last_year=2008)
+            trim_selected = table_selected_dates(trim_by_years_RG, self.dates, first_year=2004, last_year=2008)
             agemin = agem.copy()
             agemin = 65*12 
             date_surcote_65 = _date_surcote(trim_by_years, trim_maj, agem, agemin = agemin)
@@ -303,7 +303,7 @@ class RegimeGeneral(PensionSimulation):
         def _trimestre_surcote_after_09(trim_by_years_RG, date_surcote, P):
             ''' surcote associée aux trimestres côtisés après 2009 '''
             taux_surcote = P.taux
-            trim_selected = table_selected_dates(trim_by_years_RG, first_year=2009)
+            trim_selected = table_selected_dates(trim_by_years_RG, self.dates, first_year=2009)
             nb_trim = nb_trim_surcote(trim_selected, date_surcote)
             return taux_surcote*nb_trim
             

@@ -163,6 +163,7 @@ class PensionSimulation(Simulation):
         self.survey_filename = survey_filename
         self.workstate = None
         self.sali = None
+        self.dates = None
         self.code_regime = None
         self.regime = None
         self.info_ind = None
