@@ -25,9 +25,10 @@ class ArrayAttributes(object):
                        for i in range(len(dates))
                             if first <= dates[i] and dates[i] < last
                         ]
+        dates = [dates[i] for i in array_dates]
         if inplace == True:
             self.array = array[:,array_dates]
-            self.dates = dates[array_dates]
+            self.dates = dates
         else:
-            return (array[:,array_dates], dates[array_dates])
+            return ArrayAttributes(array[:,array_dates], dates)
     
