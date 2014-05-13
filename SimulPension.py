@@ -187,8 +187,8 @@ class PensionSimulation(Simulation):
             workstate = ArrayAttributes(self.workstate, self.dates)
             setattr(self, 'workstate', workstate)
         if self.first_year:
-            workstate.array_selected_dates(first=first_year_sal, last=self.datesim.year, inplace=True) 
-            sali.array_selected_dates(first=first_year_sal, last=self.datesim.year, inplace=True)
+            workstate.selected_dates(first=first_year_sal, last=self.datesim.year, inplace=True) 
+            sali.selected_dates(first=first_year_sal, last=self.datesim.year, inplace=True)
             
     def build_sal_regime(self):
         self.sal_regime = self.sali.array*_isin(self.workstate.array,self.code_regime)

@@ -6,7 +6,7 @@ class ArrayAttributes(object):
         self.array = array
         self.dates = dates
         
-    def array_selected_dates(self, first, last, date_type='year', inplace=False):
+    def selected_dates(self, first, last, date_type='year', inplace=False):
         ''' La table d'input dont les colonnes sont des dates est renvoyées amputée 
             des années postérieures à first (first incluse) 
             et antérieures strictement à last 
