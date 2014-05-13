@@ -6,18 +6,20 @@ class ArrayAttributes(object):
         self.array = array
         self.dates = dates
         
-    def array_selected_dates(self, first_year=None, last_year=None, first_month=1,
-                              last_month=12, inplace=False):
+    def array_selected_dates(self, first, last, date_type='year', inplace=False):
         ''' La table d'input dont les colonnes sont des dates est renvoyées amputée 
-            des années postérieures à last_year (last_year incluse) 
-            et antérieures à first_year (first_year incluse) '''
+            des années postérieures à first (first incluse) 
+            et antérieures à last 
+            date_type est month ou year
+            '''
         array = self.array
         dates = self.dates
-        first_date = 100*first_year + first_month
-        last_date = 100*last_year + last_month
+        if date_type == 'year':
+            first = 100*first + 1
+            last = 100*last + 1
         array_dates = [i  
                        for i in range(len(dates))
-                            if first_date <= dates[i] and dates[i] < last_date
+                            if first <= dates[i] and dates[i] <= last
                         ]
         if inplace == True:
             self.array = array[:,array_dates]
