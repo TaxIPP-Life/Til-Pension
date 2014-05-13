@@ -80,9 +80,9 @@ class ARRCO(PensionSimulation):
         
     def build_sal_regime(self):
         ''' Cette fonction plafonne les salaires des cadres 1 pss pour qu'il ne paye que la première tranche '''
-        sali = self.sali
-        cadre_selection = (self.workstate == self.code_cadre)
-        noncadre_selection = (self.workstate == self.code_noncadre)
+        sali = self.sali.array
+        cadre_selection = (self.workstate.array == self.code_cadre)
+        noncadre_selection = (self.workstate.array == self.code_noncadre)
         yearsim = self.datesim.year
         plaf_ss = self._Plongitudinal.common.plaf_ss
         pss = build_long_values(plaf_ss, first_year=first_year_sal, last_year=yearsim)    

@@ -69,10 +69,10 @@ def sal_to_trimcot(sal_cot, salref, option='vector', data_type='numpy'):
     salref : vecteur des salaires minimum (annuels) à comparer pour obtenir le nombre de trimestre
     last_year: dernière année (exclue) jusqu'à laquelle on déompte le nombre de trimestres'''
     if data_type == 'numpy':
-        sal_cot[np.isnan(sal_cot)] = 0
+        sal_cot.array[np.isnan(sal_cot.array)] = 0
     if data_type == 'pandas':
         sal_cot = sal_cot.fillna(0)
-    nb_trim_cot = np.minimum(np.divide(sal_cot,salref).astype(int), 4)
+    nb_trim_cot = np.minimum(np.divide(sal_cot.array,salref).astype(int), 4)
     if option == 'table':
         return nb_trim_cot.sum(axis=1), nb_trim_cot
     else :
@@ -119,21 +119,22 @@ def calculate_SAM(sali, nb_years_pd, time_step, plafond=None, revalorisation=Non
     return pd.Series(sam, index = nb_years_pd.index)
 
 def nb_trim_surcote(trim_by_year, date_surcote):
-    ''' Cette fonction renvoie le vecteur du nombre de trimestres surcotés à partir de :
-    - la table du nombre de trimestre comptablisé au sein du régime par année
+    ''' Cette fonction renvoie le vecteur numpy du nombre de trimestres surcotés à partir de :
+    - la table du nombre de trimestre comptablisé au sein du régime par année : trim_by_year.array
     - le vecteur des dates (format yyyymm) à partir desquelles les individus surcote (détermination sur cotisations tout régime confondu)
     '''
-    if 'yearsurcote' in trim_by_year.columns:
-        trim_by_year = trim_by_year.drop('yearsurcote', axis=1)
-    yearmax = max(trim_by_year.columns) // 100
-    yearmin = min(date_surcote) // 100
+    yearmax = max(trim_by_year.dates)
+    yearmin = min(date_surcote) 
     # Possible dates for surcote :
-    dates_surcote = [date for date in trim_by_year.columns
-                      if date//100 >= yearmin and date//100 <= yearmax]
-    output = pd.Series(0, index=trim_by_year.index)
+    dates_surcote = [date for date in trim_by_year.dates
+                      if date >= yearmin]
+
+    output = np.zeros(len(date_surcote))
     for date in dates_surcote:
-        to_keep = (date >= date_surcote) 
-        output[to_keep] += trim_by_year.loc[to_keep, date]
+        to_keep = np.where(np.greater(date, date_surcote))[0]
+        ix_date = trim_by_year.dates.index(yearmax)
+        if to_keep.any():
+            output[to_keep] += trim_by_year.array[to_keep, ix_date]
     return output
 
 def count_enf_pac(info_child, index):

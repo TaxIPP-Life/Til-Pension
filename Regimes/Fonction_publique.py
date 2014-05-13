@@ -8,6 +8,7 @@ from dateutil.relativedelta import relativedelta
 import os
 parentdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.sys.path.insert(0,parentdir) 
+from array_attributes import ArrayAttributes
 from SimulPension import PensionSimulation
 from utils_pension import _isin, build_long_values, sum_by_years, substract_months, translate_frequency, valbytranches, table_selected_dates
 from pension_functions import calculate_SAM, sal_to_trimcot, unemployment_trimesters
@@ -41,16 +42,16 @@ class FonctionPublique(PensionSimulation):
     def trim_service(self):
         ''' Cette fonction pertmet de calculer la durée de service dans FP
         TODO: gérer la comptabilisation des temps partiels quand variable présente'''
-        wk_selection = _isin(self.workstate,self.code_regime)
-        wk_selection = translate_frequency(wk_selection, input_frequency=self.time_step, output_frequency='month')
-        wk_selection_actif = _isin(self.workstate,self.code_actif)
-        wk_selection_actif = translate_frequency(wk_selection_actif, input_frequency=self.time_step, output_frequency='month')
+        wk_selection = ArrayAttributes(_isin(self.workstate.array,self.code_regime), self.workstate.dates)
+        wk_selection.array, wk_selection.dates = translate_frequency(wk_selection, input_frequency=self.time_step, output_frequency='month')
+        wk_selection_actif = ArrayAttributes(_isin(self.workstate.array,self.code_actif), self.workstate.dates)
+        wk_selection_actif.array, wk_selection_actif.dates = translate_frequency(wk_selection_actif, input_frequency=self.time_step, output_frequency='month')
         # TODO: condition not assuming sali is in year
-        sali = translate_frequency(self.sali, input_frequency='year', output_frequency='month')
-        sali = np.around(np.divide(sali, 12), decimals=3)
-        sal_selection = wk_selection*sali 
-        trim_service = np.divide(wk_selection.sum(axis=1), 4).astype(int)
-        trim_actif = np.divide(wk_selection_actif.sum(axis=1), 4).astype(int)
+        sali = ArrayAttributes(*translate_frequency(self.sali, input_frequency=self.time_step, output_frequency='month'))
+        sali.array = np.around(np.divide(sali.array, 12), decimals=3)
+        sal_selection = ArrayAttributes(wk_selection.array*sali.array, sali.dates) 
+        trim_service = np.divide(wk_selection.array.sum(axis=1), 4).astype(int)
+        trim_actif = np.divide(wk_selection_actif.array.sum(axis=1), 4).astype(int)
         self.sal_FP = sal_selection
         return trim_service, trim_actif
  
@@ -63,7 +64,7 @@ class FonctionPublique(PensionSimulation):
         self._P.age_min_vec = age_min
         
         # age limite = age limite associée à la catégorie de l’emploi exercé en dernier lieu
-        last_wk = self.workstate[:,-1]
+        last_wk = self.workstate.array[:,-1]
         fp = _isin(last_wk, self.code_regime)
         actif = (last_wk == self.code_actif)
         sedentaire = fp*(1 - actif)
