@@ -10,6 +10,7 @@ import pandas as pd
 
 from xml.etree import ElementTree
 
+from array_attributes import ArrayAttributes
 from Param import legislations_add_pension as legislations
 from Param import legislationsxml_add_pension as  legislationsxml
 from openfisca_core import conv
@@ -168,6 +169,8 @@ class PensionSimulation(Simulation):
         self.regime = None
         self.info_ind = None
         self.time_step = None
+        self.data_type = None
+        self.first_year = None
         
     def set_config(self, **kwargs):
         """
@@ -178,9 +181,17 @@ class PensionSimulation(Simulation):
         for key, val in specific_kwargs.iteritems():
             if hasattr(self, key):
                 setattr(self, key, val)
-
+        if self.data_type == 'numpy':
+            sali = ArrayAttributes(self.sali, self.dates)
+            setattr(self, 'sali', sali)
+            workstate = ArrayAttributes(self.workstate, self.dates)
+            setattr(self, 'workstate', workstate)
+        if self.first_year:
+            workstate.array_selected_dates(first_year=first_year_sal, last_year=self.datesim.year - 1, inplace=True) 
+            sali.array_selected_dates(first_year=first_year_sal, last_year=self.datesim.year - 1, inplace=True)
+            
     def build_sal_regime(self):
-        self.sal_regime = self.sali*_isin(self.workstate,self.code_regime)
+        self.sal_regime = self.sali.array*_isin(self.workstate.array,self.code_regime)
         
     def calculate_taux(self, decote, surcote):
         ''' Détermination du taux de liquidation à appliquer à la pension '''

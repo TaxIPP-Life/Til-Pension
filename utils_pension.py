@@ -5,7 +5,6 @@ import collections
 import pdb
 import datetime as dt
 import numpy as np
-import pandas as pd
 from pandas import DataFrame
 
 from datetime import date
@@ -39,20 +38,7 @@ def valbytranches(param, info_ind):
         return param_indiv
     else:
         return param
-    
-def table_selected_dates(table, dates, first_year=None, last_year=None):
-    ''' La table d'input dont les colonnes sont des dates est renvoyées emputée des années postérieures à last_year (last_year non-incluse) 
-    et antérieures à first_year (first_year incluse) '''
-    try:
-        idx1 = dates.index(100*first_year + 1)
-    except:
-        idx1 = 0
-    try:
-        idx2 = dates.index(100*(last_year + 1) + 1)
-    except:
-        idx2 = len(dates)
-    idx_to_take = range(idx1, idx2)
-    return table[:,idx_to_take]
+
 
 def build_long_values(param_long, first_year, last_year):   
     ''' Cette fonction permet de traduire les paramètres longitudinaux en vecteur numpy 
@@ -125,8 +111,29 @@ def translate_frequency(table, input_frequency='month', output_frequency='month'
         '''
     if input_frequency == output_frequency:
         return table
-    
-    if data_type == 'pandas':
+        
+    if data_type == 'numpy':
+        if output_frequency == 'year': # if True here, input_frequency=='month'
+            assert len(table.dates) % 12 == 0 #TODO: to remove eventually
+            nb_years = len(table.dates) // 12
+            output_dates = [date for date in table.dates if date % 100 == 1]
+            output_dates_ix = table.dates.index(output_dates)
+            #here we could do more complex
+            if method is None: #first month of each year
+                return table.array[:, output_dates_ix], output_dates
+            if method is 'sum':
+                output = table[:, output_dates_ix].copy()
+                for month in range(1,12):
+                    month_to_add = [year*12 + month for year in xrange(nb_years)]
+                    output += table[:, month_to_add]
+                return output, output_dates
+
+        if output_frequency == 'month': # if True here, input_frequency=='year'
+            output_dates = [year + month for year in table.dates for month in range(12)]
+            return np.repeat(table.array, 12, axis=1), output_dates
+            #return np.kron(table, np.ones(12))
+    else:
+        assert data_type == 'pandas'
         if output_frequency == 'year': # if True here, input_frequency=='month'
             detected_years = set([date // 100 for date in table.columns])
             output_dates = [100*x + 1 for x in detected_years]
@@ -135,27 +142,21 @@ def translate_frequency(table, input_frequency='month', output_frequency='month'
                 return table.loc[:, output_dates]
             if method is 'sum':
                 pdb.set_trace()
-                return 
         if output_frequency == 'month': # if True here, input_frequency=='year'
             output_dates = [x + k for k in range(12) for x in table.columns ]
             output_table1 = DataFrame(np.tile(table, 12), index=table.index, columns=output_dates)
             return output_table1.reindex_axis(sorted(output_table1.columns), axis=1)  
         
-    if data_type == 'numpy':
-        if output_frequency == 'year': # if True here, input_frequency=='month'
-            assert table.shape[1] % 12 == 0 #TODO: to remove eventually
-            nb_years = table.shape[1] // 12
-            output_dates = [12*x for x in xrange(nb_years)]
-            #here we could do more complex
-            if method is None:
-                return table[:, output_dates]
-            if method is 'sum':
-                output = table[:, output_dates].copy()
-                for month in range(1,12):
-                    month_to_add = [year*12 + month for year in xrange(nb_years)]
-                    output += table[:, month_to_add]
-                return output
-
-        if output_frequency == 'month': # if True here, input_frequency=='year'
-            return np.repeat(table, 12, axis=1)    
-            #return np.kron(table, np.ones(12))
+def table_selected_dates(table, dates, first_year=None, last_year=None):
+    ''' La table d'input dont les colonnes sont des dates est renvoyées emputée des années postérieures à last_year (last_year non-incluse) 
+    et antérieures à first_year (first_year incluse) '''
+    try:
+        idx1 = dates.index(100*first_year + 1)
+    except:
+        idx1 = 0
+    try:
+        idx2 = dates.index(100*(last_year + 1) + 1)
+    except:
+        idx2 = len(dates)
+    idx_to_take = range(idx1, idx2)
+    return table[:,idx_to_take]
