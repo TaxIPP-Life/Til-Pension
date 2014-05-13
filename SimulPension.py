@@ -25,30 +25,14 @@ class Simulation(object):
     Class from OF
     A simulation object contains all parameters to compute a simulation from a
     test-case household (scenario) or a survey-like dataset
-
-    See also                                                                                         
-    --------
-    ScenarioSimulation, SurveySimulation
     """
-    chunks_count = 1
     datesim = None
-    disabled_prestations = None
-    input_table = None
-    num_table = 1
     P = None
     P_default = None
     param_file = None
-    reforme = False  # Boolean signaling reform mode
-    verbose = False
 
     def __init__(self):
-        self.io_column_by_label = collections.OrderedDict()
-        self.io_column_by_name = collections.OrderedDict()
-
-    def __getstate__(self):
-        def should_pickle(v):
-            return v not in ['P_default', 'P']
-        return dict((k, v) for (k, v) in self.__dict__.iteritems() if should_pickle(k))
+        pass
 
     def _set_config(self, **kwargs):
         """
@@ -111,46 +95,6 @@ class Simulation(object):
             self.P_long = compact_legislation_long
         else:
             self.P = param
-
-
-    def _compute(self, **kwargs):
-        """
-        Computes output_data for the Simulation
-
-        Parameters
-        ----------
-        difference : boolean, default True
-                     When in reform mode, compute the difference between actual and default
-        Returns
-        -------
-        data, data_default : Computed data and possibly data_default according to decomp_file
-
-        """
-        # Clear outputs
-        #self.clear()
-
-        output_table, output_table_default = self.output_table, self.output_table_default
-        for key, val in kwargs.iteritems():
-            setattr(output_table, key, val)
-            setattr(output_table_default, key, val)
-        data = output_table.calculate()
-        if self.reforme:
-            output_table_default.reset()
-            output_table_default.disable(self.disabled_prestations)
-            data_default = output_table_default.calculate()
-        else:
-            output_table_default = output_table
-            data_default = data
-
-        self.data, self.data_default = data, data_default
-
-        io_column_by_label = self.io_column_by_label
-        io_column_by_name = self.io_column_by_name
-        for column_name, column in output_table.column_by_name.iteritems():
-            io_column_by_label[column.label] = column
-            io_column_by_name[column_name] = column
-
-        gc.collect()
 
 
 class PensionSimulation(Simulation):
