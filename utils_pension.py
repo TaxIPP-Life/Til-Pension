@@ -8,6 +8,10 @@ import numpy as np
 from pandas import DataFrame
 
 from datetime import date
+from xml.etree import ElementTree
+from Param import legislations_add_pension as legislations
+from Param import legislationsxml_add_pension as  legislationsxml
+from openfisca_core import conv
 
 def sum_by_years(table):
     years = set([x//100 for x in table.columns])
@@ -160,3 +164,16 @@ def table_selected_dates(table, dates, first_year=None, last_year=None):
         idx2 = len(dates)
     idx_to_take = range(idx1, idx2)
     return table[:,idx_to_take]
+
+def load_param(param_file, date):
+    ''' It's a simplification of an (old) openfisca program '''
+    legislation_tree = ElementTree.parse(param_file)
+    legislation_xml_json = conv.check(legislationsxml.xml_legislation_to_json)(legislation_tree.getroot(),
+        state = conv.default_state)
+    legislation_xml_json, _ = legislationsxml.validate_node_xml_json(legislation_xml_json,
+        state = conv.default_state)
+    _, legislation_json = legislationsxml.transform_node_xml_json_to_json(legislation_xml_json)
+    dated_legislation_json = legislations.generate_dated_legislation_json(legislation_json, date)
+    compact_legislation = legislations.compact_dated_node_json(dated_legislation_json)
+    return compact_legislation
+
