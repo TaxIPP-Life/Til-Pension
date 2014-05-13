@@ -275,7 +275,7 @@ class RegimeGeneral(PensionSimulation):
             ''' surcote associée aux trimestres côtisés entre 2003 et 2004 
             TODO : structure pas approprié pour les réformes du type 'et si on surcotait avant 2003, ça donnerait quoi?'''
             taux_surcote = P.taux_4trim
-            trim_selected = ArrayAttributes(*trim_by_year_RG.array_selected_dates(first_year=2003, last_year=2004))
+            trim_selected = ArrayAttributes(*trim_by_year_RG.array_selected_dates(first=2003, last=2005))
             nb_trim = nb_trim_surcote(trim_selected, date_surcote)
             return taux_surcote*nb_trim
         
@@ -285,7 +285,7 @@ class RegimeGeneral(PensionSimulation):
             taux_4trim = P.taux_4trim
             taux_5trim = P.taux_5trim
             taux_65 = P.taux_65
-            trim_selected = ArrayAttributes(*trim_by_year_RG.array_selected_dates(first_year=2004, last_year=2008))
+            trim_selected = ArrayAttributes(*trim_by_year_RG.array_selected_dates(first=2005, last=2009))
             #agemin = agem.copy()
             agemin = 65*12 
             date_surcote_65 = _date_surcote(trim_by_year_tot, trim_maj, agem, agemin=agemin)
@@ -297,7 +297,7 @@ class RegimeGeneral(PensionSimulation):
         def _trimestre_surcote_after_09(trim_by_year_RG, trim_years, date_surcote, P):
             ''' surcote associée aux trimestres côtisés après 2009 '''
             taux_surcote = P.taux
-            trim_selected = ArrayAttributes(*trim_by_year_RG.array_selected_dates(first_year=2009))
+            trim_selected = ArrayAttributes(*trim_by_year_RG.array_selected_dates(first=2009, last=None))
             nb_trim = nb_trim_surcote(trim_selected, date_surcote)
             return taux_surcote*nb_trim
             
