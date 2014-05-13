@@ -14,13 +14,11 @@ class TimeArray(object):
             '''
         array = self.array
         dates = self.dates
-        if first is None:
-            first = 0
-        if last is None:
-            last = 3000
         if date_type == 'year':
-            first = 100*first + 1
-            last = 100*last + 1
+            if first:
+                first = 100*first + 1
+            if last:
+                last = 100*last + 1
         array_dates = [i  
                        for i in range(len(dates))
                             if first <= dates[i] and dates[i] < last

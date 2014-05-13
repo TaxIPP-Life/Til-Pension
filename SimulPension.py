@@ -10,7 +10,7 @@ import pandas as pd
 
 from xml.etree import ElementTree
 
-from array_attributes import TimeArray
+from time_array import TimeArray
 from Param import legislations_add_pension as legislations
 from Param import legislationsxml_add_pension as  legislationsxml
 from openfisca_core import conv
