@@ -8,7 +8,7 @@ from dateutil.relativedelta import relativedelta
 import os
 parentdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.sys.path.insert(0,parentdir) 
-from array_attributes import ArrayAttributes
+from array_attributes import TimeArray
 from SimulPension import PensionSimulation
 from utils_pension import _isin, valbytranches, table_selected_dates, build_long_values, translate_frequency
 from pension_functions import calculate_SAM, nb_trim_surcote, sal_to_trimcot, unemployment_trimesters
@@ -83,7 +83,7 @@ class RegimeGeneral(PensionSimulation):
             
         wk_selection = _isin(self.workstate.array, self.code_regime)
         #wk_selection.to_csv('testwork.csv')
-        sal_selection = ArrayAttributes(wk_selection*sali, self.sali.dates)
+        sal_selection = TimeArray(wk_selection*sali, self.sali.dates)
         if time_step == 'month':
             sal_selection = translate_frequency(sal_selection, input_frequency='month', output_frequency='year', method='sum')
         nb_trim_cot, trim_by_year = sal_to_trimcot(sal_selection,
@@ -104,7 +104,7 @@ class RegimeGeneral(PensionSimulation):
         nb_trim_chom, table_chom = unemployment_trimesters(self.workstate.array, code_regime=self.code_regime,
                                                             input_step=self.time_step, output='table_unemployement')
         nb_trim_ass = nb_trim_chom # TODO: + nb_trim_war + ....
-        trim_by_year = ArrayAttributes(array=self.trim_by_year + table_chom, 
+        trim_by_year = TimeArray(array=self.trim_by_year + table_chom, 
                                        dates=[year*100 + 1 for year in range(first_year_sal, self.datesim.year)])
         self.trim_by_year = trim_by_year
         return nb_trim_ass

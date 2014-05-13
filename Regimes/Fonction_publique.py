@@ -8,7 +8,7 @@ from dateutil.relativedelta import relativedelta
 import os
 parentdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.sys.path.insert(0,parentdir) 
-from array_attributes import ArrayAttributes
+from array_attributes import TimeArray
 from SimulPension import PensionSimulation
 from utils_pension import _isin, build_long_values, sum_by_years, substract_months, translate_frequency, valbytranches, table_selected_dates
 from pension_functions import calculate_SAM, sal_to_trimcot, unemployment_trimesters
@@ -42,14 +42,14 @@ class FonctionPublique(PensionSimulation):
     def trim_service(self):
         ''' Cette fonction pertmet de calculer la durée de service dans FP
         TODO: gérer la comptabilisation des temps partiels quand variable présente'''
-        wk_selection = ArrayAttributes(_isin(self.workstate.array,self.code_regime), self.workstate.dates)
+        wk_selection = TimeArray(_isin(self.workstate.array,self.code_regime), self.workstate.dates)
         wk_selection.array, wk_selection.dates = translate_frequency(wk_selection, input_frequency=self.time_step, output_frequency='month')
-        wk_selection_actif = ArrayAttributes(_isin(self.workstate.array,self.code_actif), self.workstate.dates)
+        wk_selection_actif = TimeArray(_isin(self.workstate.array,self.code_actif), self.workstate.dates)
         wk_selection_actif.array, wk_selection_actif.dates = translate_frequency(wk_selection_actif, input_frequency=self.time_step, output_frequency='month')
         # TODO: condition not assuming sali is in year
-        sali = ArrayAttributes(*translate_frequency(self.sali, input_frequency=self.time_step, output_frequency='month'))
+        sali = TimeArray(*translate_frequency(self.sali, input_frequency=self.time_step, output_frequency='month'))
         sali.array = np.around(np.divide(sali.array, 12), decimals=3)
-        sal_selection = ArrayAttributes(wk_selection.array*sali.array, sali.dates) 
+        sal_selection = TimeArray(wk_selection.array*sali.array, sali.dates) 
         trim_service = np.divide(wk_selection.array.sum(axis=1), 4).astype(int)
         trim_actif = np.divide(wk_selection_actif.array.sum(axis=1), 4).astype(int)
         self.sal_FP = sal_selection

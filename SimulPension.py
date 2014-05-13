@@ -10,7 +10,7 @@ import pandas as pd
 
 from xml.etree import ElementTree
 
-from array_attributes import ArrayAttributes
+from array_attributes import TimeArray
 from Param import legislations_add_pension as legislations
 from Param import legislationsxml_add_pension as  legislationsxml
 from openfisca_core import conv
@@ -182,9 +182,9 @@ class PensionSimulation(Simulation):
             if hasattr(self, key):
                 setattr(self, key, val)
         if self.data_type == 'numpy':
-            sali = ArrayAttributes(self.sali, self.dates)
+            sali = TimeArray(self.sali, self.dates)
             setattr(self, 'sali', sali)
-            workstate = ArrayAttributes(self.workstate, self.dates)
+            workstate = TimeArray(self.workstate, self.dates)
             setattr(self, 'workstate', workstate)
         if self.first_year:
             workstate.selected_dates(first=first_year_sal, last=self.datesim.year, inplace=True) 

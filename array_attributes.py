@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-class ArrayAttributes(object):
+class TimeArray(object):
     
     def __init__(self, array, dates):
         self.array = array
@@ -30,5 +30,5 @@ class ArrayAttributes(object):
             self.array = array[:,array_dates]
             self.dates = dates
         else:
-            return ArrayAttributes(array[:,array_dates], dates)
+            return TimeArray(array[:,array_dates], dates)
     
