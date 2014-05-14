@@ -1874,7 +1874,7 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 			 		</TAUX>
 		 		</TRANCHE>
 		 	</BAREME>
-		 	<BAREME description="Taux de cotisation moyen (estimation) pour l'ARRCO" code="taux_cot_moy" format="float" longitudinal="true">
+		 	<BAREME description="Taux de cotisation moyen (estimation) pour l'ARRCO, Unirs entre 57-62" code="taux_cot_moy" format="float" longitudinal="true">
 	 			<TRANCHE code="tranche0">
 		 			<SEUIL description= "Limite tranche 1 (à multiplier par le PSS)">
 				  		<VALUE valeur="0" deb="1949-01-01" fin="2100-12-01"/>
@@ -1886,7 +1886,8 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 			 			<VALUE valeur="0.058" deb="1996-01-01" fin="1996-12-01"/>
 			 			<VALUE valeur="0.056" deb="1994-01-01" fin="1995-12-01"/>
 			 			<VALUE valeur="0.054" deb="1963-01-01" fin="1993-12-01"/>
-			 			<VALUE valeur="0.025" deb="1949-01-01" fin="1962-12-01"/>
+			 			<VALUE valeur="0.025" deb="1957-01-01" fin="1962-12-01"/>
+			 			<VALUE valeur="0.0" deb="1949-01-01" fin="1956-12-01"/> #TODO: check this with leg
 			 		</TAUX>
 		 		</TRANCHE>
 		 		<TRANCHE code="tranche1">
@@ -1899,7 +1900,8 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 			 			<VALUE valeur="0.125" deb="2002-01-01" fin="2003-12-01"/>
 			 			<VALUE valeur="0.105" deb="2000-01-01" fin="2001-12-01"/>
 			 			<VALUE valeur="0.09" deb="1999-01-01" fin="1999-12-01"/>
-			 			<VALUE valeur="0.08" deb="1949-01-01" fin="1998-12-01"/>
+			 			<VALUE valeur="0.08" deb="1957-01-01" fin="1998-12-01"/>
+			 			<VALUE valeur="0.0" deb="1949-01-01" fin="1956-12-01"/> #TODO: check this with leg
 			 		</TAUX>
 		 		</TRANCHE>
 		 		<TRANCHE code="tranche2">

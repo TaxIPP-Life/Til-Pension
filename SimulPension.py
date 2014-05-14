@@ -14,7 +14,7 @@ from time_array import TimeArray
 from Param import legislations_add_pension as legislations
 from Param import legislationsxml_add_pension as  legislationsxml
 from openfisca_core import conv
-from utils_pension import build_long_values, build_long_baremes, _isin, valbytranches
+from utils_pension import build_long_values, build_long_baremes, _isin, print_info_numpy, valbytranches
 #from .columns import EnumCol, EnumPresta
 #from .taxbenefitsystems import TaxBenefitSystem
 
@@ -220,8 +220,8 @@ class PensionSimulation(Simulation):
             if last_year_sali < first_year:
                 return nb_points
             for year in range(first_year, min(last_year_sali, last_year) + 1):
-                points_acquis = np.divide(taux_cot[year].calc(sali[year*100 + 1]), salref[year-first_year_sal]).round(2) 
-                gmp = P.gmp
+                points_acquis = np.divide(taux_cot[year].calc(sali[year*100 + 1]), salref[year-first_year_sal]).round(2)
+                gmp = P.gmp # = 0 pour arrco
                 #print year, taux_cot[year], sali.ix[1926 ,year *100 + 1], salref[year-first_year_sal]
                 #print 'result', pd.Series(points_acquis, index=sali.index).ix[1926]
                 nb_points += np.maximum(points_acquis, gmp)*(points_acquis > 0)

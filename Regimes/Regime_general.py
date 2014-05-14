@@ -84,6 +84,7 @@ class RegimeGeneral(PensionSimulation):
         wk_selection = _isin(self.workstate.array, self.code_regime)
         #wk_selection.to_csv('testwork.csv')
         sal_selection = TimeArray(wk_selection*sali, self.sali.dates)
+        # sal_selection = sal_selection.translate_frequency(output_frequency='year', method='sum')
         if time_step == 'month':
             sal_selection = translate_frequency(sal_selection, input_frequency='month', output_frequency='year', method='sum')
         nb_trim_cot, trim_by_year = sal_to_trimcot(sal_selection,
@@ -173,8 +174,8 @@ class RegimeGeneral(PensionSimulation):
                 # TODO: check if annual step in sal_avpf and sal_RG
                 first_ix_avpf = 1972 - first_year_sal
                 trim_avpf = trim_avpf[:,first_ix_avpf:]
-                sal_avpf = np.multiply((trim_avpf != 0), smic ) #*2028 = 151.66*12 if horaires
-                sal_RG.array[:,first_ix_avpf] += sal_avpf[:,first_ix_avpf]
+                sal_avpf = np.multiply((trim_avpf != 0), smic) #*2028 = 151.66*12 if horaires
+                sal_RG.array[:,first_ix_avpf:] += sal_avpf
                 return np.round(sal_RG.array,2)
             if data_type == 'pandas':
                 trim_avpf = table_selected_dates(trim_avpf, self.dates, first_year=1972, last_year=yearsim)
@@ -272,10 +273,10 @@ class RegimeGeneral(PensionSimulation):
             return date_surcote
         
         def _trimestre_surcote_0304(trim_by_year_RG, date_surcote, P):
-            ''' surcote associée aux trimestres côtisés entre 2003 et 2004 
+            ''' surcote associée aux trimestres côtisés en 2003 
             TODO : structure pas approprié pour les réformes du type 'et si on surcotait avant 2003, ça donnerait quoi?'''
             taux_surcote = P.taux_4trim
-            trim_selected = trim_by_year_RG.selected_dates(first=2003, last=2005)
+            trim_selected = trim_by_year_RG.selected_dates(first=2003, last=2004)
             nb_trim = nb_trim_surcote(trim_selected, date_surcote)
             return taux_surcote*nb_trim
         
@@ -285,7 +286,7 @@ class RegimeGeneral(PensionSimulation):
             taux_4trim = P.taux_4trim
             taux_5trim = P.taux_5trim
             taux_65 = P.taux_65
-            trim_selected = trim_by_year_RG.selected_dates(first=2005, last=2009)
+            trim_selected = trim_by_year_RG.selected_dates(first=2004, last=2009)
             #agemin = agem.copy()
             agemin = 65*12 
             date_surcote_65 = _date_surcote(trim_by_year_tot, trim_maj, agem, agemin=agemin)
@@ -295,7 +296,7 @@ class RegimeGeneral(PensionSimulation):
             return taux_65*nb_trim_65 + taux_4trim*np.maximum(np.minimum(nb_trim,4), 0) + taux_5trim*np.maximum(nb_trim - 4, 0)
         
         def _trimestre_surcote_after_09(trim_by_year_RG, trim_years, date_surcote, P):
-            ''' surcote associée aux trimestres côtisés après 2009 '''
+            ''' surcote associée aux trimestres côtisés en et après 2009 '''
             taux_surcote = P.taux
             trim_selected = trim_by_year_RG.selected_dates(first=2009, last=None)
             nb_trim = nb_trim_surcote(trim_selected, date_surcote)
@@ -311,14 +312,14 @@ class RegimeGeneral(PensionSimulation):
             trim_surcote = nb_trim_surcote(trim_by_year_RG, date_surcote)
             return trim_surcote*taux_surcote 
         elif yearsim < 2010:
-            surcote_0304 = _trimestre_surcote_0304(trim_by_year_RG, date_surcote, P.surcote)
+            surcote_03 = _trimestre_surcote_0304(trim_by_year_RG, date_surcote, P.surcote)
             surcote_0408 = _trimestre_surcote_0408(trim_by_year_RG, trim_by_year_tot, trim_maj, date_surcote, P.surcote)
-            return surcote_0304 + surcote_0408
+            return surcote_03 + surcote_0408
         else:
-            surcote_0304 = _trimestre_surcote_0304(trim_by_year_RG, date_surcote, P.surcote)
+            surcote_03 = _trimestre_surcote_0304(trim_by_year_RG, date_surcote, P.surcote)
             surcote_0408 = _trimestre_surcote_0408(trim_by_year_RG, trim_maj, date_surcote, P.surcote)
             surcote_aft09 = _trimestre_surcote_after_09(trim_by_year_RG, date_surcote, P.surcote)
-            return surcote_0304 + surcote_0408 + surcote_aft09   
+            return surcote_03 + surcote_0408 + surcote_aft09   
         
     def minimum_contributif(self, pension_RG, pension, trim_RG, trim_cot, trim):
         ''' MICO du régime général : allocation différentielle 
