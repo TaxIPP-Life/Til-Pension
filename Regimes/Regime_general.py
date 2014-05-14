@@ -28,21 +28,20 @@ class RegimeGeneral(Regime):
         Regime.__init__(self)
         self.regime = 'RG'
         self.code_regime = [3,4]
-        
-
+        self.param_name = 'prive.RG'
      
     def build_salref(self):
         '''
         salaire trimestriel de référence minimum
         Rq : Toute la série chronologique est exprimé en euros
         '''
-        yearsim = self.datesim.year
-        salmin = pd.DataFrame( {'year' : range(first_year_sal, yearsim ), 'sal' : - np.ones(yearsim - first_year_sal)} ) 
+        yearsim = self.yearsim
+        salmin = pd.DataFrame( {'year': range(first_year_sal, yearsim ), 'sal': -np.ones(yearsim - first_year_sal)} ) 
         avts_year = []
         smic_year = []
-        smic_long = self._Plongitudinal.common.smic
-        avts_long = self._Plongitudinal.common.avts.montant
-        for year in range(first_year_sal,1972):
+        smic_long = self.P_longit.common.smic
+        avts_long = self.P_longit.common.avts.montant
+        for year in range(first_year_sal, 1972):
             avts_old = avts_year
             avts_year = []
             for key in avts_long.keys():
@@ -52,7 +51,8 @@ class RegimeGeneral(Regime):
                 avts_year = avts_old
             salmin.loc[salmin['year'] == year, 'sal'] = avts_long[avts_year[0]] 
             
-        #TODO: Trancher si on calcule les droits à retraites en incluant le travail à l'année de simulation pour l'instant non (ex : si datesim = 2009 on considère la carrière en emploi jusqu'en 2008)
+        #TODO: Trancher si on calcule les droits à retraites en incluant le travail à l'année de simulation pour l'instant
+        #non (ex : si datesim = 2009 on considère la carrière en emploi jusqu'en 2008)
         for year in range(1972,yearsim):
             smic_old = smic_year
             smic_year = []
@@ -67,50 +67,54 @@ class RegimeGeneral(Regime):
                     salmin.loc[salmin['year'] == year, 'sal'] = 200*smic_long[smic_year[0]]/6.5596
             else:
                 salmin.loc[salmin['year'] == year, 'sal'] = 150*smic_long[smic_year[0]]
-        self.salref = np.array(salmin['sal'])
+        return np.array(salmin['sal'])
         
             
-    def nb_trim_cot(self):
+    def nb_trim_cot(self, workstate, sali, code=None):
         ''' Nombre de trimestres côtisés pour le régime général 
         ref : code de la sécurité sociale, article R351-9
          '''
         # Selection des salaires à prendre en compte dans le décompte (mois où il y a eu côtisation au régime)
-        sali = self.sali.array.copy()
+        if code is None:
+            code = self.code_regime
         time_step = self.time_step
             
-        wk_selection = _isin(self.workstate.array, self.code_regime)
-        #wk_selection.to_csv('testwork.csv')
-        sal_selection = TimeArray(wk_selection*sali, self.sali.dates)
+        wk_selection = _isin(workstate.array, code)
+        sal_selection = TimeArray(wk_selection*sali.array, sali.dates)
         if time_step == 'month':
-            sal_selection = translate_frequency(sal_selection, input_frequency='month', output_frequency='year', method='sum')
+            sal_selection = translate_frequency(sal_selection.array, input_frequency='month',
+                                                 output_frequency='year', method='sum')
+        
+        salref = self.build_salref()
         nb_trim_cot, trim_by_year = sal_to_trimcot(sal_selection,
-                                                    self.salref, option='table')
-        # sal_section = (sal_to_trimcot(sum_by_years(sal_selection), self.salref, self.datesim.year, option='table') != 0)*sal_selection
+                                                    salref, option='table')
+        # sal_section = (sal_to_trimcot(sum_by_years(sal_selection), self.salref, self.yearsim, option='table') != 0)*sal_selection
         # logiquement c'est mieux de garder que les salaires où il y a eu cotisation -> pour comparaison avec Pensipp plus simple de commenter
         self.sal_RG = sal_selection
         self.trim_by_year = trim_by_year
         return nb_trim_cot
         
-    def nb_trim_ass(self):
+    def nb_trim_ass(self, workstate):
         ''' 
         Comptabilisation des périodes assimilées à des durées d'assurance
         Pour l"instant juste chômage workstate == 5 (considéré comme indemnisé) 
         qui succède directement à une période de côtisation au RG workstate == [3,4]
         TODO: ne pas comptabiliser le chômage de début de carrière
         '''
-        nb_trim_chom, table_chom = unemployment_trimesters(self.workstate.array, code_regime=self.code_regime,
+        nb_trim_chom, table_chom = unemployment_trimesters(workstate.array, code_regime=self.code_regime,
                                                             input_step=self.time_step, output='table_unemployement')
         nb_trim_ass = nb_trim_chom # TODO: + nb_trim_war + ....
         trim_by_year = TimeArray(array=self.trim_by_year + table_chom, 
-                                       dates=[year*100 + 1 for year in range(first_year_sal, self.datesim.year)])
+                                       dates=[year*100 + 1 for year in range(first_year_sal, self.yearsim)])
         self.trim_by_year = trim_by_year
         return nb_trim_ass
             
-    def nb_trim_maj(self):
+    def nb_trim_maj(self, workstate, sali):
         ''' Trimestres majorants acquis au titre de la MDA, 
             de l'assurance pour congé parental ou de l'AVPF '''
         
         def _mda(info_child, list_id, yearsim):
+            #TODO: remove the pandas call
             ''' Majoration pour enfant à charge : nombre de trimestres acquis
             Rq : cette majoration n'est applicable que pour les femmes dans le RG'''
             mda = pd.DataFrame({'mda': np.zeros(len(list_id))}, index=list_id)
@@ -144,12 +148,12 @@ class RegimeGeneral(Regime):
         
         child_mother = self.info_ind.loc[self.info_ind['sexe'] == 1, 'nb_born']
         list_id = self.info_ind.index
-        yearsim = self.datesim.year
+        yearsim = self.yearsim
         if child_mother is not None:
             nb_trim_mda = _mda(child_mother, list_id, yearsim)
         else :
             nb_trim_mda = 0
-        nb_trim_avpf, trim_avpf, sal_avpf = _avpf(self.workstate.array, self.sali.array, self.time_step)
+        nb_trim_avpf, trim_avpf, sal_avpf = _avpf(workstate.array, sali.array, self.time_step)
         # Les trimestres d'avpf sont comptabilisés dans le calcul du SAM
         self.trim_avpf = trim_avpf
         self.sal_avpf = sal_avpf*(trim_avpf != 0)
@@ -158,7 +162,9 @@ class RegimeGeneral(Regime):
     def SAM(self):
         ''' Calcul du salaire annuel moyen de référence : 
         notamment application du plafonnement à un PSS'''
-        yearsim = self.datesim.year
+        yearsim = self.yearsim
+        import pdb
+        pdb.set_trace()
         nb_years = valbytranches(self._P.nb_sam, self.info_ind)
         plafond = build_long_values(param_long=self._Plongitudinal.common.plaf_ss, first_year=first_year_sal, last_year=yearsim)
         revalo = build_long_values(param_long=self._Plongitudinal.prive.RG.revalo, first_year=first_year_sal, last_year=yearsim)
@@ -209,7 +215,7 @@ class RegimeGeneral(Regime):
     def calculate_CP(self, trim_RG):
         ''' Calcul du coefficient de proratisation '''
         P =  self._P
-        yearsim = self.datesim.year
+        yearsim = self.yearsim
         N_CP = valbytranches(P.N_CP, self.info_ind)
               
         if 1948 <= yearsim and yearsim < 1972: 
@@ -228,7 +234,7 @@ class RegimeGeneral(Regime):
     
     def decote(self, trim_tot, agem):
         ''' Détermination de la décote à appliquer aux pensions '''
-        yearsim = self.datesim.year
+        yearsim = self.yearsim
         P = self._P
         tx_decote = valbytranches(P.decote.taux, self.info_ind)
         age_annulation = valbytranches(P.decote.age_null, self.info_ind)
@@ -245,7 +251,7 @@ class RegimeGeneral(Regime):
         
     def surcote(self, trim_by_year_tot, trim_maj, agem):
         ''' Détermination de la surcote à appliquer aux pensions '''
-        yearsim = self.datesim.year
+        yearsim = self.yearsim
         P = self._P
         trim_by_year_RG = self.trim_by_year
         N_taux = valbytranches(P.plein.N_taux, self.info_ind)
@@ -322,7 +328,7 @@ class RegimeGeneral(Regime):
         RQ : ASPA et minimum vieillesse sont gérés par OF
         Il est attribué quels que soient les revenus dont dispose le retraité en plus de ses pensions : loyers, revenus du capital, activité professionnelle... 
         + mécanisme de répartition si cotisations à plusieurs régimes'''
-        yearsim = self.datesim.year
+        yearsim = self.yearsim
         P = self._P
         N_taux = valbytranches(P.plein.N_taux, self.info_ind)
         N_CP = valbytranches(P.N_CP, self.info_ind)

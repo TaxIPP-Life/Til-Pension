@@ -9,7 +9,7 @@ from utils_pension import _isin, sum_by_years, translate_frequency
 chomage=2
 avpf = 8
 id_test = 21310 # 28332 #1882 #1851 #, 18255   
-    
+
 def select_unemployment(data, code_regime, option='dummy', data_type='numpy'):
     ''' Ne conserve que les périodes de chomage succédant directement à une période de cotisation au régime
     TODO: A améliorer car boucle for très moche
@@ -72,7 +72,7 @@ def sal_to_trimcot(sal_cot, salref, option='vector', data_type='numpy'):
         sal_cot.array[np.isnan(sal_cot.array)] = 0
     if data_type == 'pandas':
         sal_cot = sal_cot.fillna(0)
-    nb_trim_cot = np.minimum(np.divide(sal_cot.array,salref).astype(int), 4)
+    nb_trim_cot = np.minimum(np.divide(sal_cot.array, salref).astype(int),4)
     if option == 'table':
         return nb_trim_cot.sum(axis=1), nb_trim_cot
     else :
