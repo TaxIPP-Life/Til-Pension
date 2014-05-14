@@ -5,7 +5,7 @@ import os
 parentdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.sys.path.insert(0,parentdir) 
 
-from SimulPension import RegimeComplementaires
+from regime import RegimeComplementaires
 from utils_pension import build_long_values
 
 first_year_sal = 1949
