@@ -29,7 +29,6 @@ class FonctionPublique(Regime):
         self.code_sedentaire = 6
         self.code_actif = 5
         
-
         
         self.workstate  = None
         self.sali = None
@@ -56,7 +55,7 @@ class FonctionPublique(Regime):
         return trim_service, trim_actif
  
     def build_age_ref(self, trim_actif):
-        P = self._P
+        P = getattr(self._P, self.param_name)
         # age_min = age_min_actif pour les fonctionnaires actif en fin de carrières ou carrière mixte ayant une durée de service actif suffisante
         age_min_s = valbytranches(P.sedentaire.age_min, self.info_ind)
         age_min_a = valbytranches(P.actif.age_min, self.info_ind)
