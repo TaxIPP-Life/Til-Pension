@@ -64,6 +64,8 @@ class Regime(object):
 #    def build_sal_regime(self):
 #        self.sal_regime = self.sali.array*_isin(self.workstate.array,self.code_regime)
 #        
+class RegimeComplementaires(Regime):
+    
     def calculate_taux(self, decote, surcote):
         ''' Détermination du taux de liquidation à appliquer à la pension '''
         taux_plein = self._P.plein.taux
