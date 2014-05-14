@@ -20,16 +20,16 @@ compare_destinie = True
 
 class FonctionPublique(PensionSimulation):
     
-    def __init__(self, param_regime, param_common, param_longitudinal):
+    def __init__(self):
         PensionSimulation.__init__(self)
         self.regime = 'FP'
         self.code_regime = [5,6]
+        self.param_name = 'fp'
+        
         self.code_sedentaire = 6
         self.code_actif = 5
         
-        self._P = param_regime
-        self._Pcom = param_common
-        self._Plongitudinal = param_longitudinal
+
         
         self.workstate  = None
         self.sali = None

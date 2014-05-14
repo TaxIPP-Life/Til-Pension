@@ -24,14 +24,11 @@ def date_(year, month, day):
 
 class RegimeGeneral(PensionSimulation):
     
-    def __init__(self, param_regime, param_common, param_longitudinal):
+    def __init__(self):
         PensionSimulation.__init__(self)
         self.regime = 'RG'
         self.code_regime = [3,4]
         
-        self._P = param_regime
-        self._Pcom = param_common
-        self._Plongitudinal = param_longitudinal
 
      
     def build_salref(self):

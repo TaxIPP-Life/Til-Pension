@@ -23,18 +23,22 @@ class PensionSimulation(object):
     """
     descr = None
      
-    def __init__(self, survey_filename = None):
-        self.survey_filename = survey_filename
-        self.workstate = None
-        self.sali = None
-        self.dates = None
+    def __init__(self):
         self.code_regime = None
         self.regime = None
+        self.param_name = None
+        
+        self.workstate = None
+        self.sali = None
         self.info_ind = None
+        self.dates = None
+        
         self.time_step = None
         self.data_type = None
         self.first_year = None
         self.yearsim = None
+        
+        self.param = None
         
     def set_config(self, **kwargs):
         """
@@ -53,6 +57,10 @@ class PensionSimulation(object):
             workstate.selected_dates(first=first_year_sal, last=self.yearsim, inplace=True) 
             sali.selected_dates(first=first_year_sal, last=self.yearsim, inplace=True)
             
+            
+        self._P = param_regime
+        self._Pcom = param_common
+        self._Plongitudinal = param_longitudinal
 #    def build_sal_regime(self):
 #        self.sal_regime = self.sali.array*_isin(self.workstate.array,self.code_regime)
 #        
