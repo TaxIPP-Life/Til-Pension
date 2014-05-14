@@ -103,50 +103,6 @@ def _isin(table, selected_values, data_type='numpy'):
     if data_type == 'numpy':
         return selection
 
-def translate_frequency(table, input_frequency='month', output_frequency='month', method=None,
-                         data_type='numpy'):
-    '''method should eventually control how to switch from month based table to year based table
-        so far we assume year is True if January is True 
-        idea : format_table as an argument instead of testing with isinstance
-        '''
-    if input_frequency == output_frequency:
-        return table
-        
-    if data_type == 'numpy':
-        if output_frequency == 'year': # if True here, input_frequency=='month'
-            assert len(table.dates) % 12 == 0 #TODO: to remove eventually
-            nb_years = len(table.dates) // 12
-            output_dates = [date for date in table.dates if date % 100 == 1]
-            output_dates_ix = table.dates.index(output_dates)
-            #here we could do more complex
-            if method is None: #first month of each year
-                return table.array[:, output_dates_ix], output_dates
-            if method is 'sum':
-                output = table[:, output_dates_ix].copy()
-                for month in range(1,12):
-                    month_to_add = [year*12 + month for year in xrange(nb_years)]
-                    output += table[:, month_to_add]
-                return output, output_dates
-
-        if output_frequency == 'month': # if True here, input_frequency=='year'
-            output_dates = [year + month for year in table.dates for month in range(12)]
-            return np.repeat(table.array, 12, axis=1), output_dates
-            #return np.kron(table, np.ones(12))
-    else:
-        assert data_type == 'pandas'
-        if output_frequency == 'year': # if True here, input_frequency=='month'
-            detected_years = set([date // 100 for date in table.columns])
-            output_dates = [100*x + 1 for x in detected_years]
-            #here we could do more complex
-            if method is None:
-                return table.loc[:, output_dates]
-            if method is 'sum':
-                pdb.set_trace()
-        if output_frequency == 'month': # if True here, input_frequency=='year'
-            output_dates = [x + k for k in range(12) for x in table.columns ]
-            output_table1 = DataFrame(np.tile(table, 12), index=table.index, columns=output_dates)
-            return output_table1.reindex_axis(sorted(output_table1.columns), axis=1)  
-        
 def table_selected_dates(table, dates, first_year=None, last_year=None):
     ''' La table d'input dont les colonnes sont des dates est renvoyées emputée des années postérieures à last_year (last_year non-incluse) 
     et antérieures à first_year (first_year incluse) '''

@@ -4,7 +4,8 @@ import numpy as np
 import pandas as pd
 import pdb
 
-from utils_pension import _isin, sum_by_years, translate_frequency
+from time_array import TimeArray
+from utils_pension import _isin, sum_by_years
 
 chomage=2
 avpf = 8
@@ -46,20 +47,18 @@ def unemployment_trimesters(table, code_regime = None, input_step = 'month', out
         
     def _calculate_trim_unemployment(data, step, code_regime):
         ''' Détermination du vecteur donnant le nombre de trimestres comptabilisés comme chômage pour le RG '''
-        unemp_trim = select_unemployment(table, code_regime)
+        unemp_trim = select_unemployment(data, code_regime)
         nb_trim = unemp_trim.sum(axis = 1)
-        
         if step == 'month':
             return np.divide(nb_trim, 3).round(), unemp_trim
         else:
             assert step == 'year'
-            return 4*nb_trim, unemp_trim
-        
-    table = _isin(table, code_regime + [chomage])
-    table = translate_frequency(table, input_frequency=input_step, output_frequency=input_step)
-    nb_trim_chom, unemp_trim = _calculate_trim_unemployment(table, step = input_step, code_regime = code_regime)
+            return 4*nb_trim, unemp_trim 
+    table.array = table.array*_isin(table.array, code_regime + [chomage])
+    table.translate_frequency(output_frequency=input_step, inplace=True)
+    nb_trim_chom, unemp_trim = _calculate_trim_unemployment(table.array, step=input_step, code_regime=code_regime)
     if output == 'table_unemployement':
-        return nb_trim_chom, unemp_trim
+        return nb_trim_chom, TimeArray(unemp_trim, table.dates)
     else:
         return nb_trim_chom
 

@@ -10,7 +10,7 @@ parentdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.sys.path.insert(0,parentdir) 
 from time_array import TimeArray
 from SimulPension import PensionSimulation
-from utils_pension import _isin, valbytranches, table_selected_dates, build_long_values, translate_frequency
+from utils_pension import _isin, valbytranches, table_selected_dates, build_long_values
 from pension_functions import calculate_SAM, nb_trim_surcote, sal_to_trimcot, unemployment_trimesters
 
 code_avpf = 8
@@ -82,11 +82,8 @@ class RegimeGeneral(PensionSimulation):
         time_step = self.time_step
             
         wk_selection = _isin(self.workstate.array, self.code_regime)
-        #wk_selection.to_csv('testwork.csv')
         sal_selection = TimeArray(wk_selection*sali, self.sali.dates)
-        # sal_selection = sal_selection.translate_frequency(output_frequency='year', method='sum')
-        if time_step == 'month':
-            sal_selection = translate_frequency(sal_selection, input_frequency='month', output_frequency='year', method='sum')
+        sal_selection.translate_frequency(output_frequency='year', method='sum', inplace=True)
         nb_trim_cot, trim_by_year = sal_to_trimcot(sal_selection,
                                                     self.salref, option='table')
         # sal_section = (sal_to_trimcot(sum_by_years(sal_selection), self.salref, self.datesim.year, option='table') != 0)*sal_selection
@@ -102,10 +99,10 @@ class RegimeGeneral(PensionSimulation):
         qui succède directement à une période de côtisation au RG workstate == [3,4]
         TODO: ne pas comptabiliser le chômage de début de carrière
         '''
-        nb_trim_chom, table_chom = unemployment_trimesters(self.workstate.array, code_regime=self.code_regime,
+        nb_trim_chom, table_chom = unemployment_trimesters(self.workstate, code_regime=self.code_regime,
                                                             input_step=self.time_step, output='table_unemployement')
         nb_trim_ass = nb_trim_chom # TODO: + nb_trim_war + ....
-        trim_by_year = TimeArray(array=self.trim_by_year + table_chom, 
+        trim_by_year = TimeArray(array=self.trim_by_year + table_chom.array, 
                                        dates=[year*100 + 1 for year in range(first_year_sal, self.datesim.year)])
         self.trim_by_year = trim_by_year
         return nb_trim_ass
@@ -137,13 +134,15 @@ class RegimeGeneral(PensionSimulation):
                 mda.loc[mda['mda'] < 2, 'mda'] = 0
                 return mda['mda'].astype(int)
             
-        def _avpf(workstate, sali, input_frequency):
+        def _avpf(workstate, sali):
             ''' Allocation vieillesse des parents au foyer : nombre de trimestres acquis'''
-            avpf_selection = _isin(workstate,[code_avpf])
-            avpf_selection = translate_frequency(avpf_selection, input_frequency=input_frequency, output_frequency='year')
+            avpf_selection = TimeArray(_isin(workstate.array,[code_avpf]), workstate.dates)
+            avpf_selection.translate_frequency(output_frequency='year', inplace=True)
             #avpf_selection = avpf_selection[[col_year for col_year in avpf_selection.columns if str(col_year)[-2:]=='01']]
-            sal_avpf = avpf_selection*np.divide(sali, self.salref) # Si certains salaires son déjà attribués à des états d'avpf on les conserve (cf.Destinie)
-            nb_trim = avpf_selection.sum(axis=1)*4
+            sal_avpf_array = avpf_selection.array*np.divide(sali.array, self.salref)
+            sal_avpf_array = sal_avpf_array*(avpf_selection != 0)
+            sal_avpf = TimeArray(sal_avpf_array, avpf_selection.dates) # Si certains salaires son déjà attribués à des états d'avpf on les conserve (cf.Destinie)
+            nb_trim = avpf_selection.array.sum(axis=1)*4
             return nb_trim, avpf_selection, sal_avpf
         
         child_mother = self.info_ind.loc[self.info_ind['sexe'] == 1, 'nb_born']
@@ -153,10 +152,10 @@ class RegimeGeneral(PensionSimulation):
             nb_trim_mda = _mda(child_mother, list_id, yearsim)
         else :
             nb_trim_mda = 0
-        nb_trim_avpf, trim_avpf, sal_avpf = _avpf(self.workstate.array, self.sali.array, self.time_step)
+        nb_trim_avpf, trim_avpf, sal_avpf = _avpf(self.workstate, self.sali)
         # Les trimestres d'avpf sont comptabilisés dans le calcul du SAM
         self.trim_avpf = trim_avpf
-        self.sal_avpf = sal_avpf*(trim_avpf != 0)
+        self.sal_avpf = sal_avpf
         return nb_trim_mda + nb_trim_avpf
     
     def SAM(self):
@@ -173,8 +172,8 @@ class RegimeGeneral(PensionSimulation):
             if data_type == 'numpy':
                 # TODO: check if annual step in sal_avpf and sal_RG
                 first_ix_avpf = 1972 - first_year_sal
-                trim_avpf = trim_avpf[:,first_ix_avpf:]
-                sal_avpf = np.multiply((trim_avpf != 0), smic) #*2028 = 151.66*12 if horaires
+                trim_avpf.array = trim_avpf.array[:,first_ix_avpf:]
+                sal_avpf = np.multiply((trim_avpf.array != 0), smic) #*2028 = 151.66*12 if horaires
                 sal_RG.array[:,first_ix_avpf:] += sal_avpf
                 return np.round(sal_RG.array,2)
             if data_type == 'pandas':
