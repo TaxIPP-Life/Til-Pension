@@ -160,3 +160,14 @@ def table_selected_dates(table, dates, first_year=None, last_year=None):
         idx2 = len(dates)
     idx_to_take = range(idx1, idx2)
     return table[:,idx_to_take]
+
+def print_info_numpy(np_object, ident, list_ident, text=None):
+    id_ix = list(list_ident).index(ident)
+    if text:
+        print str(text) + " : "
+    if len(np_object.shape) == 2:
+        #type = '2d-matrix'
+        print np_object[id_ix, :]
+    else:
+        #type = 'vector'
+        print np_object[id_ix]
