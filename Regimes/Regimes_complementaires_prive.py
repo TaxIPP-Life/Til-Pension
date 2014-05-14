@@ -5,17 +5,17 @@ import os
 parentdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.sys.path.insert(0,parentdir) 
 
-from SimulPension import PensionSimulation
+from SimulPension import Regime
 from utils_pension import build_long_values
 
 first_year_sal = 1949
 
-class AGIRC(PensionSimulation):
+class AGIRC(Regime):
     ''' L'Association générale des institutions de retraite des cadres gère le régime de retraite des cadres du secteur privé 
     de l’industrie, du commerce, des services et de l’agriculture. '''
     
     def __init__(self, param_regime, param_common, param_longitudinal):
-        PensionSimulation.__init__(self)
+        Regime.__init__(self)
         self.regime = 'agirc'
         self.code_regime = [4]
         
@@ -60,11 +60,11 @@ class AGIRC(PensionSimulation):
 #            majo_pac = np.minimum(majo_pac, plafond)
         return np.maximum(majo_born, majo_pac)
 
-class ARRCO(PensionSimulation):
+class ARRCO(Regime):
     ''' L'association pour le régime de retraite complémentaire des salariés gère le régime de retraite complémentaire de l’ensemble 
     des salariés du secteur privé de l’industrie, du commerce, des services et de l’agriculture, cadres compris. '''
     def __init__(self, param_regime, param_common, param_longitudinal):
-        PensionSimulation.__init__(self)
+        Regime.__init__(self)
         self.regime = 'arrco'
         self.code_regime = [3,4]
         self.code_noncadre = 3

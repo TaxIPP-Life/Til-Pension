@@ -9,7 +9,7 @@ import os
 parentdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.sys.path.insert(0,parentdir) 
 from time_array import TimeArray
-from SimulPension import PensionSimulation
+from SimulPension import Regime
 from utils_pension import _isin, valbytranches, table_selected_dates, build_long_values, translate_frequency
 from pension_functions import calculate_SAM, nb_trim_surcote, sal_to_trimcot, unemployment_trimesters
 
@@ -22,10 +22,10 @@ sal_avpf = False
 def date_(year, month, day):
     return datetime.date(year, month, day)
 
-class RegimeGeneral(PensionSimulation):
+class RegimeGeneral(Regime):
     
     def __init__(self):
-        PensionSimulation.__init__(self)
+        Regime.__init__(self)
         self.regime = 'RG'
         self.code_regime = [3,4]
         

@@ -17,7 +17,7 @@ first_year_sal = 1949
 
 
 
-class PensionSimulation(object):
+class Regime(object):
     """
     A Simulation class tailored to compute pensions (deal with survey data )
     """
@@ -42,7 +42,7 @@ class PensionSimulation(object):
         
     def set_config(self, **kwargs):
         """
-        Configures the PensionSimulation
+        Configures the Regime
         """
         # Setting general attributes and getting the specific ones
         for key, val in kwargs.iteritems():
