@@ -42,6 +42,12 @@ class Regime(object):
         for key, val in kwargs.iteritems():
             if hasattr(self, key):
                 setattr(self, key, val)
+                
+    def calculate_taux(self, decote, surcote):
+        ''' Détérmination du taux de liquidation à appliquer à la pension '''
+        P = reduce(getattr, self.param_name.split('.'), self.P)
+        taux_plein = P.plein.taux
+        return taux_plein*(1 - decote + surcote)
             
     def nb_trim_valide(self, workstate, code=None): #sali, 
         ''' Cette fonction pertmet de calculer des nombres par trimestres
