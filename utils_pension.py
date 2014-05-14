@@ -175,5 +175,7 @@ def load_param(param_file, date):
     _, legislation_json = legislationsxml.transform_node_xml_json_to_json(legislation_xml_json)
     dated_legislation_json = legislations.generate_dated_legislation_json(legislation_json, date)
     compact_legislation = legislations.compact_dated_node_json(dated_legislation_json)
-    return compact_legislation
+    long_dated_legislation_json = legislations.generate_long_legislation_json(legislation_json, date)
+    compact_legislation_long = legislations.compact_long_dated_node_json(long_dated_legislation_json)
+    return compact_legislation, compact_legislation_long
 
