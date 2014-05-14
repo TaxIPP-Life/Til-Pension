@@ -164,9 +164,10 @@ class RegimeGeneral(Regime):
         ''' Calcul du salaire annuel moyen de référence : 
         notamment application du plafonnement à un PSS'''
         yearsim = self.yearsim
-        nb_years = valbytranches(self._P.nb_sam, self.info_ind)
-        plafond = build_long_values(param_long=self._Plongitudinal.common.plaf_ss, first_year=first_year_sal, last_year=yearsim)
-        revalo = build_long_values(param_long=self._Plongitudinal.prive.RG.revalo, first_year=first_year_sal, last_year=yearsim)
+        P = reduce(getattr, self.param_name.split('.'), self.P)
+        nb_years = valbytranches(P.nb_sam, self.info_ind)
+        plafond = build_long_values(param_long=self.P_longit.common.plaf_ss, first_year=first_year_sal, last_year=yearsim)
+        revalo = build_long_values(param_long=self.P_longit.prive.RG.revalo, first_year=first_year_sal, last_year=yearsim)
         for i in range(1, len(revalo)) :
             revalo[:i] *= revalo[i]
         def _sal_for_sam(sal_RG, trim_avpf, smic, data_type='numpy'):
@@ -185,7 +186,7 @@ class RegimeGeneral(Regime):
                 sal_RG.loc[:,dates_avpf] += sal_avpf.loc[:,dates_avpf]
                 return np.round(sal_RG,2)
                     
-        smic_long = build_long_values(param_long=self._Plongitudinal.common.smic_proj, first_year=1972, last_year=yearsim) # avant pas d'avpf
+        smic_long = build_long_values(param_long=self.P_longit.common.smic_proj, first_year=1972, last_year=yearsim) # avant pas d'avpf
         sal_sam = _sal_for_sam(self.sal_RG, self.trim_avpf, smic_long)
         SAM = calculate_SAM(sal_sam, nb_years, time_step='year', plafond=plafond, revalorisation=revalo)
         self.sal_RG = sal_sam
@@ -195,12 +196,12 @@ class RegimeGeneral(Regime):
     def assurance_maj(self, trim_RG, trim_tot, agem):
         ''' Détermination de la durée d'assurance corrigée introduite par la réforme Boulin
         (majoration quand départ à la retraite après 65 ans) '''
-        P = self._P
-        date = self.datesim
+        P = reduce(getattr, self.param_name.split('.'), self.P)
+        year = self.yearsim
 
-        if date.year < 1983:
+        if year < 1983:
             return trim_RG
-        elif date.year < 2004 :
+        elif year < 2004 :
             trim_majo = np.maximum(math.ceil(agem/3 - 65*4),0)
             elig_majo = (trim_RG < P.N_CP)
             trim_corr = trim_RG*(1 + P.tx_maj*trim_majo*elig_majo )
@@ -213,7 +214,7 @@ class RegimeGeneral(Regime):
         
     def calculate_CP(self, trim_RG):
         ''' Calcul du coefficient de proratisation '''
-        P =  self._P
+        P =  reduce(getattr, self.param_name.split('.'), self.P)
         yearsim = self.yearsim
         N_CP = valbytranches(P.N_CP, self.info_ind)
               
@@ -234,7 +235,7 @@ class RegimeGeneral(Regime):
     def decote(self, trim_tot, agem):
         ''' Détermination de la décote à appliquer aux pensions '''
         yearsim = self.yearsim
-        P = self._P
+        P = reduce(getattr, self.param_name.split('.'), self.P)
         tx_decote = valbytranches(P.decote.taux, self.info_ind)
         age_annulation = valbytranches(P.decote.age_null, self.info_ind)
         N_taux = valbytranches(P.plein.N_taux, self.info_ind)
@@ -251,15 +252,15 @@ class RegimeGeneral(Regime):
     def surcote(self, trim_by_year_tot, trim_maj, agem):
         ''' Détermination de la surcote à appliquer aux pensions '''
         yearsim = self.yearsim
-        P = self._P
+        P = reduce(getattr, self.param_name.split('.'), self.P)
         trim_by_year_RG = self.trim_by_year
         N_taux = valbytranches(P.plein.N_taux, self.info_ind)
         age_min = valbytranches(P.age_min, self.info_ind)
 
-        def _date_surcote(trim_by_year_tot, trim_maj, agem, agemin=age_min, N_t=N_taux, date=self.datesim):
+        def _date_surcote(trim_by_year_tot, trim_maj, agem, agemin=age_min, N_t=N_taux, date=self.yearsim):
             ''' Détermine la date individuelle a partir de laquelle il y a surcote ( a atteint l'âge légal de départ en retraite + côtisé le nombre de trimestres cible 
             Rq : pour l'instant on pourrait ne renvoyer que l'année'''
-            date_liam = date.year*100 + 1
+            date_liam = yearsim*100 + 1
             cumul_trim = trim_by_year_tot.array.cumsum(axis=1)
             trim_limit = np.array((N_t - trim_maj.fillna(0)))
             years_surcote = np.greater(cumul_trim.T,trim_limit)
@@ -328,7 +329,7 @@ class RegimeGeneral(Regime):
         Il est attribué quels que soient les revenus dont dispose le retraité en plus de ses pensions : loyers, revenus du capital, activité professionnelle... 
         + mécanisme de répartition si cotisations à plusieurs régimes'''
         yearsim = self.yearsim
-        P = self._P
+        P = reduce(getattr, self.param_name.split('.'), self.P)
         N_taux = valbytranches(P.plein.N_taux, self.info_ind)
         N_CP = valbytranches(P.N_CP, self.info_ind)
         
@@ -348,7 +349,8 @@ class RegimeGeneral(Regime):
         ''' plafonnement à 50% du PSS 
         TODO: gérer les plus de 65 ans au 1er janvier 1983'''
         PSS = self._Pcom.plaf_ss
-        taux_PSS = self._P.plafond
+        P = reduce(getattr, self.param_name.split('.'), self.P)
+        taux_PSS = P.plafond
         return np.minimum(pension_RG - pension_surcote_RG, taux_PSS*PSS) + pension_surcote_RG
         
             
