@@ -14,15 +14,12 @@ class AGIRC(RegimeComplementaires):
     ''' L'Association générale des institutions de retraite des cadres gère le régime de retraite des cadres du secteur privé 
     de l’industrie, du commerce, des services et de l’agriculture. '''
     
-    def __init__(self, param_regime, param_common, param_longitudinal):
+    def __init__(self):
         RegimeComplementaires.__init__(self)
         self.regime = 'agirc'
         self.code_regime = [4]
+        self.param_name = 'prive'
         
-        self._P = param_regime
-        self._Pcom = param_common
-        self._Plongitudinal = param_longitudinal
-
         self.info_ind = None
         self.info_child_mother = None
         self.info_child_father = None
@@ -33,7 +30,8 @@ class AGIRC(RegimeComplementaires):
         ' pour enfant à charge au moment du départ en retraite
         - pour enfant nés et élevés en cours de carrière (majoration sur la totalité des droits acquis)
         C'est la plus avantageuse qui s'applique.'''
-        P = self._P.complementaire.arrco
+        P = reduce(getattr, self.param_name.split('.'), self.P)
+        P = P.complementaire.arrco ####TODO: !!! what ? 
         
         # Calcul des points pour enfants à charge
         taux_pac = P.maj_enf.pac
@@ -63,28 +61,25 @@ class AGIRC(RegimeComplementaires):
 class ARRCO(RegimeComplementaires):
     ''' L'association pour le régime de retraite complémentaire des salariés gère le régime de retraite complémentaire de l’ensemble 
     des salariés du secteur privé de l’industrie, du commerce, des services et de l’agriculture, cadres compris. '''
-    def __init__(self, param_regime, param_common, param_longitudinal):
+    def __init__(self):
         RegimeComplementaires.__init__(self)
         self.regime = 'arrco'
+        self.param_name = 'prive'
         self.code_regime = [3,4]
         self.code_noncadre = 3
         self.code_cadre = 4
-        
-        self._P = param_regime
-        self._Pcom = param_common
-        self._Plongitudinal = param_longitudinal
         
         self.info_child_mother = None
         self.info_child_father = None
         self.sal_regime = None
         
-    def build_sal_regime(self, workstate):
+    def build_sal_regime(self, workstate, sali):
         ''' Cette fonction plafonne les salaires des cadres 1 pss pour qu'il ne paye que la première tranche '''
-        sali = self.sali.array
+        sali = sali.array
         cadre_selection = (workstate.array == self.code_cadre)
         noncadre_selection = (workstate.array == self.code_noncadre)
-        yearsim = self.datesim.year
-        plaf_ss = self._Plongitudinal.common.plaf_ss
+        yearsim = self.yearsim
+        plaf_ss = self.P_longit.common.plaf_ss
         pss = build_long_values(plaf_ss, first_year=first_year_sal, last_year=yearsim)    
         self.sal_regime = sali*noncadre_selection + np.minimum(sali, pss)*cadre_selection
         
@@ -93,7 +88,8 @@ class ARRCO(RegimeComplementaires):
         ' pour enfant à charge au moment du départ en retraite
         - pour enfant nés et élevés en cours de carrière (majoration sur la totalité des droits acquis)
         C'est la plus avantageuse qui s'applique.'''
-        P = self._P.complementaire.arrco
+        P = reduce(getattr, self.param_name.split('.'), self.P)
+        P = P.complementaire.arrco
         
         # Calcul des points pour enfants à charge
         taux_pac = P.maj_enf.pac
@@ -113,8 +109,8 @@ class ARRCO(RegimeComplementaires):
         val_point = P.val_point
         majo_born = val_point*points_born
         majo_pac = val_point*points_pac
-        yearnaiss = self.datesim.year - np.divide(agem,12)
-        if self.datesim.year >= 2013:
+        yearnaiss = self.yearsim - np.divide(agem,12)
+        if self.yearsim >= 2013:
             plafond = P.maj_enf.plaf_pac
             majo_pac = np.minimum(majo_pac[(yearnaiss <= 1951)], plafond)
         return np.maximum(majo_born, majo_pac)

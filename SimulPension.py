@@ -96,10 +96,11 @@ class RegimeComplementaires(Regime):
         if last_year == None:
             last_year = last_year_sali
         regime = self.regime
-        P = self._P.complementaire.__dict__[regime]
-        Plong = self._Plongitudinal.prive.complementaire.__dict__[regime]
+        P = reduce(getattr, self.param_name.split('.'), self.P)
+        P = P.complementaire.__dict__[regime]
+        Plong = self.P_longit.prive.complementaire.__dict__[regime]
         salref = build_long_values(Plong.sal_ref, first_year=first_year_sal, last_year=yearsim)
-        plaf_ss = self._Plongitudinal.common.plaf_ss
+        plaf_ss = self.P_longit.common.plaf_ss
         pss = build_long_values(plaf_ss, first_year=first_year_sal, last_year=yearsim)    
         taux_cot = build_long_baremes(Plong.taux_cot_moy, first_year=first_year_sal, last_year=yearsim, scale=pss)
         sali = self.sal_regime

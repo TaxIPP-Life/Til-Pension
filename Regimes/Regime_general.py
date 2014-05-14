@@ -348,7 +348,7 @@ class RegimeGeneral(Regime):
     def plafond_pension(self, pension_RG, pension_surcote_RG):
         ''' plafonnement à 50% du PSS 
         TODO: gérer les plus de 65 ans au 1er janvier 1983'''
-        PSS = self._Pcom.plaf_ss
+        PSS = self.P.common.plaf_ss
         P = reduce(getattr, self.param_name.split('.'), self.P)
         taux_PSS = P.plafond
         return np.minimum(pension_RG - pension_surcote_RG, taux_PSS*PSS) + pension_surcote_RG
