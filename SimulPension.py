@@ -9,13 +9,8 @@ import numpy as np
 import pandas as pd
 
 from time_array import TimeArray
-from utils_pension import build_long_values, build_long_baremes, _isin, valbytranches
-#from .columns import EnumCol, EnumPresta
-#from .taxbenefitsystems import TaxBenefitSystem
-
-first_year_sal = 1949 
-
-
+from utils_pension import _isin, build_long_values, build_long_baremes, translate_frequency
+first_year_sal = 1949
 
 class Regime(object):
     """
@@ -28,8 +23,6 @@ class Regime(object):
         self.regime = None
         self.param_name = None
         
-        self.workstate = None
-        self.sali = None
         self.info_ind = None
         self.dates = None
         
@@ -38,7 +31,8 @@ class Regime(object):
         self.first_year = None
         self.yearsim = None
         
-        self.param = None
+        self.P = None
+        self.P_longit = None
         
     def set_config(self, **kwargs):
         """
@@ -48,21 +42,37 @@ class Regime(object):
         for key, val in kwargs.iteritems():
             if hasattr(self, key):
                 setattr(self, key, val)
-        if self.data_type == 'numpy':
-            sali = TimeArray(self.sali, self.dates)
-            setattr(self, 'sali', sali)
-            workstate = TimeArray(self.workstate, self.dates)
-            setattr(self, 'workstate', workstate)
-        if self.first_year:
-            workstate.selected_dates(first=first_year_sal, last=self.yearsim, inplace=True) 
-            sali.selected_dates(first=first_year_sal, last=self.yearsim, inplace=True)
             
-            
-        self._P = param_regime
-        self._Pcom = param_common
-        self._Plongitudinal = param_longitudinal
+    def nb_trim_valide(self, workstate, code=None): #sali, 
+        ''' Cette fonction pertmet de calculer des nombres par trimestres
+        TODO: gérer la comptabilisation des temps partiels quand variable présente'''
+        assert isinstance(workstate, TimeArray)
+        #assert isinstance(sali, TimeArray)
+        if code is None:
+            code = self.code_regime
+        wk_selection = TimeArray(_isin(workstate.array, self.code_regime), workstate.dates)
+        wk_selection.array, wk_selection.dates = translate_frequency(wk_selection, input_frequency=self.time_step, output_frequency='month')
+        trim = np.divide(wk_selection.array.sum(axis=1), 4).astype(int)
+        return trim
+    
+    def revenu_valides(self, workstate, sali, code=None): #sali, 
+        ''' Cette fonction pertmet de calculer des nombres par trimestres
+        TODO: gérer la comptabilisation des temps partiels quand variable présente'''
+        assert isinstance(workstate, TimeArray)
+        #assert isinstance(sali, TimeArray)
+        if code is None:
+            code = self.code_regime
+        wk_selection = TimeArray(_isin(workstate.array, self.code_regime), workstate.dates)
+        wk_selection.array, wk_selection.dates = translate_frequency(wk_selection, \
+                                        input_frequency=self.time_step, output_frequency='month')
+        #TODO: condition not assuming sali is in year
+        sali = TimeArray(*translate_frequency(sali, input_frequency=self.time_step, output_frequency='month'))
+        sali.array = np.around(np.divide(sali.array, 12), decimals=3)
+        sal_selection = TimeArray(wk_selection.array*sali.array, sali.dates)
+        trim = np.divide(wk_selection.array.sum(axis=1), 4).astype(int)
+        return trim
 #    def build_sal_regime(self):
-#        self.sal_regime = self.sali.array*_isin(self.workstate.array,self.code_regime)
+#        self.sal_regime = sali.array*_isin(self.workstate.array,self.code_regime)
 #        
 class RegimeComplementaires(Regime):
     
