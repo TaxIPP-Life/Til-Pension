@@ -142,7 +142,8 @@ class RegimeGeneral(Regime):
             avpf_selection = _isin(workstate,[code_avpf])
             avpf_selection = translate_frequency(avpf_selection, input_frequency=input_frequency, output_frequency='year')
             #avpf_selection = avpf_selection[[col_year for col_year in avpf_selection.columns if str(col_year)[-2:]=='01']]
-            sal_avpf = avpf_selection*np.divide(sali, self.salref) # Si certains salaires son déjà attribués à des états d'avpf on les conserve (cf.Destinie)
+            salref = self.build_salref() #TODO: it's used twice so once too much
+            sal_avpf = avpf_selection*np.divide(sali, salref) # Si certains salaires son déjà attribués à des états d'avpf on les conserve (cf.Destinie)
             nb_trim = avpf_selection.sum(axis=1)*4
             return nb_trim, avpf_selection, sal_avpf
         
@@ -163,8 +164,6 @@ class RegimeGeneral(Regime):
         ''' Calcul du salaire annuel moyen de référence : 
         notamment application du plafonnement à un PSS'''
         yearsim = self.yearsim
-        import pdb
-        pdb.set_trace()
         nb_years = valbytranches(self._P.nb_sam, self.info_ind)
         plafond = build_long_values(param_long=self._Plongitudinal.common.plaf_ss, first_year=first_year_sal, last_year=yearsim)
         revalo = build_long_values(param_long=self._Plongitudinal.prive.RG.revalo, first_year=first_year_sal, last_year=yearsim)
