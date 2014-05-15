@@ -52,7 +52,11 @@ class Regime(object):
     def calculate_taux(self):
         ''' Détérmination du taux de liquidation à appliquer à la pension '''
         P = reduce(getattr, self.param_name.split('.'), self.P)
-        taux_plein = P.plein.taux
+        #TODO: to remove
+        try:
+            taux_plein = P.plein.taux
+        except:
+            taux_plein = self.P.prive.RG.plein.taux
         decote = self._decote()
         surcote = self._surcote()
         return taux_plein*(1 - decote + surcote)

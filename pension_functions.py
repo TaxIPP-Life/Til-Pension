@@ -64,8 +64,6 @@ def unemployment_trimesters(table, code_regime = None, input_step = 'month', out
         return nb_trim_chom
 
 
-    
-    
 def calculate_SAM(sali, nb_years_pd, time_step, plafond=None, revalorisation=None, data_type='numpy'):
     ''' renvoie un vecteur des SAM 
     plaf : vecteur chronologique plafonnant les salaires (si abs pas de plafonnement)'''

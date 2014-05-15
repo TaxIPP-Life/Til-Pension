@@ -33,7 +33,7 @@ class RegimeGeneral(RegimeBase):
     def get_trimester(self, workstate, sali):
         output = {}
         nb_trim_cot = self.nb_trim_cot(workstate, sali)
-        output['trim_cot_RG']  = nb_trim_cot
+        output['trim_cot_RG']  = nb_trim_cot.sum(axis=1)
         output['trim_ass'] = self.nb_trim_ass(workstate, nb_trim_cot)
         output['trim_maj'] = self.nb_trim_maj(workstate, sali)
         return output        
@@ -73,7 +73,7 @@ class RegimeGeneral(RegimeBase):
                                        dates=[100*year + 1 for year in range(first_year_sal, self.yearsim)])
         return nb_trim_ass
             
-    def nb_trim_maj(self, workstate, sali, nb_trim_ass ):
+    def nb_trim_maj(self, workstate, sali):
         ''' Trimestres majorants acquis au titre de la MDA, 
             de l'assurance pour congé parental ou de l'AVPF '''
         
@@ -106,7 +106,7 @@ class RegimeGeneral(RegimeBase):
             avpf_selection = _isin(workstate,[code_avpf])
             avpf_selection = translate_frequency(avpf_selection, input_frequency=input_frequency, output_frequency='year')
             #avpf_selection = avpf_selection[[col_year for col_year in avpf_selection.columns if str(col_year)[-2:]=='01']]
-            salref = build_salref_bareme(self.P_longit.common, first_year_sal, self.last_year) #TODO: it's used twice so once too much
+            salref = build_salref_bareme(self.P_longit.common, first_year_sal, self.yearsim) #TODO: it's used twice so once too much
             sal_avpf = avpf_selection*np.divide(sali, salref) # Si certains salaires son déjà attribués à des états d'avpf on les conserve (cf.Destinie)
             nb_trim = avpf_selection.sum(axis=1)*4
             return nb_trim, avpf_selection, sal_avpf
