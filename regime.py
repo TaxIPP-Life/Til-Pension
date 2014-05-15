@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 
 from time_array import TimeArray
-from utils_pension import _isin, build_long_values, build_long_baremes, translate_frequency
+from utils_pension import _isin, build_long_values, build_long_baremes, translate_frequency, valbytranches
 first_year_sal = 1949
 
 class Regime(object):
@@ -48,7 +48,19 @@ class Regime(object):
         P = reduce(getattr, self.param_name.split('.'), self.P)
         taux_plein = P.plein.taux
         return taux_plein*(1 - decote + surcote)
+    
+    def calculate_coeff_proratisation(self):
+        raise NotImplementedError
             
+    def calculate_salref(self):
+        raise NotImplementedError
+    
+    def calculate_pension(self):
+        taux = self.calculate_taux(decote, surcote)
+        cp = self.calculate_coeff_proratisation()
+        salref = self.calculate_salref()
+        return cp*salref*taux
+
     def nb_trim_valide(self, workstate, code=None): #sali, 
         ''' Cette fonction pertmet de calculer des nombres par trimestres
         TODO: gérer la comptabilisation des temps partiels quand variable présente'''
@@ -77,6 +89,7 @@ class Regime(object):
         sal_selection = TimeArray(wk_selection.array*sali.array, sali.dates)
         trim = np.divide(wk_selection.array.sum(axis=1), 4).astype(int)
         return trim
+    
 #    def build_sal_regime(self):
 #        self.sal_regime = sali.array*_isin(self.workstate.array,self.code_regime)
 #        
@@ -87,7 +100,7 @@ class RegimeComplementaires(Regime):
         taux_plein = self._P.plein.taux
         return taux_plein*(1 - decote + surcote)
         
-    def nombre_points(self, first_year=first_year_sal, last_year=None, data_type='numpy'):
+    def nombre_points(self, sali, first_year=first_year_sal, last_year=None, data_type='numpy'):
         ''' Détermine le nombre de point à liquidation de la pension dans les régimes complémentaires (pour l'instant Ok pour ARRCO/AGIRC)
         Pour calculer ces points, il faut diviser la cotisation annuelle ouvrant des droits par le salaire de référence de l'année concernée 
         et multiplier par le taux d'acquisition des points'''
@@ -103,7 +116,6 @@ class RegimeComplementaires(Regime):
         plaf_ss = self.P_longit.common.plaf_ss
         pss = build_long_values(plaf_ss, first_year=first_year_sal, last_year=yearsim)    
         taux_cot = build_long_baremes(Plong.taux_cot_moy, first_year=first_year_sal, last_year=yearsim, scale=pss)
-        sali = self.sal_regime
         assert len(salref) == sali.shape[1] == len(taux_cot)
         if data_type == 'pandas':
             nb_points = pd.Series(np.zeros(len(sali.index)), index=sali.index)
@@ -129,24 +141,25 @@ class RegimeComplementaires(Regime):
                 nb_points += np.maximum(points_acquis, gmp)*(points_acquis > 0)
             return nb_points
  
-#    def coeff_age(self, agem, trim):
-#        ''' TODO: add surcote  pour avant 1955 '''
-#        regime = self.regime
-#        P = self._P.complementaire.__dict__[regime]
-#        coef_mino = P.coef_mino
-#        age_annulation_decote = valbytranches(self._P.RG.decote.age_null, self.info_ind) 
-#        N_taux = valbytranches(self._P.RG.plein.N_taux, self.info_ind)
-#        diff_age = np.maximum(np.divide(age_annulation_decote - agem, 12), 0)
-#        coeff_min = pd.Series(np.zeros(len(agem)), index=agem.index)
-#        coeff_maj = pd.Series(np.zeros(len(agem)), index=agem.index)
-#        for nb_annees, coef_mino in coef_mino._tranches:
-#            coeff_min += (diff_age == nb_annees)*coef_mino
-#        if self.yearsim <= 1955:
-#            maj_age = np.maximum(np.divide(agem - age_annulation_decote, 12), 0)
-#            coeff_maj = maj_age*0.05
-#            return coeff_min + coeff_maj
-#        elif  self.yearsim < 1983:
-#            return coeff_min
-#        elif self.yearsim >= 1983:
-#            # A partir de cette date, la minoration ne s'applique que si la durée de cotisation au régime général est inférieure à celle requise pour le taux plein
-#            return  coeff_min*(N_taux > trim) + (N_taux <= trim)             
+    def coeff_age(self, agem, trim):
+        ''' TODO: add surcote  pour avant 1955 '''
+        regime = self.regime
+        P = reduce(getattr, self.param_name.split('.'), self.P)
+        P = P.complementaire.__dict__[regime]
+        coef_mino = P.coef_mino
+        age_annulation_decote = valbytranches(self.P.RG.decote.age_null, self.info_ind) 
+        N_taux = valbytranches(self.P.RG.plein.N_taux, self.info_ind)
+        diff_age = np.maximum(np.divide(age_annulation_decote - agem, 12), 0)
+        coeff_min = pd.Series(np.zeros(len(agem)), index=agem.index)
+        coeff_maj = pd.Series(np.zeros(len(agem)), index=agem.index)
+        for nb_annees, coef_mino in coef_mino._tranches:
+            coeff_min += (diff_age == nb_annees)*coef_mino
+        if self.yearsim <= 1955:
+            maj_age = np.maximum(np.divide(agem - age_annulation_decote, 12), 0)
+            coeff_maj = maj_age*0.05
+            return coeff_min + coeff_maj
+        elif  self.yearsim < 1983:
+            return coeff_min
+        elif self.yearsim >= 1983:
+            # A partir de cette date, la minoration ne s'applique que si la durée de cotisation au régime général est inférieure à celle requise pour le taux plein
+            return  coeff_min*(N_taux > trim) + (N_taux <= trim)             

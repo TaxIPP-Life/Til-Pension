@@ -25,7 +25,7 @@ class AGIRC(RegimeComplementaires):
         self.info_child_father = None
         
         
-    def majoration_enf(self, nb_points, coeff_age, agem):
+    def majoration_enf(self, sali, nb_points, coeff_age, agem):
         ''' Application de la majoration pour enfants à charge. Deux types de majorations peuvent s'appliquer :
         ' pour enfant à charge au moment du départ en retraite
         - pour enfant nés et élevés en cours de carrière (majoration sur la totalité des droits acquis)
@@ -42,8 +42,8 @@ class AGIRC(RegimeComplementaires):
         taux_born = P.maj_enf.born
         taux_born11 = P.maj_enf.born11
         nb_born = self.info_ind['nb_born']
-        nb_points_11 = coeff_age*self.nombre_points(last_year = 2011)
-        nb_points12_ = coeff_age*self.nombre_points(first_year = 2012) 
+        nb_points_11 = coeff_age*self.nombre_points(sali, last_year=2011)
+        nb_points12_ = coeff_age*self.nombre_points(sali, first_year=2012) 
         points_born_11 = nb_points_11*(nb_born)*taux_born11
         points_born12_ = nb_points12_*taux_born
         points_born = (points_born_11 + points_born12_)*(nb_born >= 3)
@@ -71,9 +71,8 @@ class ARRCO(RegimeComplementaires):
         
         self.info_child_mother = None
         self.info_child_father = None
-        self.sal_regime = None
         
-    def build_sal_regime(self, workstate, sali):
+    def plaf_sali(self, workstate, sali):
         ''' Cette fonction plafonne les salaires des cadres 1 pss pour qu'il ne paye que la première tranche '''
         sali = sali.array
         cadre_selection = (workstate.array == self.code_cadre)
@@ -81,9 +80,9 @@ class ARRCO(RegimeComplementaires):
         yearsim = self.yearsim
         plaf_ss = self.P_longit.common.plaf_ss
         pss = build_long_values(plaf_ss, first_year=first_year_sal, last_year=yearsim)    
-        self.sal_regime = sali*noncadre_selection + np.minimum(sali, pss)*cadre_selection
+        return sali*noncadre_selection + np.minimum(sali, pss)*cadre_selection
         
-    def majoration_enf(self, nb_points, agem):
+    def majoration_enf(self, sali, nb_points, agem):
         ''' Application de la majoration pour enfants à charge. Deux types de majorations peuvent s'appliquer :
         ' pour enfant à charge au moment du départ en retraite
         - pour enfant nés et élevés en cours de carrière (majoration sur la totalité des droits acquis)
@@ -100,9 +99,9 @@ class ARRCO(RegimeComplementaires):
         taux_born11 = P.maj_enf.born11
         taux_born = P.maj_enf.born
         nb_born = self.info_ind['nb_born']
-        nb_points_98 = self.nombre_points(last_year = 1998)
-        nb_points9911 = self.nombre_points(first_year = 1999, last_year = 2011) 
-        nb_points12_ = self.nombre_points(first_year = 2012) 
+        nb_points_98 = self.nombre_points(sali, last_year=1998)
+        nb_points9911 = self.nombre_points(sali, first_year=1999, last_year=2011) 
+        nb_points12_ = self.nombre_points(sali, first_year=2012) 
         points_born = ((nb_points_98 + nb_points9911)*taux_born11  + nb_points12_*taux_born)*(nb_born >= 3)
         
         # Comparaison de la situation la plus avantageuse
