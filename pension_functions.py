@@ -63,20 +63,7 @@ def unemployment_trimesters(table, code_regime = None, input_step = 'month', out
     else:
         return nb_trim_chom
 
-def sal_to_trimcot(sal_cot, salref, option='vector', data_type='numpy'):
-    ''' A partir de la table des salaires annuels côtisés au sein du régime, on détermine le vecteur du nombre de trimestres côtisés jusqu'à la date mentionnée
-    sal_cot : table ne contenant que les salaires annuels cotisés au sein du régime (lignes : individus / colonnes : date)
-    salref : vecteur des salaires minimum (annuels) à comparer pour obtenir le nombre de trimestre
-    last_year: dernière année (exclue) jusqu'à laquelle on déompte le nombre de trimestres'''
-    if data_type == 'numpy':
-        sal_cot.array[np.isnan(sal_cot.array)] = 0
-    if data_type == 'pandas':
-        sal_cot = sal_cot.fillna(0)
-    nb_trim_cot = np.minimum(np.divide(sal_cot.array, salref).astype(int),4)
-    if option == 'table':
-        return nb_trim_cot.sum(axis=1), nb_trim_cot
-    else :
-        return nb_trim_cot.sum(axis=1)
+
     
     
 def calculate_SAM(sali, nb_years_pd, time_step, plafond=None, revalorisation=None, data_type='numpy'):

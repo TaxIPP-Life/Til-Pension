@@ -49,7 +49,7 @@ class Regime(object):
     def _surcote(self):
         raise NotImplementedError
        
-    def calculate_taux(self, decote, surcote):
+    def calculate_taux(self):
         ''' Détérmination du taux de liquidation à appliquer à la pension '''
         P = reduce(getattr, self.param_name.split('.'), self.P)
         taux_plein = P.plein.taux
@@ -64,7 +64,7 @@ class Regime(object):
 #         self.sal_regime = sali.array*_isin(self.workstate.array,self.code_regime)
         raise NotImplementedError
     
-    def calculate_pension(self):
+    def calculate_pension(self, workstate, sali):
         taux = self.calculate_taux()
         cp = self.calculate_coeff_proratisation()
         salref = self.calculate_salref()

@@ -81,6 +81,47 @@ def build_long_baremes(bareme_long, first_year, last_year, scale=None):
             baremes[year] = scaleBaremes(baremes[year], val_scale)
     return baremes
 
+
+def build_salref_bareme(bareme_long, first_year, last_year, scale=None):
+    '''
+    salaire trimestriel de référence minimum
+    Rq : Toute la série chronologique est exprimé en euros
+    '''
+    assert first_year < 1972 
+    assert last_year > 1972
+    salmin = DataFrame({'year': range(first_year, last_year ), 'sal': -np.ones(last_year - first_year)} ) 
+    avts_year = []
+    smic_year = []
+    smic_long = bareme_long.smic
+    avts_long = bareme_long.avts.montant
+    for year in range(first_year, 1972):
+        avts_old = avts_year
+        avts_year = []
+        for key in avts_long.keys():
+            if str(year) in key:
+                avts_year.append(key)
+        if not avts_year:
+            avts_year = avts_old
+        salmin.loc[salmin['year'] == year, 'sal'] = avts_long[avts_year[0]] 
+        
+    #TODO: Trancher si on calcule les droits à retraites en incluant le travail à l'année de simulation pour l'instant
+    #non (ex : si datesim = 2009 on considère la carrière en emploi jusqu'en 2008)
+    for year in range(1972, last_year):
+        smic_old = smic_year
+        smic_year = []
+        for key in smic_long.keys():
+            if str(year) in key:
+                smic_year.append(key)
+        if not smic_year:
+            smic_year = smic_old
+        if year <= 2013 :
+            salmin.loc[salmin['year'] == year, 'sal'] = 200*smic_long[smic_year[0]]
+            if year <= 2001 :
+                salmin.loc[salmin['year'] == year, 'sal'] = 200*smic_long[smic_year[0]]/6.5596
+        else:
+            salmin.loc[salmin['year'] == year, 'sal'] = 150*smic_long[smic_year[0]]
+    return np.array(salmin['sal'])
+
 def calculate_age(birth_date, date):
     ''' calculate age at date thanks birthdate '''
     def _age(birthdate):
