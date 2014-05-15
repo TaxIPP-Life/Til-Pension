@@ -191,9 +191,30 @@ class PensionSimulation(Simulation):
             self.sali.selected_dates(first=first_year_sal, last=self.datesim.year, inplace=True)
             
     def build_sal_regime(self):
-        sal_regime = self.workstate._isin(self.code_regime)
+        sal_regime = self.workstate.isin(self.code_regime)
         sal_regime.array = self.sali.array*sal_regime.array
         self.sal_regime = sal_regime
+    
+    def nb_trim_valide(self, code=None, table=False): #sali, 
+        ''' Cette fonction pertmet de calculer des nombres par trimestres validés dans un régime
+        validation au sein du régime = 'workstate' = code
+        TODO: gérer la comptabilisation des temps partiels quand variable présente'''
+        assert isinstance(self.workstate, TimeArray)
+        if code is None:
+            code = self.code_regime
+        trim_service = self.workstate.isin(code)
+        frequency_init = trim_service.frequency
+        trim_service.translate_frequency(output_frequency='year', method='sum', inplace=True) 
+        if frequency_init == 'year':
+            #from year to trimester
+            trim_service.array = trim_service.array*4
+        if frequency_init == 'month':
+            #from month to trimester
+            trim_service.array = np.divide(trim_service.array,3)
+        if table == True:
+            return trim_service
+        else:
+            return trim_service.array.sum(1)
         
     def calculate_taux(self, decote, surcote):
         ''' Détermination du taux de liquidation à appliquer à la pension '''

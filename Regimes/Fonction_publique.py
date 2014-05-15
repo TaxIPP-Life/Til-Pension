@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 import math
 import numpy as np
-
+import pandas as pd
 import os
 parentdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.sys.path.insert(0,parentdir) 
@@ -39,17 +39,11 @@ class FonctionPublique(PensionSimulation):
     def trim_service(self):
         ''' Cette fonction pertmet de calculer la durée de service dans FP
         TODO: gérer la comptabilisation des temps partiels quand variable présente'''
-        wk_selection = self.workstate._isin(self.code_regime)
-        wk_selection.translate_frequency(output_frequency='month', inplace=True)
-        wk_selection_actif = self.workstate._isin(self.code_actif)
-        wk_selection_actif.translate_frequency(output_frequency='month')
-        # TODO: condition not assuming sali is in year
-        sali = self.sali
-        sali.translate_frequency(output_frequency='month', inplace=True, method='divide')
-        sal_selection = TimeArray(wk_selection.array*sali.array, sali.dates) 
-        trim_service = np.divide(wk_selection.array.sum(axis=1), 4).astype(int)
-        trim_actif = np.divide(wk_selection_actif.array.sum(axis=1), 4).astype(int)
-        self.sal_FP = sal_selection
+        
+        trim_service_by_year = self.nb_trim_valide(code=self.code_regime, table=True)
+        trim_service = self.nb_trim_valide(code=self.code_regime, table=False)
+        trim_actif = self.nb_trim_valide(code=self.code_actif, table=False)
+        self.trim_by_year = trim_service_by_year
         return trim_service, trim_actif
  
     def build_age_ref(self, trim_actif):
