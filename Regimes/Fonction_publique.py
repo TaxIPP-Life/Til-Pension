@@ -8,7 +8,7 @@ from dateutil.relativedelta import relativedelta
 import os
 parentdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.sys.path.insert(0,parentdir) 
-from regime import Regime
+from regime import RegimeBase
 from utils_pension import _isin, build_long_values, sum_by_years, substract_months, translate_frequency, valbytranches, table_selected_dates
 from pension_functions import calculate_SAM, sal_to_trimcot, unemployment_trimesters
 code_avpf = 8
@@ -16,10 +16,10 @@ code_chomage = 5
 compare_destinie = True 
 
 
-class FonctionPublique(Regime):
+class FonctionPublique(RegimeBase):
     
     def __init__(self):
-        Regime.__init__(self)
+        RegimeBase.__init__(self)
         self.regime = 'FP'
         self.code_regime = [5,6]
         self.param_name = 'fp'

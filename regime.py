@@ -61,6 +61,12 @@ class Regime(object):
         salref = self.calculate_salref()
         return cp*salref*taux
 
+    
+#    def build_sal_regime(self):
+#        self.sal_regime = sali.array*_isin(self.workstate.array,self.code_regime)
+#        
+class RegimeBase(Regime):
+
     def nb_trim_valide(self, workstate, code=None): #sali, 
         ''' Cette fonction pertmet de calculer des nombres par trimestres
         TODO: gérer la comptabilisation des temps partiels quand variable présente'''
@@ -88,17 +94,10 @@ class Regime(object):
         sali.array = np.around(np.divide(sali.array, 12), decimals=3)
         sal_selection = TimeArray(wk_selection.array*sali.array, sali.dates)
         trim = np.divide(wk_selection.array.sum(axis=1), 4).astype(int)
-        return trim
+        return trim    
     
-#    def build_sal_regime(self):
-#        self.sal_regime = sali.array*_isin(self.workstate.array,self.code_regime)
-#        
+
 class RegimeComplementaires(Regime):
-    
-    def calculate_taux(self, decote, surcote):
-        ''' Détermination du taux de liquidation à appliquer à la pension '''
-        taux_plein = self._P.plein.taux
-        return taux_plein*(1 - decote + surcote)
         
     def nombre_points(self, sali, first_year=first_year_sal, last_year=None, data_type='numpy'):
         ''' Détermine le nombre de point à liquidation de la pension dans les régimes complémentaires (pour l'instant Ok pour ARRCO/AGIRC)
@@ -147,8 +146,8 @@ class RegimeComplementaires(Regime):
         P = reduce(getattr, self.param_name.split('.'), self.P)
         P = P.complementaire.__dict__[regime]
         coef_mino = P.coef_mino
-        age_annulation_decote = valbytranches(self.P.RG.decote.age_null, self.info_ind) 
-        N_taux = valbytranches(self.P.RG.plein.N_taux, self.info_ind)
+        age_annulation_decote = valbytranches(self.P.prive.RG.decote.age_null, self.info_ind) #TODO: change the param place
+        N_taux = valbytranches(self.P.prive.RG.plein.N_taux, self.info_ind) #TODO: change the param place
         diff_age = np.maximum(np.divide(age_annulation_decote - agem, 12), 0)
         coeff_min = pd.Series(np.zeros(len(agem)), index=agem.index)
         coeff_maj = pd.Series(np.zeros(len(agem)), index=agem.index)
