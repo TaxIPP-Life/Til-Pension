@@ -49,7 +49,7 @@ def unemployment_trimesters(timearray, code_regime = None, input_step = 'month',
     def _calculate_trim_unemployment(data, step, code_regime):
         ''' Détermination du vecteur donnant le nombre de trimestres comptabilisés comme chômage pour le RG '''
         unemp_trim = select_unemployment(data, code_regime)
-        nb_trim = unemp_trim.sum(axis = 1)
+        nb_trim = unemp_trim.sum(axis=1)
         if step == 'month':
             return np.divide(nb_trim, 3).round(), unemp_trim
         else:

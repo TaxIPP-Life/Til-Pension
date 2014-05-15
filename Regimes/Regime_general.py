@@ -49,7 +49,7 @@ class RegimeGeneral(RegimeBase):
         time_step = self.time_step
             
         wk_selection = workstate.isin(code)
-        sal_selection = TimeArray(wk_selection*sali.array, sali.dates)
+        sal_selection = TimeArray(wk_selection.array*sali.array, sali.dates)
         if time_step == 'month':
             sal_selection.translate_frequency(output_frequency='year',
                                                   method='sum', inplace=True)
@@ -67,10 +67,10 @@ class RegimeGeneral(RegimeBase):
         qui succède directement à une période de côtisation au RG workstate == [3,4]
         TODO: ne pas comptabiliser le chômage de début de carrière
         '''
-        nb_trim_chom, table_chom = unemployment_trimesters(workstate.array, code_regime=self.code_regime,
+        nb_trim_chom, table_chom = unemployment_trimesters(workstate, code_regime=self.code_regime,
                                                             input_step=self.time_step, output='table_unemployement')
         nb_trim_ass = nb_trim_chom # TODO: + nb_trim_war + ....
-        trim_by_year = TimeArray(array=nb_trim_cot + table_chom, 
+        trim_by_year = TimeArray(array=nb_trim_cot + table_chom.array, 
                                        dates=[100*year + 1 for year in range(first_year_sal, self.yearsim)])
         return nb_trim_ass
             
@@ -109,9 +109,8 @@ class RegimeGeneral(RegimeBase):
             #avpf_selection = avpf_selection[[col_year for col_year in avpf_selection.columns if str(col_year)[-2:]=='01']]
 
             salref = build_salref_bareme(self.P_longit.common, first_year_sal, self.yearsim) #TODO: it's used twice so once too much
-            sal_avpf = avpf_selection*np.divide(sali, salref) # Si certains salaires son déjà attribués à des états d'avpf on les conserve (cf.Destinie)
-            nb_trim = avpf_selection.sum(axis=1)*4
-            
+            sal_avpf_array = avpf_selection.array*np.divide(sali.array, salref) # Si certains salaires son déjà attribués à des états d'avpf on les conserve (cf.Destinie)
+            nb_trim = avpf_selection.array.sum(axis=1)*4
             sal_avpf_array = sal_avpf_array*(avpf_selection != 0)
             sal_avpf = TimeArray(sal_avpf_array, avpf_selection.dates) # Si certains salaires son déjà attribués à des états d'avpf on les conserve (cf.Destinie)
 
