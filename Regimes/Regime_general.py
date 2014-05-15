@@ -32,8 +32,9 @@ class RegimeGeneral(RegimeBase):
      
     def get_trimester(self, workstate, sali):
         output = {}
-        output['trim_cot_RG'] = self.nb_trim_cot(workstate, sali)
-        output['trim_ass'] = self.nb_trim_ass(workstate)
+        nb_trim_cot = self.nb_trim_cot(workstate, sali)
+        output['trim_cot_RG']  = nb_trim_cot
+        output['trim_ass'] = self.nb_trim_ass(workstate, nb_trim_cot)
         output['trim_maj'] = self.nb_trim_maj(workstate, sali)
         return output        
             
@@ -52,16 +53,13 @@ class RegimeGeneral(RegimeBase):
             sal_selection = translate_frequency(sal_selection.array, input_frequency='month',
                                                  output_frequency='year', method='sum')
         sal_selection.array[np.isnan(sal_selection.array)] = 0
-        self.sal_RG = sal_selection        
+        self.sal_RG = sal_selection    #TODO: remove
         
         salref = build_salref_bareme(self.P_longit.common, first_year_sal, self.yearsim)
         nb_trim_cot = np.minimum(np.divide(sal_selection.array, salref).astype(int),4)
-    
-        # sal_section = (sal_to_trimcot(sum_by_years(sal_selection), self.salref, self.yearsim, option='table') != 0)*sal_selection
-        # logiquement c'est mieux de garder que les salaires où il y a eu cotisation -> pour comparaison avec Pensipp plus simple de commenter
         return nb_trim_cot
         
-    def nb_trim_ass(self, workstate):
+    def nb_trim_ass(self, workstate, nb_trim_cot):
         ''' 
         Comptabilisation des périodes assimilées à des durées d'assurance
         Pour l"instant juste chômage workstate == 5 (considéré comme indemnisé) 
@@ -71,12 +69,11 @@ class RegimeGeneral(RegimeBase):
         nb_trim_chom, table_chom = unemployment_trimesters(workstate.array, code_regime=self.code_regime,
                                                             input_step=self.time_step, output='table_unemployement')
         nb_trim_ass = nb_trim_chom # TODO: + nb_trim_war + ....
-        trim_by_year = TimeArray(array=self.trim_by_year + table_chom, 
-                                       dates=[year*100 + 1 for year in range(first_year_sal, self.yearsim)])
-        self.trim_by_year = trim_by_year
+        trim_by_year = TimeArray(array=nb_trim_cot + table_chom, 
+                                       dates=[100*year + 1 for year in range(first_year_sal, self.yearsim)])
         return nb_trim_ass
             
-    def nb_trim_maj(self, workstate, sali):
+    def nb_trim_maj(self, workstate, sali, nb_trim_ass ):
         ''' Trimestres majorants acquis au titre de la MDA, 
             de l'assurance pour congé parental ou de l'AVPF '''
         
