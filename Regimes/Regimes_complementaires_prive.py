@@ -7,6 +7,7 @@ os.sys.path.insert(0,parentdir)
 
 from regime import RegimeComplementaires
 
+
 first_year_sal = 1949
 
 class AGIRC(RegimeComplementaires):

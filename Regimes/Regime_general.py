@@ -8,8 +8,9 @@ import os
 parentdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.sys.path.insert(0,parentdir) 
 from time_array import TimeArray
+
 from regime import RegimeBase
-from utils_pension import _isin, valbytranches, table_selected_dates, build_long_values, translate_frequency, build_salref_bareme
+from utils_pension import valbytranches, table_selected_dates, build_long_values, build_salref_bareme
 from pension_functions import calculate_SAM, nb_trim_surcote, unemployment_trimesters
 
 code_avpf = 8
@@ -101,14 +102,19 @@ class RegimeGeneral(RegimeBase):
                 mda.loc[mda['mda'] < 2, 'mda'] = 0
                 return mda['mda'].astype(int)
             
-        def _avpf(workstate, sali, input_frequency):
+        def _avpf(workstate, sali):
             ''' Allocation vieillesse des parents au foyer : nombre de trimestres acquis'''
-            avpf_selection = _isin(workstate,[code_avpf])
-            avpf_selection = translate_frequency(avpf_selection, input_frequency=input_frequency, output_frequency='year')
+            avpf_selection = workstate.isin([code_avpf])
+            avpf_selection.translate_frequency(output_frequency='year', inplace=True)
             #avpf_selection = avpf_selection[[col_year for col_year in avpf_selection.columns if str(col_year)[-2:]=='01']]
+
             salref = build_salref_bareme(self.P_longit.common, first_year_sal, self.yearsim) #TODO: it's used twice so once too much
             sal_avpf = avpf_selection*np.divide(sali, salref) # Si certains salaires son déjà attribués à des états d'avpf on les conserve (cf.Destinie)
             nb_trim = avpf_selection.sum(axis=1)*4
+            
+            sal_avpf_array = sal_avpf_array*(avpf_selection != 0)
+            sal_avpf = TimeArray(sal_avpf_array, avpf_selection.dates) # Si certains salaires son déjà attribués à des états d'avpf on les conserve (cf.Destinie)
+
             return nb_trim, avpf_selection, sal_avpf
         
         child_mother = self.info_ind.loc[self.info_ind['sexe'] == 1, 'nb_born']
@@ -118,10 +124,12 @@ class RegimeGeneral(RegimeBase):
             nb_trim_mda = _mda(child_mother, list_id, yearsim)
         else :
             nb_trim_mda = 0
-        nb_trim_avpf, trim_avpf, sal_avpf = _avpf(workstate.array, sali.array, self.time_step)
+            
+        nb_trim_avpf, trim_avpf, sal_avpf = _avpf(workstate.copy(), sali)
+
         # Les trimestres d'avpf sont comptabilisés dans le calcul du SAM
         self.trim_avpf = trim_avpf
-        self.sal_avpf = sal_avpf*(trim_avpf != 0)
+        self.sal_avpf = sal_avpf
         return nb_trim_mda + nb_trim_avpf
     
     def SAM(self):
@@ -142,9 +150,9 @@ class RegimeGeneral(RegimeBase):
             if data_type == 'numpy':
                 # TODO: check if annual step in sal_avpf and sal_RG
                 first_ix_avpf = 1972 - first_year_sal
-                trim_avpf = trim_avpf[:,first_ix_avpf:]
-                sal_avpf = np.multiply((trim_avpf != 0), smic ) #*2028 = 151.66*12 if horaires
-                sal_RG.array[:,first_ix_avpf] += sal_avpf[:,first_ix_avpf]
+                trim_avpf.array = trim_avpf.array[:,first_ix_avpf:]
+                sal_avpf = np.multiply((trim_avpf.array != 0), smic) #*2028 = 151.66*12 if horaires
+                sal_RG.array[:,first_ix_avpf:] += sal_avpf
                 return np.round(sal_RG.array,2)
             if data_type == 'pandas':
                 trim_avpf = table_selected_dates(trim_avpf, self.dates, first_year=1972, last_year=yearsim)
@@ -208,9 +216,9 @@ class RegimeGeneral(RegimeBase):
         age_annulation = valbytranches(P.decote.age_null, self.info_ind)
         N_taux = valbytranches(P.plein.N_taux, self.info_ind)
         if yearsim < 1983:
-            trim_decote = np.max(0, np.divide(age_annulation - agem, 4))
+            trim_decote = np.max(0, np.divide(age_annulation - agem, 3))
         else:
-            decote_age = np.divide(age_annulation - agem, 4)
+            decote_age = np.divide(age_annulation - agem, 3)
             decote_cot = N_taux - trim_tot
             assert len(decote_age) == len(decote_cot)
 
@@ -243,10 +251,10 @@ class RegimeGeneral(RegimeBase):
             return date_surcote
         
         def _trimestre_surcote_0304(trim_by_year_RG, date_surcote, P):
-            ''' surcote associée aux trimestres côtisés entre 2003 et 2004 
+            ''' surcote associée aux trimestres côtisés en 2003 
             TODO : structure pas approprié pour les réformes du type 'et si on surcotait avant 2003, ça donnerait quoi?'''
             taux_surcote = P.taux_4trim
-            trim_selected = trim_by_year_RG.selected_dates(first=2003, last=2005)
+            trim_selected = trim_by_year_RG.selected_dates(first=2003, last=2004)
             nb_trim = nb_trim_surcote(trim_selected, date_surcote)
             return taux_surcote*nb_trim
         
@@ -256,7 +264,7 @@ class RegimeGeneral(RegimeBase):
             taux_4trim = P.taux_4trim
             taux_5trim = P.taux_5trim
             taux_65 = P.taux_65
-            trim_selected = trim_by_year_RG.selected_dates(first=2005, last=2009)
+            trim_selected = trim_by_year_RG.selected_dates(first=2004, last=2009)
             #agemin = agem.copy()
             agemin = 65*12 
             date_surcote_65 = _date_surcote(trim_by_year_tot, trim_maj, agem, agemin=agemin)
@@ -266,7 +274,7 @@ class RegimeGeneral(RegimeBase):
             return taux_65*nb_trim_65 + taux_4trim*np.maximum(np.minimum(nb_trim,4), 0) + taux_5trim*np.maximum(nb_trim - 4, 0)
         
         def _trimestre_surcote_after_09(trim_by_year_RG, trim_years, date_surcote, P):
-            ''' surcote associée aux trimestres côtisés après 2009 '''
+            ''' surcote associée aux trimestres côtisés en et après 2009 '''
             taux_surcote = P.taux
             trim_selected = trim_by_year_RG.selected_dates(first=2009, last=None)
             nb_trim = nb_trim_surcote(trim_selected, date_surcote)
@@ -282,14 +290,14 @@ class RegimeGeneral(RegimeBase):
             trim_surcote = nb_trim_surcote(trim_by_year_RG, date_surcote)
             return trim_surcote*taux_surcote 
         elif yearsim < 2010:
-            surcote_0304 = _trimestre_surcote_0304(trim_by_year_RG, date_surcote, P.surcote)
+            surcote_03 = _trimestre_surcote_0304(trim_by_year_RG, date_surcote, P.surcote)
             surcote_0408 = _trimestre_surcote_0408(trim_by_year_RG, trim_by_year_tot, trim_maj, date_surcote, P.surcote)
-            return surcote_0304 + surcote_0408
+            return surcote_03 + surcote_0408
         else:
-            surcote_0304 = _trimestre_surcote_0304(trim_by_year_RG, date_surcote, P.surcote)
+            surcote_03 = _trimestre_surcote_0304(trim_by_year_RG, date_surcote, P.surcote)
             surcote_0408 = _trimestre_surcote_0408(trim_by_year_RG, trim_maj, date_surcote, P.surcote)
             surcote_aft09 = _trimestre_surcote_after_09(trim_by_year_RG, date_surcote, P.surcote)
-            return surcote_0304 + surcote_0408 + surcote_aft09   
+            return surcote_03 + surcote_0408 + surcote_aft09   
         
     def minimum_contributif(self, pension_RG, pension, trim_RG, trim_cot, trim):
         ''' MICO du régime général : allocation différentielle 
