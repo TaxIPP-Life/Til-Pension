@@ -94,7 +94,10 @@ class RegimeBase(Regime):
         sali.array = np.around(np.divide(sali.array, 12), decimals=3)
         sal_selection = TimeArray(wk_selection.array*sali.array, sali.dates)
         trim = np.divide(wk_selection.array.sum(axis=1), 4).astype(int)
-        return trim    
+        return trim
+    
+    def get_trimester(self, workstate, sali):
+        raise NotImplementedError
     
 
 class RegimeComplementaires(Regime):

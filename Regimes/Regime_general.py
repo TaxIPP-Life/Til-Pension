@@ -30,6 +30,14 @@ class RegimeGeneral(RegimeBase):
         self.code_regime = [3,4]
         self.param_name = 'prive.RG'
      
+     
+    def get_trimester(self, workstate, sali):
+        output = {}
+        output['trim_RG'] = self.nb_trim_cot(workstate, sali)
+        output['trim_ass'] = self.nb_trim_ass(workstate)
+        output['trim_maj'] = self.nb_trim_maj(workstate, sali)
+        return output
+
     def build_salref(self):
         '''
         salaire trimestriel de référence minimum

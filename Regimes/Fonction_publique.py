@@ -26,7 +26,12 @@ class FonctionPublique(RegimeBase):
         
         self.code_sedentaire = 6
         self.code_actif = 5
-        
+    
+    def get_trimester(self, workstate, sali):
+        output = {}
+        output['trim_FP'] = self.nb_trim_valide(workstate)
+        output['actif_FP'] = self.nb_trim_valide(workstate, self.code_actif)
+        return output
  
     def build_age_ref(self, trim_actif, workstate):
         P = getattr(self.P, self.param_name)
