@@ -42,7 +42,7 @@ def select_unemployment(data, code_regime, option='dummy', data_type='numpy'):
 def unemployment_trimesters(timearray, code_regime = None, input_step = 'month', output = None):
     ''' Input : monthly or yearly-table (lines: indiv, col: dates 'yyyymm') 
     Output : vector with number of trimesters for unemployment'''
-    table = timearray._copy()
+    table = timearray.copy()
     if not code_regime:
         print "Indiquer le code identifiant du régime"
         
@@ -156,3 +156,19 @@ def count_enf_born(info_child, index):
     nb_born= pd.Series(np.zeros(len(index)), index=index)
     nb_born += info['nb_born']
     return nb_born.fillna(0)
+
+def trim_tot(index, *kwargs):
+    ''' nombre de trimestres d'assurance total, tous régimes (de base) confondus. 
+    Input : TimeArrays par régime donnant le nombre de trimestres côtisés par année
+    Output : vecteur du nombre de trimestres d'assurance tous régimes'''
+    trim_by_year_regimes = kwargs
+    first = trim_by_year_regimes[0]
+    dates_to_test = first.dates
+    trim_tot = np.zeros(first.array.shape)
+    for trim_by_year in trim_by_year_regimes:
+        assert trim_by_year.dates == dates_to_test
+        assert trim_by_year.array.shape == first.array.shape
+        dates_to_test = trim_by_year.dates
+        trim_tot += trim_by_year.array
+    trim_tot = np.minimum(trim_tot,4)
+    return trim_tot.sum(axis=1)
