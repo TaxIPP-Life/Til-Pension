@@ -98,6 +98,22 @@ class RegimeBase(Regime):
     
 
 class RegimeComplementaires(Regime):
+    
+    def plaf_sali(self, sali):
+        ''' Cette fonction plafonne les salaires des cadres 1 pss pour qu'il ne paye que la première tranche '''
+        sali = sali.array
+        yearsim = self.yearsim
+        plaf_ss = self.P_longit.common.plaf_ss
+        pss = build_long_values(plaf_ss, first_year=first_year_sal, last_year=yearsim) 
+        return np.minimum(sali, pss)
+    
+    def old_plaf_sali(self, workstate, sali):
+        cadre_selection = (workstate.array == self.code_cadre)
+        noncadre_selection = ~cadre_selection
+        plaf_sali = self.plaf_sali(sali) 
+        return sali.array*noncadre_selection + plaf_sali*cadre_selection
+    
+    
         
     def nombre_points(self, sali, first_year=first_year_sal, last_year=None, data_type='numpy'):
         ''' Détermine le nombre de point à liquidation de la pension dans les régimes complémentaires (pour l'instant Ok pour ARRCO/AGIRC)
