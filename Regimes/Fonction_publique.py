@@ -22,7 +22,7 @@ class FonctionPublique(RegimeBase):
         RegimeBase.__init__(self)
         self.regime = 'FP'
         self.code_regime = [5,6]
-        self.param_name = 'fp'
+        self.param_name = 'public.fp'
         
         self.code_sedentaire = 6
         self.code_actif = 5
