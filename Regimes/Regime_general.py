@@ -33,12 +33,12 @@ class RegimeGeneral(RegimeBase):
      
     def get_trimester(self, workstate, sali):
         output = {}
-        output['trim_RG'] = self.nb_trim_cot(workstate, sali)
+        output['trim_cot_RG'] = self.nb_trim_cot(workstate, sali)
         output['trim_ass'] = self.nb_trim_ass(workstate)
         output['trim_maj'] = self.nb_trim_maj(workstate, sali)
         return output
 
-    def build_salref(self):
+    def calculate_salref(self):
         '''
         salaire trimestriel de référence minimum
         Rq : Toute la série chronologique est exprimé en euros
@@ -93,7 +93,7 @@ class RegimeGeneral(RegimeBase):
             sal_selection = translate_frequency(sal_selection.array, input_frequency='month',
                                                  output_frequency='year', method='sum')
         
-        salref = self.build_salref()
+        salref = self.calculate_salref()
         nb_trim_cot, trim_by_year = sal_to_trimcot(sal_selection,
                                                     salref, option='table')
         # sal_section = (sal_to_trimcot(sum_by_years(sal_selection), self.salref, self.yearsim, option='table') != 0)*sal_selection
@@ -150,7 +150,7 @@ class RegimeGeneral(RegimeBase):
             avpf_selection = _isin(workstate,[code_avpf])
             avpf_selection = translate_frequency(avpf_selection, input_frequency=input_frequency, output_frequency='year')
             #avpf_selection = avpf_selection[[col_year for col_year in avpf_selection.columns if str(col_year)[-2:]=='01']]
-            salref = self.build_salref() #TODO: it's used twice so once too much
+            salref = self.calculate_salref() #TODO: it's used twice so once too much
             sal_avpf = avpf_selection*np.divide(sali, salref) # Si certains salaires son déjà attribués à des états d'avpf on les conserve (cf.Destinie)
             nb_trim = avpf_selection.sum(axis=1)*4
             return nb_trim, avpf_selection, sal_avpf
@@ -220,7 +220,7 @@ class RegimeGeneral(RegimeBase):
             trim_corr = trim_RG*(1 + P.tx_maj*trim_majo*elig_majo )
             return trim_corr  
         
-    def calculate_CP(self, trim_RG):
+    def calculate_coeff_proratisation(self, trim_RG):
         ''' Calcul du coefficient de proratisation '''
         P =  reduce(getattr, self.param_name.split('.'), self.P)
         yearsim = self.yearsim

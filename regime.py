@@ -43,28 +43,34 @@ class Regime(object):
             if hasattr(self, key):
                 setattr(self, key, val)
                 
+    def _decote(self):
+        raise NotImplementedError
+
+    def _surcote(self):
+        raise NotImplementedError
+       
     def calculate_taux(self, decote, surcote):
         ''' Détérmination du taux de liquidation à appliquer à la pension '''
         P = reduce(getattr, self.param_name.split('.'), self.P)
         taux_plein = P.plein.taux
+        decote = self._decote()
+        surcote = self._surcote()
         return taux_plein*(1 - decote + surcote)
     
     def calculate_coeff_proratisation(self):
         raise NotImplementedError
             
     def calculate_salref(self):
+#         self.sal_regime = sali.array*_isin(self.workstate.array,self.code_regime)
         raise NotImplementedError
     
     def calculate_pension(self):
-        taux = self.calculate_taux(decote, surcote)
+        taux = self.calculate_taux()
         cp = self.calculate_coeff_proratisation()
         salref = self.calculate_salref()
         return cp*salref*taux
 
-    
-#    def build_sal_regime(self):
-#        self.sal_regime = sali.array*_isin(self.workstate.array,self.code_regime)
-#        
+
 class RegimeBase(Regime):
 
     def nb_trim_valide(self, workstate, code=None): #sali, 
