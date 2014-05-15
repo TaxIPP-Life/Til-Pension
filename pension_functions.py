@@ -55,7 +55,7 @@ def unemployment_trimesters(timearray, code_regime = None, input_step = 'month',
         else:
             assert step == 'year'
             return 4*nb_trim, unemp_trim 
-    table.array = table.array*_isin(table.array, code_regime + [chomage])
+    table = table.isin(code_regime + [chomage])
     table.translate_frequency(output_frequency=input_step, inplace=True)
     nb_trim_chom, unemp_trim = _calculate_trim_unemployment(table.array, step=input_step, code_regime=code_regime)
     if output == 'table_unemployement':

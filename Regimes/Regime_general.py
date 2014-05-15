@@ -48,11 +48,11 @@ class RegimeGeneral(RegimeBase):
             code = self.code_regime
         time_step = self.time_step
             
-        wk_selection = _isin(workstate.array, code)
+        wk_selection = workstate.isin(code)
         sal_selection = TimeArray(wk_selection*sali.array, sali.dates)
         if time_step == 'month':
-            sal_selection = translate_frequency(sal_selection.array, input_frequency='month',
-                                                 output_frequency='year', method='sum')
+            sal_selection.translate_frequency(output_frequency='year',
+                                                  method='sum', inplace=True)
         sal_selection.array[np.isnan(sal_selection.array)] = 0
         self.sal_RG = sal_selection    #TODO: remove
         

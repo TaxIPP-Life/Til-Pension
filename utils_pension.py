@@ -141,13 +141,6 @@ def build_naiss(agem, datesim):
     naiss = agem.apply(lambda x: substract_months(datesim, int(x)))
     return naiss
 
-def _isin(table, selected_values, data_type='numpy'):
-    selection = np.in1d(table, selected_values).reshape(table.shape)
-    if data_type == 'pandas':
-        return DataFrame(selection, index=table.index.copy(), columns=table.columns.copy())
-    if data_type == 'numpy':
-        return selection
-
 def table_selected_dates(table, dates, first_year=None, last_year=None):
     ''' La table d'input dont les colonnes sont des dates est renvoyées emputée des années postérieures à last_year (last_year non-incluse) 
     et antérieures à first_year (first_year incluse) '''

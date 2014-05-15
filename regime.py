@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 
 from time_array import TimeArray
-from utils_pension import _isin, build_long_values, build_long_baremes, translate_frequency, valbytranches
+from utils_pension import build_long_values, build_long_baremes, valbytranches
 first_year_sal = 1949
 
 class Regime(object):
@@ -84,8 +84,8 @@ class RegimeBase(Regime):
         #assert isinstance(sali, TimeArray)
         if code is None:
             code = self.code_regime
-        wk_selection = TimeArray(_isin(workstate.array, self.code_regime), workstate.dates)
-        wk_selection.array, wk_selection.dates = translate_frequency(wk_selection, input_frequency=self.time_step, output_frequency='month')
+        wk_selection = workstate.isin(self.code_regime)
+        wk_selection.translate_frequency(output_frequency='month', inplace=True)
         trim = np.divide(wk_selection.array.sum(axis=1), 4).astype(int)
         return trim
     
@@ -96,11 +96,10 @@ class RegimeBase(Regime):
         #assert isinstance(sali, TimeArray)
         if code is None:
             code = self.code_regime
-        wk_selection = TimeArray(_isin(workstate.array, self.code_regime), workstate.dates)
-        wk_selection.array, wk_selection.dates = translate_frequency(wk_selection, \
-                                        input_frequency=self.time_step, output_frequency='month')
+        wk_selection = workstate.isin(self.code_regime)
+        wk_selection.translate_frequency(output_frequency='month', inplace=True)
         #TODO: condition not assuming sali is in year
-        sali = TimeArray(*translate_frequency(sali, input_frequency=self.time_step, output_frequency='month'))
+        sali.translate_frequency(output_frequency='month', inplace=True)
         sali.array = np.around(np.divide(sali.array, 12), decimals=3)
         sal_selection = TimeArray(wk_selection.array*sali.array, sali.dates)
         trim = np.divide(wk_selection.array.sum(axis=1), 4).astype(int)
