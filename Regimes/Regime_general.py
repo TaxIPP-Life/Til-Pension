@@ -233,9 +233,9 @@ class RegimeGeneral(PensionSimulation):
         age_annulation = valbytranches(P.decote.age_null, self.info_ind)
         N_taux = valbytranches(P.plein.N_taux, self.info_ind)
         if yearsim < 1983:
-            trim_decote = np.max(0, np.divide(age_annulation - agem, 4))
+            trim_decote = np.max(0, np.divide(age_annulation - agem, 3))
         else:
-            decote_age = np.divide(age_annulation - agem, 4)
+            decote_age = np.divide(age_annulation - agem, 3)
             decote_cot = N_taux - trim_tot
             assert len(decote_age) == len(decote_cot)
 
