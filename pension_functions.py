@@ -39,9 +39,10 @@ def select_unemployment(data, code_regime, option='dummy', data_type='numpy'):
             unemp = unemp.replace(1, chomage)
         return unemp == 1
 
-def unemployment_trimesters(table, code_regime = None, input_step = 'month', output = None):
+def unemployment_trimesters(timearray, code_regime = None, input_step = 'month', output = None):
     ''' Input : monthly or yearly-table (lines: indiv, col: dates 'yyyymm') 
     Output : vector with number of trimesters for unemployment'''
+    table = timearray._copy()
     if not code_regime:
         print "Indiquer le code identifiant du régime"
         

@@ -6,6 +6,7 @@ parentdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.sys.path.insert(0,parentdir) 
 
 from SimulPension import PensionSimulation
+from time_array import TimeArray
 from utils_pension import build_long_values
 
 first_year_sal = 1949
@@ -80,13 +81,15 @@ class ARRCO(PensionSimulation):
         
     def build_sal_regime(self):
         ''' Cette fonction plafonne les salaires des cadres 1 pss pour qu'il ne paye que la première tranche '''
-        sali = self.sali.array
-        cadre_selection = (self.workstate.array == self.code_cadre)
-        noncadre_selection = (self.workstate.array == self.code_noncadre)
+        sal_regime = self.sali._copy()
+        workstate = self.workstate._copy()
+        cadre_selection = (workstate.array == self.code_cadre)
+        noncadre_selection = (workstate.array == self.code_noncadre)
         yearsim = self.datesim.year
         plaf_ss = self._Plongitudinal.common.plaf_ss
         pss = build_long_values(plaf_ss, first_year=first_year_sal, last_year=yearsim)    
-        self.sal_regime = sali*noncadre_selection + np.minimum(sali, pss)*cadre_selection
+        sal_regime.array = sal_regime.array*noncadre_selection + np.minimum(sal_regime.array, pss)*cadre_selection
+        self.sal_regime = sal_regime
         
     def majoration_enf(self, nb_points, agem):
         ''' Application de la majoration pour enfants à charge. Deux types de majorations peuvent s'appliquer :

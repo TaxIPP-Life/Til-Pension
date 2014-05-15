@@ -39,9 +39,9 @@ class FonctionPublique(PensionSimulation):
     def trim_service(self):
         ''' Cette fonction pertmet de calculer la durée de service dans FP
         TODO: gérer la comptabilisation des temps partiels quand variable présente'''
-        wk_selection = TimeArray(_isin(self.workstate.array, self.code_regime), self.workstate.dates)
+        wk_selection = self.workstate._isin(self.code_regime)
         wk_selection.translate_frequency(output_frequency='month', inplace=True)
-        wk_selection_actif = TimeArray(_isin(self.workstate.array,self.code_actif), self.workstate.dates)
+        wk_selection_actif = self.workstate._isin(self.code_actif)
         wk_selection_actif.translate_frequency(output_frequency='month')
         # TODO: condition not assuming sali is in year
         sali = self.sali

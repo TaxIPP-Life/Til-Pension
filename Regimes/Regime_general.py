@@ -3,14 +3,13 @@ import math
 import numpy as np
 import pandas as pd
 from datetime import datetime
-from dateutil.relativedelta import relativedelta
 
 import os
 parentdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.sys.path.insert(0,parentdir) 
 from time_array import TimeArray
 from SimulPension import PensionSimulation
-from utils_pension import _isin, valbytranches, table_selected_dates, build_long_values
+from utils_pension import valbytranches, table_selected_dates, build_long_values
 from pension_functions import calculate_SAM, nb_trim_surcote, sal_to_trimcot, unemployment_trimesters
 
 code_avpf = 8
@@ -78,11 +77,8 @@ class RegimeGeneral(PensionSimulation):
         ref : code de la sécurité sociale, article R351-9
          '''
         # Selection des salaires à prendre en compte dans le décompte (mois où il y a eu côtisation au régime)
-        sali = self.sali.array.copy()
-        time_step = self.time_step
-            
-        wk_selection = _isin(self.workstate.array, self.code_regime)
-        sal_selection = TimeArray(wk_selection*sali, self.sali.dates)
+        wk_selection = self.workstate._isin(self.code_regime)
+        sal_selection = TimeArray(wk_selection.array*self.sali.array, self.sali.dates)
         sal_selection.translate_frequency(output_frequency='year', method='sum', inplace=True)
         nb_trim_cot, trim_by_year = sal_to_trimcot(sal_selection,
                                                     self.salref, option='table')
@@ -136,7 +132,7 @@ class RegimeGeneral(PensionSimulation):
             
         def _avpf(workstate, sali):
             ''' Allocation vieillesse des parents au foyer : nombre de trimestres acquis'''
-            avpf_selection = TimeArray(_isin(workstate.array,[code_avpf]), workstate.dates)
+            avpf_selection = workstate._isin([code_avpf])
             avpf_selection.translate_frequency(output_frequency='year', inplace=True)
             #avpf_selection = avpf_selection[[col_year for col_year in avpf_selection.columns if str(col_year)[-2:]=='01']]
             sal_avpf_array = avpf_selection.array*np.divide(sali.array, self.salref)
@@ -152,7 +148,7 @@ class RegimeGeneral(PensionSimulation):
             nb_trim_mda = _mda(child_mother, list_id, yearsim)
         else :
             nb_trim_mda = 0
-        nb_trim_avpf, trim_avpf, sal_avpf = _avpf(self.workstate, self.sali)
+        nb_trim_avpf, trim_avpf, sal_avpf = _avpf(self.workstate._copy(), self.sali)
         # Les trimestres d'avpf sont comptabilisés dans le calcul du SAM
         self.trim_avpf = trim_avpf
         self.sal_avpf = sal_avpf

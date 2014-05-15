@@ -14,7 +14,7 @@ from time_array import TimeArray
 from Param import legislations_add_pension as legislations
 from Param import legislationsxml_add_pension as  legislationsxml
 from openfisca_core import conv
-from utils_pension import build_long_values, build_long_baremes, _isin, print_info_numpy, valbytranches
+from utils_pension import build_long_values, build_long_baremes, print_info_numpy, valbytranches
 #from .columns import EnumCol, EnumPresta
 #from .taxbenefitsystems import TaxBenefitSystem
 
@@ -187,11 +187,13 @@ class PensionSimulation(Simulation):
             workstate = TimeArray(self.workstate, self.dates)
             setattr(self, 'workstate', workstate)
         if self.first_year:
-            workstate.selected_dates(first=first_year_sal, last=self.datesim.year, inplace=True) 
-            sali.selected_dates(first=first_year_sal, last=self.datesim.year, inplace=True)
+            self.workstate.selected_dates(first=first_year_sal, last=self.datesim.year, inplace=True) 
+            self.sali.selected_dates(first=first_year_sal, last=self.datesim.year, inplace=True)
             
     def build_sal_regime(self):
-        self.sal_regime = self.sali.array*_isin(self.workstate.array,self.code_regime)
+        sal_regime = self.workstate._isin(self.code_regime)
+        sal_regime.array = self.sali.array*sal_regime.array
+        self.sal_regime = sal_regime
         
     def calculate_taux(self, decote, surcote):
         ''' Détermination du taux de liquidation à appliquer à la pension '''
@@ -213,7 +215,7 @@ class PensionSimulation(Simulation):
         plaf_ss = self._Plongitudinal.common.plaf_ss
         pss = build_long_values(plaf_ss, first_year=first_year_sal, last_year=yearsim)    
         taux_cot = build_long_baremes(Plong.taux_cot_moy, first_year=first_year_sal, last_year=yearsim, scale=pss)
-        sali = self.sal_regime
+        sali = self.sal_regime.array
         assert len(salref) == sali.shape[1] == len(taux_cot)
         if data_type == 'pandas':
             nb_points = pd.Series(np.zeros(len(sali.index)), index=sali.index)

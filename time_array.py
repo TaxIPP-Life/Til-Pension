@@ -14,7 +14,7 @@ class TimeArray(object):
             et antérieures strictement à last 
             date_type est month ou year
             '''
-        array = self.array
+        array = self.array.copy()
         dates = self.dates
         if date_type == 'year':
             if first:
@@ -31,7 +31,14 @@ class TimeArray(object):
             self.dates = dates
         else:
             return TimeArray(array[:,array_dates], dates)
-        
+    
+    def _copy(self):
+        return TimeArray(self.array.copy(), self.dates)
+    
+    def _isin(self, code):
+        array_selection = np.in1d(self.array.copy(), code).reshape(self.array.shape)
+        return TimeArray(array_selection, self.dates)
+    
     def translate_frequency(self, output_frequency='month', method=None, data_type='numpy', inplace=False):
         '''method should eventually control how to switch from month based table to year based table
             so far we assume year is True if January is True 
