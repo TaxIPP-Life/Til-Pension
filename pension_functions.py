@@ -39,7 +39,7 @@ def select_unemployment(data, code_regime, option='dummy', data_type='numpy'):
             unemp = unemp.replace(1, chomage)
         return unemp == 1
 
-def unemployment_trimesters(timearray, code_regime = None, input_step = 'month', output = None):
+def unemployment_trimesters(timearray, code_regime=None, input_step='month', output=None):
     ''' Input : monthly or yearly-table (lines: indiv, col: dates 'yyyymm') 
     Output : vector with number of trimesters for unemployment'''
     table = timearray.copy()
@@ -113,7 +113,6 @@ def nb_trim_surcote(trim_by_year, date_surcote):
     # Possible dates for surcote :
     dates_surcote = [date for date in trim_by_year.dates
                       if date >= yearmin]
-
     output = np.zeros(len(date_surcote))
     for date in dates_surcote:
         to_keep = np.where(np.greater(date, date_surcote))[0]
@@ -142,7 +141,7 @@ def count_enf_born(info_child, index):
     nb_born += info['nb_born']
     return nb_born.fillna(0)
 
-def trim_tot(index, *kwargs):
+def trim_sum(option,*kwargs):
     ''' nombre de trimestres d'assurance total, tous régimes (de base) confondus. 
     Input : TimeArrays par régime donnant le nombre de trimestres côtisés par année
     Output : vecteur du nombre de trimestres d'assurance tous régimes'''
@@ -156,4 +155,31 @@ def trim_tot(index, *kwargs):
         dates_to_test = trim_by_year.dates
         trim_tot += trim_by_year.array
     trim_tot = np.minimum(trim_tot,4)
-    return trim_tot.sum(axis=1)
+    if option == 'output_table':
+        return TimeArray(trim_tot, first.dates)
+    else:
+        return trim_tot.sum(axis=1)
+    
+def trim_all(trimestres, trimestres_by_year):
+    ''' Stock dans un dictionnaire les vecteurs et matrices de comptabilisation des trimestres
+    qui sont nécessaires à la détermination des montants des pensions '''
+    output = dict()
+    trim_by_year = trim_sum('output_table', *list(trimestres_by_year.values()))
+    trimestres_maj = [trimestres[key] for key in trimestres.keys() if str(key)[0:8] == 'trim_maj']
+    trim_maj_tot = sum(trimestres_maj)
+    return trim_by_year, trim_maj_tot
+
+def sal_to_trimcot(sal_cot, salref, option='vector', data_type='numpy'):
+    ''' A partir de la table des salaires annuels côtisés au sein du régime, on détermine le vecteur du nombre de trimestres côtisés jusqu'à la date mentionnée
+    sal_cot : table ne contenant que les salaires annuels cotisés au sein du régime (lignes : individus / colonnes : date)
+    salref : vecteur des salaires minimum (annuels) à comparer pour obtenir le nombre de trimestre
+    last_year: dernière année (exclue) jusqu'à laquelle on déompte le nombre de trimestres'''
+    if data_type == 'numpy':
+        sal_cot.array[np.isnan(sal_cot.array)] = 0
+    if data_type == 'pandas':
+        sal_cot = sal_cot.fillna(0)
+    nb_trim_cot = np.minimum(np.divide(sal_cot.array,salref).astype(int), 4)
+    if option == 'table':
+        return TimeArray(nb_trim_cot, sal_cot.dates)
+    else :
+        return nb_trim_cot.sum(axis=1)

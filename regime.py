@@ -48,17 +48,51 @@ class Regime(object):
 
     def _surcote(self):
         raise NotImplementedError
+    
+            
+    def build_age_min(self, workstate=None):
+        P = reduce(getattr, self.param_name.split('.'), self.P)
+        try:
+            agemin = valbytranches(P.age_min, self.info_ind)
+        except:
+            agemin = P.age_min
+        return agemin
+
+    
+    def date_surcote(self, workstate, trim_by_year_tot, trim_maj, agem, agemin=None):
+        ''' Détermine la date individuelle a partir de laquelle il y a surcote ( a atteint l'âge légal de départ en retraite + côtisé le nombre de trimestres cible 
+        Rq : pour l'instant on pourrait ne renvoyer que l'année'''
+        yearsim = self.yearsim
+        P = reduce(getattr, self.param_name.split('.'), self.P)
+        N_taux = valbytranches(P.plein.N_taux, self.info_ind)
+        agemin = self.build_age_min(workstate)
+        date_liam = yearsim*100 + 1
+        cumul_trim = trim_by_year_tot.array.cumsum(axis=1)
+        trim_limit = np.array((N_taux - np.nan_to_num(trim_maj)))
+        years_surcote = np.greater(cumul_trim.T,trim_limit)
+        nb_years_surcote = years_surcote.sum(axis=0)
+        #date_cond_trim = (nb_years_surcote).apply(lambda y: date - relativedelta(years = int(y) ))
+        #date_cond_age = (agem - agemin).apply(lambda m: date - relativedelta(months = int(m)))
+        #return np.maximum(date_cond_age, date_cond_trim)
+        date_surcote = [int(max(date_liam - year_surcote*100, 
+                                date_liam - month_trim//12*100 - month_trim%12))
+                        for year_surcote, month_trim in zip(nb_years_surcote, agem-agemin)]
+
+        return date_surcote
        
-    def calculate_taux(self):
+    def calculate_taux(self, workstate, trim_by_year_tot, trim_maj_tot, regime):
         ''' Détérmination du taux de liquidation à appliquer à la pension '''
         P = reduce(getattr, self.param_name.split('.'), self.P)
+        trim_tot = trim_by_year_tot.array.sum(1)
         #TODO: to remove
         try:
             taux_plein = P.plein.taux
         except:
             taux_plein = self.P.prive.RG.plein.taux
-        decote = self._decote()
-        surcote = self._surcote()
+        agem = self.info_ind['agem']
+        decote = self._decote(trim_tot, agem)
+        date_surcote = self.date_surcote(workstate, trim_by_year_tot, trim_maj_tot, agem)
+        surcote = self._surcote(trim_by_year_tot, regime, agem, date_surcote)
         return taux_plein*(1 - decote + surcote)
     
     def calculate_coeff_proratisation(self):
@@ -68,27 +102,39 @@ class Regime(object):
 #         self.sal_regime = sali.array*_isin(self.workstate.array,self.code_regime)
         raise NotImplementedError
     
-    def calculate_pension(self, workstate, sali):
-        taux = self.calculate_taux()
-        cp = self.calculate_coeff_proratisation()
-        salref = self.calculate_salref()
+    def calculate_pension(self, workstate, sali, trim_by_year_tot, trim_maj_tot, regime):
+        reg = self.regime
+        trim_regime = regime['trim_tot']
+        taux = self.calculate_taux(workstate, trim_by_year_tot, trim_maj_tot, regime)
+        cp = self.calculate_coeff_proratisation(trim_regime)
+        salref = self.calculate_salref(workstate, sali, regime)
         return cp*salref*taux
 
 
 class RegimeBase(Regime):
 
-    def nb_trim_valide(self, workstate, code=None): #sali, 
-        ''' Cette fonction pertmet de calculer des nombres par trimestres
+    def nb_trim_valide(self, workstate, code=None, table=False): #sali,
+        ''' Cette fonction pertmet de calculer des nombres par trimestres validés dans un régime
+        validation au sein du régime = 'workstate' = code
         TODO: gérer la comptabilisation des temps partiels quand variable présente'''
         assert isinstance(workstate, TimeArray)
-        #assert isinstance(sali, TimeArray)
         if code is None:
             code = self.code_regime
-        wk_selection = workstate.isin(self.code_regime)
-        wk_selection.translate_frequency(output_frequency='month', inplace=True)
-        trim = np.divide(wk_selection.array.sum(axis=1), 4).astype(int)
-        return trim
-    
+        trim_service = workstate.isin(code)
+        frequency_init = trim_service.frequency
+        trim_service.translate_frequency(output_frequency='year', method='sum', inplace=True)
+        if frequency_init == 'year':
+            #from year to trimester
+            trim_service.array = trim_service.array*4
+        if frequency_init == 'month':
+            #from month to trimester
+            trim_service.array = np.divide(trim_service.array,3)
+        self.trim_by_year = trim_service
+        if table == True:
+            return trim_service
+        else:
+            return trim_service.array.sum(1)
+
     def revenu_valides(self, workstate, sali, code=None): #sali, 
         ''' Cette fonction pertmet de calculer des nombres par trimestres
         TODO: gérer la comptabilisation des temps partiels quand variable présente'''
@@ -125,8 +171,6 @@ class RegimeComplementaires(Regime):
         plaf_sali = self.plaf_sali(sali) 
         return sali.array*noncadre_selection + plaf_sali*cadre_selection
     
-    
-        
     def nombre_points(self, sali, first_year=first_year_sal, last_year=None, data_type='numpy'):
         ''' Détermine le nombre de point à liquidation de la pension dans les régimes complémentaires (pour l'instant Ok pour ARRCO/AGIRC)
         Pour calculer ces points, il faut diviser la cotisation annuelle ouvrant des droits par le salaire de référence de l'année concernée 

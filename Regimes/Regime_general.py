@@ -11,7 +11,7 @@ from time_array import TimeArray
 
 from regime import RegimeBase
 from utils_pension import valbytranches, table_selected_dates, build_long_values, build_salref_bareme
-from pension_functions import calculate_SAM, nb_trim_surcote, unemployment_trimesters
+from pension_functions import calculate_SAM, nb_trim_surcote, sal_to_trimcot, unemployment_trimesters
 
 code_avpf = 8
 code_chomage = 5
@@ -31,34 +31,34 @@ class RegimeGeneral(RegimeBase):
         self.param_name = 'prive.RG'
      
      
-    def get_trimester(self, workstate, sali):
-        output = {}
-        nb_trim_cot = self.nb_trim_cot(workstate, sali)
-        output['trim_cot_RG']  = nb_trim_cot.sum(axis=1)
-        output['trim_ass'] = self.nb_trim_ass(workstate, nb_trim_cot)
-        output['trim_maj'] = self.nb_trim_maj(workstate, sali)
-        return output        
+    def get_trimester(self, workstate, sali, table=False):
+        output = dict()
+        nb_trim_cot, output['sal_RG'] = self.nb_trim_cot(workstate, sali, table=True)
+        output['trim_cot_RG']  = nb_trim_cot.array.sum(axis=1)
+        output['trim_ass_RG'] = self.nb_trim_ass(workstate, nb_trim_cot)
+        output['trim_maj_RG'], output['trim_avpf_RG'] = self.nb_trim_maj(workstate, sali)
+        if table == True:
+            return output, {'RG': nb_trim_cot}
+        else:
+            return output        
             
-    def nb_trim_cot(self, workstate, sali, code=None):
-        ''' Nombre de trimestres côtisés pour le régime général 
+    def nb_trim_cot(self, workstate, sali, table=False):
+        ''' Nombre de trimestres côtisés pour le régime général
         ref : code de la sécurité sociale, article R351-9
-         '''
+        '''
         # Selection des salaires à prendre en compte dans le décompte (mois où il y a eu côtisation au régime)
-        if code is None:
-            code = self.code_regime
-        time_step = self.time_step
-            
-        wk_selection = workstate.isin(code)
+        wk_selection = workstate.isin(self.code_regime)
         sal_selection = TimeArray(wk_selection.array*sali.array, sali.dates)
-        if time_step == 'month':
-            sal_selection.translate_frequency(output_frequency='year',
-                                                  method='sum', inplace=True)
-        sal_selection.array[np.isnan(sal_selection.array)] = 0
-        self.sal_RG = sal_selection    #TODO: remove
-        
+        sal_selection.translate_frequency(output_frequency='year', method='sum', inplace=True)
         salref = build_salref_bareme(self.P_longit.common, first_year_sal, self.yearsim)
-        nb_trim_cot = np.minimum(np.divide(sal_selection.array, salref).astype(int),4)
-        return nb_trim_cot
+        trim_by_year = sal_to_trimcot(sal_selection, salref, option='table')
+        # sal_section = (sal_to_trimcot(sum_by_years(sal_selection), self.salref, self.datesim.year, option='table') != 0)*sal_selection
+        # logiquement c'est mieux de garder que les salaires où il y a eu cotisation -> pour comparaison avec Pensipp plus simple de commenter
+        if table == True:
+            return trim_by_year, sal_selection
+        else:
+            return trim_by_year.array.sum(1)
+
         
     def nb_trim_ass(self, workstate, nb_trim_cot):
         ''' 
@@ -70,7 +70,7 @@ class RegimeGeneral(RegimeBase):
         nb_trim_chom, table_chom = unemployment_trimesters(workstate, code_regime=self.code_regime,
                                                             input_step=self.time_step, output='table_unemployement')
         nb_trim_ass = nb_trim_chom # TODO: + nb_trim_war + ....
-        trim_by_year = TimeArray(array=nb_trim_cot + table_chom.array, 
+        trim_by_year = TimeArray(array=nb_trim_cot.array + table_chom.array, 
                                        dates=[100*year + 1 for year in range(first_year_sal, self.yearsim)])
         return nb_trim_ass
             
@@ -129,10 +129,11 @@ class RegimeGeneral(RegimeBase):
         # Les trimestres d'avpf sont comptabilisés dans le calcul du SAM
         self.trim_avpf = trim_avpf
         self.sal_avpf = sal_avpf
-        return nb_trim_mda + nb_trim_avpf
+        #TO DO: passer à numpy au début de cette fonction pour réduire le temps d'exécution  
+        return np.array(nb_trim_mda + nb_trim_avpf), trim_avpf
     
-    def SAM(self):
-        ''' Calcul du salaire annuel moyen de référence : 
+    def calculate_salref(self, workstate, sali, regime):
+        ''' SAM : Calcul du salaire annuel moyen de référence : 
         notamment application du plafonnement à un PSS'''
         yearsim = self.yearsim
         P = reduce(getattr, self.param_name.split('.'), self.P)
@@ -161,8 +162,7 @@ class RegimeGeneral(RegimeBase):
                 return np.round(sal_RG,2)
                     
         
-        sal_sam = _sal_for_sam(self.sal_RG, self.trim_avpf, smic_long)
-        
+        sal_sam = _sal_for_sam(regime['sal'], regime['trim_avpf'], smic_long)
         SAM = calculate_SAM(sal_sam, nb_years, time_step='year', plafond=plafond, revalorisation=revalo)
         self.sal_RG = sal_sam
         #print "plafond : {},revalo : {}, sal_sam: {}, calculate_sam:{}".format(t1-t0,t2-t1,t3 -t2, t4 - t3)
@@ -207,7 +207,7 @@ class RegimeGeneral(RegimeBase):
         CP = np.minimum(1, trim_RG / N_CP)
         return CP
     
-    def decote(self, trim_tot, agem):
+    def _decote(self, trim_tot, agem):
         ''' Détermination de la décote à appliquer aux pensions '''
         yearsim = self.yearsim
         P = reduce(getattr, self.param_name.split('.'), self.P)
@@ -224,31 +224,14 @@ class RegimeGeneral(RegimeBase):
             trim_decote = np.maximum(0, np.minimum(decote_age, decote_cot))
         return trim_decote*tx_decote
         
-    def surcote(self, trim_by_year_tot, trim_maj, agem):
+    def _surcote(self, trim_by_year_tot, regime, agem, date_surcote):
         ''' Détermination de la surcote à appliquer aux pensions '''
         yearsim = self.yearsim
         P = reduce(getattr, self.param_name.split('.'), self.P)
-        trim_by_year_RG = self.trim_by_year
+        trim_by_year_RG = regime['trim_by_year']
+        trim_maj = regime['trim_maj']
         N_taux = valbytranches(P.plein.N_taux, self.info_ind)
-        age_min = valbytranches(P.age_min, self.info_ind)
-
-        def _date_surcote(trim_by_year_tot, trim_maj, agem, agemin=age_min, N_t=N_taux, date=self.yearsim):
-            ''' Détermine la date individuelle a partir de laquelle il y a surcote ( a atteint l'âge légal de départ en retraite + côtisé le nombre de trimestres cible 
-            Rq : pour l'instant on pourrait ne renvoyer que l'année'''
-            date_liam = yearsim*100 + 1
-            cumul_trim = trim_by_year_tot.array.cumsum(axis=1)
-            trim_limit = np.array((N_t - trim_maj.fillna(0)))
-            years_surcote = np.greater(cumul_trim.T,trim_limit)
-            nb_years_surcote = years_surcote.sum(axis=0)
-            #date_cond_trim = (nb_years_surcote).apply(lambda y: date - relativedelta(years = int(y) ))
-            #date_cond_age = (agem - agemin).apply(lambda m: date - relativedelta(months = int(m)))
-            #return np.maximum(date_cond_age, date_cond_trim)
-            date_surcote = [int(max(date_liam - year_surcote*100, 
-                                    date_liam - month_trim//12*100 - month_trim%12))
-                            for year_surcote, month_trim in zip(nb_years_surcote, agem-agemin)]
-
-            return date_surcote
-        
+      
         def _trimestre_surcote_0304(trim_by_year_RG, date_surcote, P):
             ''' surcote associée aux trimestres côtisés en 2003 
             TODO : structure pas approprié pour les réformes du type 'et si on surcotait avant 2003, ça donnerait quoi?'''
@@ -266,7 +249,7 @@ class RegimeGeneral(RegimeBase):
             trim_selected = trim_by_year_RG.selected_dates(first=2004, last=2009)
             #agemin = agem.copy()
             agemin = 65*12 
-            date_surcote_65 = _date_surcote(trim_by_year_tot, trim_maj, agem, agemin=agemin)
+            date_surcote_65 = self.date_surcote(trim_by_year_tot, trim_maj, agem, agemin=agemin)
             nb_trim_65 = nb_trim_surcote(trim_selected, date_surcote_65)
             nb_trim = nb_trim_surcote(trim_selected, date_surcote) 
             nb_trim = nb_trim - nb_trim_65
@@ -279,7 +262,6 @@ class RegimeGeneral(RegimeBase):
             nb_trim = nb_trim_surcote(trim_selected, date_surcote)
             return taux_surcote*nb_trim
             
-        date_surcote = _date_surcote(trim_by_year_tot, trim_maj, agem)
         if yearsim < 2004:
             taux_surcote = P.surcote.taux_07
             trim_tot = self.trim_by_year.sum(axis=1)

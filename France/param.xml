@@ -2717,10 +2717,15 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 	  <CODE description="Valeur du taux bonifié" code="taux_bonif" format="percent">
 		<VALUE valeur=".80" deb="1949-01-01" fin="2100-12-31"/>
 	 </CODE>
-   	<CODE description="Taux surcote par trimestre supplémentaire" code="surcote" format="percent">
-   		<VALUE valeur="0.0075" deb="2004-01-01" fin="2008-12-31"/>
-   		<VALUE valeur="0.01250" deb="2009-01-01" fin="2100-12-31"/>
-   	</CODE>
+	<NODE description="Surcote de la fonction publique" code="surcote"> 
+	   	<CODE description="Taux surcote par trimestre supplémentaire" code="taux" format="percent">
+	   		<VALUE valeur="0.0075" deb="2004-01-01" fin="2008-12-31"/>
+	   		<VALUE valeur="0.01250" deb="2009-01-01" fin="2100-12-31"/>
+	   	</CODE>
+	   	<CODE description="Nombre limite de trimestres surcotés" code="trim_lim" format="integer">
+	   		<VALUE valeur="20" deb="2004-01-01" fin="2010-12-31"/>
+	   	</CODE>
+	</NODE>
    	<NODE description="Décote de la fonction publique" code="decote">
    		<CODE description="Age d'annulation de la décote (différence de trimestres par rapport à la limite d'âge), réforme Fillon" code="age_null" format="integer">
    			<VALUE valeur="16" deb="2006-01-01" fin="2006-12-31"/>
@@ -2877,8 +2882,7 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 			  </VALEUR>
 			</TRANCHE>
 		</VALBYTRANCHES>
-		</NODE>	
-   		 
+	</NODE>	
    	   <NODE description="Fonction publique sédentaire" code="sedentaire" >
    	   	<CODE description="Durée d'assurance pour ouverture de droits à pension (en mois)" code="N_min" format="integer">
 	  	  <VALUE valeur= "180" deb="1949-01-01" fin="2011-06-31"/>
