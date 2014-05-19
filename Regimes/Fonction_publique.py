@@ -120,7 +120,6 @@ class FonctionPublique(RegimeBase):
         ''' Détermination de la décote à appliquer aux pensions '''
         yearsim = self.yearsim
         if yearsim < 2006:
-            print agem*0
             return agem*0
         else:
             P = reduce(getattr, self.param_name.split('.'), self.P)

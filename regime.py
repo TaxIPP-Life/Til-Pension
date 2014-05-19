@@ -80,7 +80,7 @@ class Regime(object):
 
         return date_surcote
        
-    def calculate_taux(self, workstate, trim_by_year_tot, trim_maj_tot, regime):
+    def calculate_taux(self, workstate, trim_by_year_tot, trim_maj_tot, regime, to_check=None):
         ''' Détérmination du taux de liquidation à appliquer à la pension '''
         P = reduce(getattr, self.param_name.split('.'), self.P)
         trim_tot = trim_by_year_tot.array.sum(1)
@@ -93,6 +93,10 @@ class Regime(object):
         decote = self._decote(trim_tot, agem)
         date_surcote = self.date_surcote(workstate, trim_by_year_tot, trim_maj_tot, agem)
         surcote = self._surcote(trim_by_year_tot, regime, agem, date_surcote)
+        if to_check is not None:
+            to_check['taux_plein_' + self.regime] = taux_plein*(trim_tot > 0)
+            to_check['decote_' + self.regime] = decote*(trim_tot > 0)
+            to_check['surcote_' + self.regime] = surcote*(trim_tot > 0)
         return taux_plein*(1 - decote + surcote)
     
     def calculate_coeff_proratisation(self):
@@ -102,12 +106,16 @@ class Regime(object):
 #         self.sal_regime = sali.array*_isin(self.workstate.array,self.code_regime)
         raise NotImplementedError
     
-    def calculate_pension(self, workstate, sali, trim_by_year_tot, trim_maj_tot, regime):
+    def calculate_pension(self, workstate, sali, trim_by_year_tot, trim_maj_tot, regime, to_check=None):
         reg = self.regime
         trim_regime = regime['trim_tot']
-        taux = self.calculate_taux(workstate, trim_by_year_tot, trim_maj_tot, regime)
+        taux = self.calculate_taux(workstate, trim_by_year_tot, trim_maj_tot, regime, to_check)
         cp = self.calculate_coeff_proratisation(trim_regime)
         salref = self.calculate_salref(workstate, sali, regime)
+        if to_check is not None:
+            to_check['CP_' + reg] = cp
+            to_check['taux_' + reg] = taux
+            to_check['salref_' + reg] = salref
         return cp*salref*taux
 
 
@@ -171,52 +179,50 @@ class RegimeComplementaires(Regime):
         plaf_sali = self.plaf_sali(sali) 
         return sali.array*noncadre_selection + plaf_sali*cadre_selection
     
-    def nombre_points(self, sali, first_year=first_year_sal, last_year=None, data_type='numpy'):
+    def nombre_points(self, workstate, sali, first_year=first_year_sal, last_year=None, data_type='numpy'):
         ''' Détermine le nombre de point à liquidation de la pension dans les régimes complémentaires (pour l'instant Ok pour ARRCO/AGIRC)
         Pour calculer ces points, il faut diviser la cotisation annuelle ouvrant des droits par le salaire de référence de l'année concernée 
         et multiplier par le taux d'acquisition des points'''
         yearsim = self.yearsim
         last_year_sali = yearsim - 1
+        sali_plaf = self.old_plaf_sali(workstate, sali)
         if last_year == None:
             last_year = last_year_sali
         regime = self.regime
         P = reduce(getattr, self.param_name.split('.'), self.P)
-        P = P.complementaire.__dict__[regime]
         Plong = self.P_longit.prive.complementaire.__dict__[regime]
         salref = build_long_values(Plong.sal_ref, first_year=first_year_sal, last_year=yearsim)
         plaf_ss = self.P_longit.common.plaf_ss
         pss = build_long_values(plaf_ss, first_year=first_year_sal, last_year=yearsim)    
         taux_cot = build_long_baremes(Plong.taux_cot_moy, first_year=first_year_sal, last_year=yearsim, scale=pss)
-        assert len(salref) == sali.shape[1] == len(taux_cot)
+        assert len(salref) == sali_plaf.shape[1] == len(taux_cot)
         if data_type == 'pandas':
-            nb_points = pd.Series(np.zeros(len(sali.index)), index=sali.index)
+            nb_points = pd.Series(np.zeros(len(sali_plaf.index)), index=sali_plaf.index)
             if last_year_sali < first_year:
                 return nb_points
             for year in range(first_year, min(last_year_sali, last_year) + 1):
-                points_acquis = np.divide(taux_cot[year].calc(sali[year*100 + 1]), salref[year-first_year_sal]).round(2) 
+                points_acquis = np.divide(taux_cot[year].calc(sali_plaf[year*100 + 1]), salref[year-first_year_sal]).round(2) 
                 gmp = P.gmp
                 #print year, taux_cot[year], sali.ix[1926 ,year *100 + 1], salref[year-first_year_sal]
                 #print 'result', pd.Series(points_acquis, index=sali.index).ix[1926]
                 nb_points += np.maximum(points_acquis, gmp)*(points_acquis > 0)
             return nb_points
         if data_type == 'numpy':
-            nb_points = np.zeros(sali.shape[0])
+            nb_points = np.zeros(sali_plaf.shape[0])
             if last_year_sali < first_year:
                 return nb_points
             for year in range(first_year, min(last_year_sali, last_year) + 1):
                 ix_year = year - first_year
-                points_acquis = np.divide(taux_cot[year].calc(sali[:,ix_year]), salref[year-first_year_sal]).round(2) 
+                points_acquis = np.divide(taux_cot[year].calc(sali_plaf[:,ix_year]), salref[year-first_year_sal]).round(2) 
                 gmp = P.gmp
                 #print year, taux_cot[year], sali.ix[1926 ,year *100 + 1], salref[year-first_year_sal]
                 #print 'result', pd.Series(points_acquis, index=sali.index).ix[1926]
                 nb_points += np.maximum(points_acquis, gmp)*(points_acquis > 0)
             return nb_points
  
-    def coeff_age(self, agem, trim):
+    def coefficient_age(self, agem, trim):
         ''' TODO: add surcote  pour avant 1955 '''
-        regime = self.regime
         P = reduce(getattr, self.param_name.split('.'), self.P)
-        P = P.complementaire.__dict__[regime]
         coef_mino = P.coef_mino
         age_annulation_decote = valbytranches(self.P.prive.RG.decote.age_null, self.info_ind) #TODO: change the param place
         N_taux = valbytranches(self.P.prive.RG.plein.N_taux, self.info_ind) #TODO: change the param place
@@ -233,4 +239,23 @@ class RegimeComplementaires(Regime):
             return coeff_min
         elif self.yearsim >= 1983:
             # A partir de cette date, la minoration ne s'applique que si la durée de cotisation au régime général est inférieure à celle requise pour le taux plein
-            return  coeff_min*(N_taux > trim) + (N_taux <= trim)             
+            return  coeff_min*(N_taux > trim) + (N_taux <= trim)        
+    
+    def majoration_enf(self):     
+        raise NotImplementedError
+    
+    def calculate_pension(self, workstate, sali, trim_base, to_check=None):
+        reg = self.regime
+        P = reduce(getattr, self.param_name.split('.'), self.P)
+        val_arrco = P.val_point 
+        agem = self.info_ind['agem']
+        
+        nb_points = self.nombre_points(workstate, sali)
+        coeff_age = self.coefficient_age(agem, trim_base)
+        maj_enf = self.majoration_enf(workstate, sali, nb_points, coeff_age, agem)
+        
+        if to_check is not None:
+            to_check['nb_points_' + reg] = nb_points
+            to_check['coeff_age_' + reg] = coeff_age
+            to_check['maj_' + reg] = maj_enf
+        return val_arrco * nb_points * coeff_age + maj_enf

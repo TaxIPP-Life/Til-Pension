@@ -160,14 +160,17 @@ def trim_sum(option,*kwargs):
     else:
         return trim_tot.sum(axis=1)
     
-def trim_all(trimestres, trimestres_by_year):
+def trim_by_year_all(trimestres_by_year):
     ''' Stock dans un dictionnaire les vecteurs et matrices de comptabilisation des trimestres
     qui sont nécessaires à la détermination des montants des pensions '''
-    output = dict()
     trim_by_year = trim_sum('output_table', *list(trimestres_by_year.values()))
+    return trim_by_year
+    
+def trim_maj_all(trimestres):
+    ''' Détermine la somme des trimestres majorés des différents régimes '''
     trimestres_maj = [trimestres[key] for key in trimestres.keys() if str(key)[0:8] == 'trim_maj']
     trim_maj_tot = sum(trimestres_maj)
-    return trim_by_year, trim_maj_tot
+    return trim_maj_tot
 
 def sal_to_trimcot(sal_cot, salref, option='vector', data_type='numpy'):
     ''' A partir de la table des salaires annuels côtisés au sein du régime, on détermine le vecteur du nombre de trimestres côtisés jusqu'à la date mentionnée

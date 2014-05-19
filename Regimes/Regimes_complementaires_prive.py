@@ -18,22 +18,21 @@ class AGIRC(RegimeComplementaires):
         RegimeComplementaires.__init__(self)
         self.regime = 'agirc'
         self.code_regime = [4]
-        self.param_name = 'prive'
-
+        self.param_name = 'prive.complementaire.agirc'
+        self.param_RG = 'prive.RG'
         self.code_cadre = 4
         self.info_ind = None
         self.info_child_mother = None
         self.info_child_father = None
         
         
-    def majoration_enf(self, sali, nb_points, coeff_age, agem):
+    def majoration_enf(self, workstate, sali, nb_points, coeff_age, agem):
         ''' Application de la majoration pour enfants à charge. Deux types de majorations peuvent s'appliquer :
         ' pour enfant à charge au moment du départ en retraite
         - pour enfant nés et élevés en cours de carrière (majoration sur la totalité des droits acquis)
         C'est la plus avantageuse qui s'applique.'''
         P = reduce(getattr, self.param_name.split('.'), self.P)
-        P = P.complementaire.arrco ####TODO: !!! what ? 
-        
+
         # Calcul des points pour enfants à charge
         taux_pac = P.maj_enf.pac
         nb_pac = self.info_ind['nb_pac']
@@ -43,8 +42,8 @@ class AGIRC(RegimeComplementaires):
         taux_born = P.maj_enf.born
         taux_born11 = P.maj_enf.born11
         nb_born = self.info_ind['nb_born']
-        nb_points_11 = coeff_age*self.nombre_points(sali, last_year=2011)
-        nb_points12_ = coeff_age*self.nombre_points(sali, first_year=2012) 
+        nb_points_11 = coeff_age*self.nombre_points(workstate, sali, last_year=2011)
+        nb_points12_ = coeff_age*self.nombre_points(workstate, sali, first_year=2012) 
         points_born_11 = nb_points_11*(nb_born)*taux_born11
         points_born12_ = nb_points12_*taux_born
         points_born = (points_born_11 + points_born12_)*(nb_born >= 3)
@@ -65,7 +64,8 @@ class ARRCO(RegimeComplementaires):
     def __init__(self):
         RegimeComplementaires.__init__(self)
         self.regime = 'arrco'
-        self.param_name = 'prive'
+        self.param_name = 'prive.complementaire.arrco'
+        self.param_RG = 'prive.RG'
         self.code_regime = [3,4]
         self.code_noncadre = 3
         self.code_cadre = 4
@@ -73,14 +73,14 @@ class ARRCO(RegimeComplementaires):
         self.info_child_mother = None
         self.info_child_father = None
         
-    def majoration_enf(self, sali, nb_points, agem):
+    def majoration_enf(self, workstate, sali, nb_points, coeff_age, agem):
         ''' Application de la majoration pour enfants à charge. Deux types de majorations peuvent s'appliquer :
-        ' pour enfant à charge au moment du départ en retraite
+        - pour enfant à charge au moment du départ en retraite
         - pour enfant nés et élevés en cours de carrière (majoration sur la totalité des droits acquis)
-        C'est la plus avantageuse qui s'applique.'''
+        C'est la plus avantageuse qui s'applique.
+        Rq : coeff age n'intervient pas effectivement dans cette fonction'''
         P = reduce(getattr, self.param_name.split('.'), self.P)
-        P = P.complementaire.arrco
-        
+
         # Calcul des points pour enfants à charge
         taux_pac = P.maj_enf.pac
         nb_pac = self.info_ind['nb_pac']
@@ -90,9 +90,9 @@ class ARRCO(RegimeComplementaires):
         taux_born11 = P.maj_enf.born11
         taux_born = P.maj_enf.born
         nb_born = self.info_ind['nb_born']
-        nb_points_98 = self.nombre_points(sali, last_year=1998)
-        nb_points9911 = self.nombre_points(sali, first_year=1999, last_year=2011) 
-        nb_points12_ = self.nombre_points(sali, first_year=2012) 
+        nb_points_98 = self.nombre_points(workstate, sali, last_year=1998)
+        nb_points9911 = self.nombre_points(workstate, sali, first_year=1999, last_year=2011) 
+        nb_points12_ = self.nombre_points(workstate, sali, first_year=2012) 
         points_born = ((nb_points_98 + nb_points9911)*taux_born11  + nb_points12_*taux_born)*(nb_born >= 3)
         
         # Comparaison de la situation la plus avantageuse
