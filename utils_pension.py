@@ -35,6 +35,8 @@ def substract_months(sourcedate, months):
 def valbytranches(param, info_ind):
     ''' Associe à chaque individu la bonne valeur du paramètre selon la valeur de la variable de control 
     var_control spécifié au format date (exemple : date de naissance) '''
+    if isinstance(param, float) or isinstance(param, int):
+        return param
     if '_control' in  param.__dict__ :
         var_control = info_ind[str(param.control)]
         param_indiv = var_control.copy()
