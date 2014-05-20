@@ -6,7 +6,7 @@ os.sys.path.insert(0,parentdir)
 
 from numpy import maximum, minimum, divide
 from regime import RegimeComplementaires
-
+from utils_pension import build_long_values
 
 first_year_sal = 1949
 
@@ -25,7 +25,7 @@ class AGIRC(RegimeComplementaires):
         self.info_child_mother = None
         self.info_child_father = None
         
-    def plaf_sali(self, workstate, sali):
+    def sali_for_regime(self, workstate, sali):
         return sali.array*(workstate.isin(self.code_regime).array)
         
     def majoration_enf(self, workstate, sali, nb_points, coeff_age, agem):
@@ -75,11 +75,16 @@ class ARRCO(RegimeComplementaires):
         self.info_child_mother = None
         self.info_child_father = None
         
-    def plaf_sali(self, workstate, sali):
+    def sali_for_regime(self, workstate, sali):
         '''plafonne le salaire des cadres à 1 pss pour qu'il ne pait que la prmeière tranche '''
+        nb_pss=1
         cadre_selection = (workstate.array == self.code_cadre)
         noncadre_selection = (workstate.array == self.code_noncadre)
-        plaf_sali = self.plaf_sali_pss(sali) 
+        sali = sali.array
+        yearsim = self.yearsim
+        plaf_ss = self.P_longit.common.plaf_ss
+        pss = build_long_values(plaf_ss, first_year=first_year_sal, last_year=yearsim) 
+        plaf_sali = minimum(sali, nb_pss*pss)
         return sali.array*noncadre_selection + plaf_sali*cadre_selection
         
     def majoration_enf(self, workstate, sali, nb_points, coeff_age, agem):
