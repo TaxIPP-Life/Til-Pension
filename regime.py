@@ -43,8 +43,6 @@ class Regime(object):
     def _surcote(self):
         raise NotImplementedError
     
-
-    
     def _date_surcote(self, workstate, trim_by_year_tot, trim_maj, agem, agemin=None):
         ''' Détermine la date individuelle a partir de laquelle il y a surcote 
         (a atteint l'âge légal de départ en retraite + côtisé le nombre de trimestres cible 
@@ -68,14 +66,14 @@ class Regime(object):
         return date_surcote
        
     def calculate_taux(self, workstate, trim_by_year_tot, trim_maj_tot, regime, to_check=None):
-        ''' Détérmination du taux de liquidation à appliquer à la pension '''
+        ''' Détérmination du taux de liquidation à appliquer à la pension 
+            La formule générale est taux pondéré par (1+surcote-decote)
+            _surcote and _decote are called
+            _date_surcote is a general method helping surcote
+            '''
         P = reduce(getattr, self.param_name.split('.'), self.P)
         trim_tot = trim_by_year_tot.array.sum(1)
-        #TODO: to remove
-        try:
-            taux_plein = P.plein.taux
-        except:
-            taux_plein = self.P.prive.RG.plein.taux
+        taux_plein = P.plein.taux
         agem = self.info_ind['agem']
         decote = self._decote(trim_tot, agem)
         date_surcote = self._date_surcote(workstate, trim_by_year_tot, trim_maj_tot, agem)
@@ -226,7 +224,7 @@ class RegimeComplementaires(Regime):
         agem = self.info_ind['agem']
         nb_points = self.nombre_points(workstate, sali)
         coeff_age = self.coefficient_age(agem, trim_base)
-        maj_enf = self.majoration_enfworksttate, sali, nb_points, coeff_age, agem)
+        maj_enf = self.majoration_enf(workstate, sali, nb_points, coeff_age, agem)
         
         if to_check is not None:
             to_check['nb_points_' + reg] = nb_points
