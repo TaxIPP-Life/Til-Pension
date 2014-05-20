@@ -46,7 +46,7 @@ class FonctionPublique(RegimeBase):
         else:
             return output
         
-    def build_age_min(self, workstate):
+    def _build_age_min(self, workstate):
         P = self.P.public.fp
         trim_actif = self.nb_trim_valide(workstate, self.code_actif)
         # age_min = age_min_actif pour les fonctionnaires actif en fin de carrières ou carrière mixte ayant une durée de service actif suffisante
@@ -55,7 +55,7 @@ class FonctionPublique(RegimeBase):
         age_min = age_min_a*(trim_actif >= P.actif.N_min) + age_min_s*(trim_actif < P.actif.N_min)
         return age_min
     
-    def build_age_max(self, workstate, sali):
+    def _build_age_max(self, workstate, sali):
         P = self.P.public.fp
         last_fp = self.traitement(workstate, sali)
         actif = (last_fp == self.code_actif)

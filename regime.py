@@ -43,23 +43,16 @@ class Regime(object):
     def _surcote(self):
         raise NotImplementedError
     
-            
-    def build_age_min(self, workstate=None):
-        P = reduce(getattr, self.param_name.split('.'), self.P)
-        try:
-            agemin = valbytranches(P.age_min, self.info_ind)
-        except:
-            agemin = P.age_min
-        return agemin
 
     
-    def date_surcote(self, workstate, trim_by_year_tot, trim_maj, agem, agemin=None):
-        ''' Détermine la date individuelle a partir de laquelle il y a surcote ( a atteint l'âge légal de départ en retraite + côtisé le nombre de trimestres cible 
+    def _date_surcote(self, workstate, trim_by_year_tot, trim_maj, agem, agemin=None):
+        ''' Détermine la date individuelle a partir de laquelle il y a surcote 
+        (a atteint l'âge légal de départ en retraite + côtisé le nombre de trimestres cible 
         Rq : pour l'instant on pourrait ne renvoyer que l'année'''
         yearsim = self.yearsim
         P = reduce(getattr, self.param_name.split('.'), self.P)
         N_taux = valbytranches(P.plein.N_taux, self.info_ind)
-        agemin = self.build_age_min(workstate)
+        agemin = self._build_age_min(workstate)
         date_liam = yearsim*100 + 1
         cumul_trim = trim_by_year_tot.array.cumsum(axis=1)
         trim_limit = array((N_taux - nan_to_num(trim_maj)))
@@ -85,7 +78,7 @@ class Regime(object):
             taux_plein = self.P.prive.RG.plein.taux
         agem = self.info_ind['agem']
         decote = self._decote(trim_tot, agem)
-        date_surcote = self.date_surcote(workstate, trim_by_year_tot, trim_maj_tot, agem)
+        date_surcote = self._date_surcote(workstate, trim_by_year_tot, trim_maj_tot, agem)
         surcote = self._surcote(trim_by_year_tot, regime, agem, date_surcote)
         if to_check is not None:
             to_check['taux_plein_' + self.regime] = taux_plein*(trim_tot > 0)
@@ -233,7 +226,7 @@ class RegimeComplementaires(Regime):
         agem = self.info_ind['agem']
         nb_points = self.nombre_points(workstate, sali)
         coeff_age = self.coefficient_age(agem, trim_base)
-        maj_enf = self.majoration_enf(workstate, sali, nb_points, coeff_age, agem)
+        maj_enf = self.majoration_enfworksttate, sali, nb_points, coeff_age, agem)
         
         if to_check is not None:
             to_check['nb_points_' + reg] = nb_points

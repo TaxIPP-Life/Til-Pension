@@ -44,8 +44,12 @@ class RegimeGeneral(RegimeBase):
         if table == True:
             return output, {'RG': nb_trim_cot}
         else:
-            return output        
-            
+            return output
+        
+    def _build_age_min(self, workstate=None):
+        P = reduce(getattr, self.param_name.split('.'), self.P)
+        return valbytranches(P.age_min, self.info_ind)
+
     def nb_trim_cot(self, workstate, sali, table=False):
         ''' Nombre de trimestres côtisés pour le régime général
         ref : code de la sécurité sociale, article R351-9
@@ -259,7 +263,7 @@ class RegimeGeneral(RegimeBase):
             trim_selected = trim_by_year_RG.selected_dates(first=2004, last=2009)
             #agemin = agem.copy()
             agemin = 65*12 
-            date_surcote_65 = self.date_surcote(trim_by_year_tot, trim_maj, agem, agemin=agemin)
+            date_surcote_65 = self._date_surcote(trim_by_year_tot, trim_maj, agem, agemin=agemin)
             nb_trim_65 = nb_trim_surcote(trim_selected, date_surcote_65)
             nb_trim = nb_trim_surcote(trim_selected, date_surcote) 
             nb_trim = nb_trim - nb_trim_65
