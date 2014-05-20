@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
-import numpy as np
 from pandas import DataFrame
+from numpy import array, tile, divide, around, in1d, repeat
 
 def determine_frequency(dates):
-    if (np.array(dates) % 100 == 1).all() :
+    if (array(dates) % 100 == 1).all() :
         frequency = 'year' 
     else: 
         frequency = 'month' 
@@ -20,7 +20,7 @@ class TimeArray(object):
         return TimeArray(self.array.copy(), self.dates)
     
     def isin(self, code):
-        array_selection = np.in1d(self.array.copy(), code).reshape(self.array.shape)
+        array_selection = in1d(self.array.copy(), code).reshape(self.array.shape)
         return TimeArray(array_selection, self.dates)
         
     def selected_dates(self, first, last, date_type='year', inplace=False):
@@ -75,9 +75,9 @@ class TimeArray(object):
                         output += array[:, month_to_add]
             elif output_frequency == 'month': # if True here, input_frequency=='year'
                 output_dates = [year + month for year in self.dates for month in range(12)]
-                output = np.repeat(array, 12, axis=1)
+                output = repeat(array, 12, axis=1)
                 if method == 'divide':
-                    output = np.around(np.divide(output, 12), decimals=3)
+                    output = around(divide(output, 12), decimals=3)
             if inplace == True:
                 self.array = output
                 self.dates = output_dates
@@ -100,6 +100,6 @@ class TimeArray(object):
                     pdb.set_trace()
             if output_frequency == 'month': # if True here, input_frequency=='year'
                 output_dates = [x + k for k in range(12) for x in table.columns ]
-                output_table1 = DataFrame(np.tile(table, 12), index=table.index, columns=output_dates)
+                output_table1 = DataFrame(tile(table, 12), index=table.index, columns=output_dates)
                 return output_table1.reindex_axis(sorted(output_table1.columns), axis=1)  
     

@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 #import bottleneck as bn
-import numpy as np
-import pandas as pd
 import pdb
 
 from time_array import TimeArray
 from utils_pension import sum_by_years
+from numpy import minimum, array, greater, divide, zeros, in1d, sort, where, \
+                     multiply, apply_along_axis, isnan
+from pandas import Series
 
 chomage=2
 avpf = 8
@@ -16,13 +17,13 @@ def select_unemployment(data, code_regime, option='dummy', data_type='numpy'):
     TODO: A améliorer car boucle for très moche
     Rq : on fait l'hypothèse que les personnes étant au chômage en t0 côtisent au RG '''
     if data_type == 'numpy':
-        unemp = np.zeros((data.shape[0],data.shape[1]))
+        unemp = zeros((data.shape[0],data.shape[1]))
         unemp[:,0] = (data[:,0] == chomage)
         #unemp.loc[unemp[previous_col] == chomage, previous_col] = 1 -> A commenter si l'on ne veut pas comptabiliser les trimestres de chômage initiaux (Hypothèse)
-        previous_chom_reg = np.in1d(data[:,:-1],code_regime + [chomage]).reshape(data[:,:-1].shape)
+        previous_chom_reg = in1d(data[:,:-1],code_regime + [chomage]).reshape(data[:,:-1].shape)
         unemp = (data[:,1:] == chomage)
         selected_chom = previous_chom_reg*unemp
-        unemp = np.zeros((data.shape[0],data.shape[1]))
+        unemp = zeros((data.shape[0],data.shape[1]))
         unemp[:,1:] = selected_chom
         return unemp
     
@@ -32,7 +33,7 @@ def select_unemployment(data, code_regime, option='dummy', data_type='numpy'):
         unemp = data.copy().replace(code_regime, 0)
         #unemp.loc[unemp[previous_col] == chomage, previous_col] = 1 -> A commenter si l'on ne veut pas comptabiliser les trimestres de chômage initiaux (Hypothèse)
         for col in data_col:
-            selected_chom = np.in1d(data[previous_col],code_regime + [chomage]) & (data[col] == chomage)
+            selected_chom = in1d(data[previous_col],code_regime + [chomage]) & (data[col] == chomage)
             unemp.loc[selected_chom, col] = 1
             previous_col = col
         if option == 'code':
@@ -51,7 +52,7 @@ def unemployment_trimesters(timearray, code_regime=None, input_step='month', out
         unemp_trim = select_unemployment(data, code_regime)
         nb_trim = unemp_trim.sum(axis=1)
         if step == 'month':
-            return np.divide(nb_trim, 3).round(), unemp_trim
+            return divide(nb_trim, 3).round(), unemp_trim
         else:
             assert step == 'year'
             return 4*nb_trim, unemp_trim 
@@ -69,18 +70,18 @@ def calculate_SAM(sali, nb_years_pd, time_step, plafond=None, revalorisation=Non
     plaf : vecteur chronologique plafonnant les salaires (si abs pas de plafonnement)'''
     
     nb_sali = (sali != 0).sum(1)
-    nb_years = np.array(nb_years_pd)
+    nb_years = array(nb_years_pd)
     nb_years[nb_sali < nb_years] = nb_sali[nb_sali < nb_years]
     if data_type == 'pandas':
         assert max(sali.index) == max(nb_years.index)
         sali = sali.fillna(0) 
-        sali = np.array(sali)
+        sali = array(sali)
     if time_step == 'month' :
         sali = sum_by_years(sali)
     def sum_sam(data):
         nb_sali = data[-1]
         #data = -bn.partsort(-data, nb_sali)[:nb_sali]
-        data = np.sort(data[:-1])
+        data = sort(data[:-1])
         data = data[-nb_sali:]
         if nb_sali == 0 :
             sam = 0
@@ -88,20 +89,20 @@ def calculate_SAM(sali, nb_years_pd, time_step, plafond=None, revalorisation=Non
             sam = data.sum() / nb_sali
         return sam
 
-    # deux tables aient le même index (pd.DataFrame({'sali': sali.index.values, 'nb_years': nb_years.index.values}).to_csv('testindex.csv'))
+    # deux tables aient le même index (DataFrame({'sali': sali.index.values, 'nb_years': nb_years.index.values}).to_csv('testindex.csv'))
 
     if plafond is not None:
         assert sali.shape[1] == len(plafond)
-        sali = np.minimum(sali, plafond) 
+        sali = minimum(sali, plafond) 
     if revalorisation is not None:
         assert sali.shape[1] == len(revalorisation)
-        sali = np.multiply(sali,revalorisation)
-    sali_sam = np.zeros((sali.shape[0],sali.shape[1]+1))
+        sali = multiply(sali,revalorisation)
+    sali_sam = zeros((sali.shape[0],sali.shape[1]+1))
     sali_sam[:,:-1] = sali
     sali_sam[:,-1] = nb_years
-    sam = np.apply_along_axis(sum_sam, axis=1, arr=sali_sam)
+    sam = apply_along_axis(sum_sam, axis=1, arr=sali_sam)
     #sali.apply(sum_sam, 1)
-    return pd.Series(sam, index = nb_years_pd.index)
+    return Series(sam, index = nb_years_pd.index)
 
 def nb_trim_surcote(trim_by_year, date_surcote):
     ''' Cette fonction renvoie le vecteur numpy du nombre de trimestres surcotés à partir de :
@@ -113,9 +114,9 @@ def nb_trim_surcote(trim_by_year, date_surcote):
     # Possible dates for surcote :
     dates_surcote = [date for date in trim_by_year.dates
                       if date >= yearmin]
-    output = np.zeros(len(date_surcote))
+    output = zeros(len(date_surcote))
     for date in dates_surcote:
-        to_keep = np.where(np.greater(date, date_surcote))[0]
+        to_keep = where(greater(date, date_surcote))[0]
         ix_date = trim_by_year.dates.index(yearmax)
         if to_keep.any():
             output[to_keep] += trim_by_year.array[to_keep, ix_date]
@@ -127,7 +128,7 @@ def count_enf_pac(info_child, index):
     info = info.loc[info['enf_pac'] == True].drop('enf_pac', 1)
     info.columns = ['id_parent', 'nb_pac']
     info.index = info['id_parent']
-    nb_pac= pd.Series(np.zeros(len(index)), index=index)
+    nb_pac= Series(zeros(len(index)), index=index)
     nb_pac += info['nb_pac']
     return nb_pac.fillna(0)
 
@@ -137,7 +138,7 @@ def count_enf_born(info_child, index):
     info = info.loc[info['enf_born'] == True].drop('enf_born', 1)
     info.columns = ['id_parent', 'nb_born']
     info.index = info['id_parent']
-    nb_born= pd.Series(np.zeros(len(index)), index=index)
+    nb_born= Series(zeros(len(index)), index=index)
     nb_born += info['nb_born']
     return nb_born.fillna(0)
 
@@ -148,13 +149,13 @@ def trim_sum(option,*kwargs):
     trim_by_year_regimes = kwargs
     first = trim_by_year_regimes[0]
     dates_to_test = first.dates
-    trim_tot = np.zeros(first.array.shape)
+    trim_tot = zeros(first.array.shape)
     for trim_by_year in trim_by_year_regimes:
         assert trim_by_year.dates == dates_to_test
         assert trim_by_year.array.shape == first.array.shape
         dates_to_test = trim_by_year.dates
         trim_tot += trim_by_year.array
-    trim_tot = np.minimum(trim_tot,4)
+    trim_tot = minimum(trim_tot,4)
     if option == 'output_table':
         return TimeArray(trim_tot, first.dates)
     else:
@@ -178,10 +179,10 @@ def sal_to_trimcot(sal_cot, salref, option='vector', data_type='numpy'):
     salref : vecteur des salaires minimum (annuels) à comparer pour obtenir le nombre de trimestre
     last_year: dernière année (exclue) jusqu'à laquelle on déompte le nombre de trimestres'''
     if data_type == 'numpy':
-        sal_cot.array[np.isnan(sal_cot.array)] = 0
+        sal_cot.array[isnan(sal_cot.array)] = 0
     if data_type == 'pandas':
         sal_cot = sal_cot.fillna(0)
-    nb_trim_cot = np.minimum(np.divide(sal_cot.array,salref).astype(int), 4)
+    nb_trim_cot = minimum(divide(sal_cot.array,salref).astype(int), 4)
     if option == 'table':
         return TimeArray(nb_trim_cot, sal_cot.dates)
     else :

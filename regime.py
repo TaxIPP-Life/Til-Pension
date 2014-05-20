@@ -1,13 +1,7 @@
 # -*- coding: utf-8 -*-
 
-import calendar
-import collections
-import copy
-import datetime as dt
-import gc
-import numpy as np
-import pandas as pd
-
+from numpy import maximum, minimum, array, nan_to_num, greater, divide, around, zeros
+from pandas import Series
 from time_array import TimeArray
 from utils_pension import build_long_values, build_long_baremes, valbytranches
 first_year_sal = 1949
@@ -68,12 +62,12 @@ class Regime(object):
         agemin = self.build_age_min(workstate)
         date_liam = yearsim*100 + 1
         cumul_trim = trim_by_year_tot.array.cumsum(axis=1)
-        trim_limit = np.array((N_taux - np.nan_to_num(trim_maj)))
-        years_surcote = np.greater(cumul_trim.T,trim_limit)
+        trim_limit = array((N_taux - nan_to_num(trim_maj)))
+        years_surcote = greater(cumul_trim.T,trim_limit)
         nb_years_surcote = years_surcote.sum(axis=0)
         #date_cond_trim = (nb_years_surcote).apply(lambda y: date - relativedelta(years = int(y) ))
         #date_cond_age = (agem - agemin).apply(lambda m: date - relativedelta(months = int(m)))
-        #return np.maximum(date_cond_age, date_cond_trim)
+        #return maximum(date_cond_age, date_cond_trim)
         date_surcote = [int(max(date_liam - year_surcote*100, 
                                 date_liam - month_trim//12*100 - month_trim%12))
                         for year_surcote, month_trim in zip(nb_years_surcote, agem-agemin)]
@@ -135,7 +129,7 @@ class RegimeBase(Regime):
             trim_service.array = trim_service.array*4
         if frequency_init == 'month':
             #from month to trimester
-            trim_service.array = np.divide(trim_service.array,3)
+            trim_service.array = divide(trim_service.array,3)
         self.trim_by_year = trim_service
         if table == True:
             return trim_service
@@ -153,9 +147,9 @@ class RegimeBase(Regime):
         wk_selection.translate_frequency(output_frequency='month', inplace=True)
         #TODO: condition not assuming sali is in year
         sali.translate_frequency(output_frequency='month', inplace=True)
-        sali.array = np.around(np.divide(sali.array, 12), decimals=3)
+        sali.array = around(divide(sali.array, 12), decimals=3)
         sal_selection = TimeArray(wk_selection.array*sali.array, sali.dates)
-        trim = np.divide(wk_selection.array.sum(axis=1), 4).astype(int)
+        trim = divide(wk_selection.array.sum(axis=1), 4).astype(int)
         return trim
     
     def get_trimester(self, workstate, sali):
@@ -170,7 +164,7 @@ class RegimeComplementaires(Regime):
         yearsim = self.yearsim
         plaf_ss = self.P_longit.common.plaf_ss
         pss = build_long_values(plaf_ss, first_year=first_year_sal, last_year=yearsim) 
-        return np.minimum(sali, nb_pss*pss)
+        return minimum(sali, nb_pss*pss)
     
     def nombre_points(self, workstate, sali, first_year=first_year_sal, last_year=None, data_type='numpy'):
         ''' Détermine le nombre de point à liquidation de la pension dans les régimes complémentaires (pour l'instant Ok pour ARRCO/AGIRC)
@@ -190,27 +184,27 @@ class RegimeComplementaires(Regime):
         taux_cot = build_long_baremes(Plong.taux_cot_moy, first_year=first_year_sal, last_year=yearsim, scale=pss)
         assert len(salref) == sali_plaf.shape[1] == len(taux_cot)
         if data_type == 'pandas':
-            nb_points = pd.Series(np.zeros(len(sali_plaf.index)), index=sali_plaf.index)
+            nb_points = Series(zeros(len(sali_plaf.index)), index=sali_plaf.index)
             if last_year_sali < first_year:
                 return nb_points
             for year in range(first_year, min(last_year_sali, last_year) + 1):
-                points_acquis = np.divide(taux_cot[year].calc(sali_plaf[year*100 + 1]), salref[year-first_year_sal]).round(2) 
+                points_acquis = divide(taux_cot[year].calc(sali_plaf[year*100 + 1]), salref[year-first_year_sal]).round(2) 
                 gmp = P.gmp
                 #print year, taux_cot[year], sali.ix[1926 ,year *100 + 1], salref[year-first_year_sal]
-                #print 'result', pd.Series(points_acquis, index=sali.index).ix[1926]
-                nb_points += np.maximum(points_acquis, gmp)*(points_acquis > 0)
+                #print 'result', Series(points_acquis, index=sali.index).ix[1926]
+                nb_points += maximum(points_acquis, gmp)*(points_acquis > 0)
             return nb_points
         if data_type == 'numpy':
-            nb_points = np.zeros(sali_plaf.shape[0])
+            nb_points = zeros(sali_plaf.shape[0])
             if last_year_sali < first_year:
                 return nb_points
             for year in range(first_year, min(last_year_sali, last_year) + 1):
                 ix_year = year - first_year
-                points_acquis = np.divide(taux_cot[year].calc(sali_plaf[:,ix_year]), salref[year-first_year_sal]).round(2) 
+                points_acquis = divide(taux_cot[year].calc(sali_plaf[:,ix_year]), salref[year-first_year_sal]).round(2) 
                 gmp = P.gmp
                 #print year, taux_cot[year], sali.ix[1926 ,year *100 + 1], salref[year-first_year_sal]
-                #print 'result', pd.Series(points_acquis, index=sali.index).ix[1926]
-                nb_points += np.maximum(points_acquis, gmp)*(points_acquis > 0)
+                #print 'result', Series(points_acquis, index=sali.index).ix[1926]
+                nb_points += maximum(points_acquis, gmp)*(points_acquis > 0)
             return nb_points
  
     def coefficient_age(self, agem, trim):
@@ -219,13 +213,13 @@ class RegimeComplementaires(Regime):
         coef_mino = P.coef_mino
         age_annulation_decote = valbytranches(self.P.prive.RG.decote.age_null, self.info_ind) #TODO: change the param place
         N_taux = valbytranches(self.P.prive.RG.plein.N_taux, self.info_ind) #TODO: change the param place
-        diff_age = np.maximum(np.divide(age_annulation_decote - agem, 12), 0)
-        coeff_min = pd.Series(np.zeros(len(agem)), index=agem.index)
-        coeff_maj = pd.Series(np.zeros(len(agem)), index=agem.index)
+        diff_age = maximum(divide(age_annulation_decote - agem, 12), 0)
+        coeff_min = Series(zeros(len(agem)), index=agem.index)
+        coeff_maj = Series(zeros(len(agem)), index=agem.index)
         for nb_annees, coef_mino in coef_mino._tranches:
             coeff_min += (diff_age == nb_annees)*coef_mino
         if self.yearsim <= 1955:
-            maj_age = np.maximum(np.divide(agem - age_annulation_decote, 12), 0)
+            maj_age = maximum(divide(agem - age_annulation_decote, 12), 0)
             coeff_maj = maj_age*0.05
             return coeff_min + coeff_maj
         elif  self.yearsim < 1983:

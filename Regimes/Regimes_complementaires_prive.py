@@ -1,10 +1,10 @@
 # -*- coding:utf-8 -*-
-import numpy as np
 import os
 
 parentdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.sys.path.insert(0,parentdir) 
 
+from numpy import maximum, minimum, divide
 from regime import RegimeComplementaires
 
 
@@ -54,11 +54,11 @@ class AGIRC(RegimeComplementaires):
         val_point = P.val_point
         majo_born = val_point*points_born
         majo_pac = val_point*points_pac
-#        yearnaiss = self.datesim.year - np.divide(agem, 12)
+#        yearnaiss = self.datesim.year - divide(agem, 12)
 #        if yearnaiss <= 1951:
 #            plafond = P.maj_enf.plaf_pac
-#            majo_pac = np.minimum(majo_pac, plafond)
-        return np.maximum(majo_born, majo_pac)
+#            majo_pac = minimum(majo_pac, plafond)
+        return maximum(majo_born, majo_pac)
 
 class ARRCO(RegimeComplementaires):
     ''' L'association pour le régime de retraite complémentaire des salariés gère le régime de retraite complémentaire de l’ensemble 
@@ -108,8 +108,8 @@ class ARRCO(RegimeComplementaires):
         val_point = P.val_point
         majo_born = val_point*points_born
         majo_pac = val_point*points_pac
-        yearnaiss = self.yearsim - np.divide(agem,12)
+        yearnaiss = self.yearsim - divide(agem,12)
         if self.yearsim >= 2013:
             plafond = P.maj_enf.plaf_pac
-            majo_pac = np.minimum(majo_pac[(yearnaiss <= 1951)], plafond)
-        return np.maximum(majo_born, majo_pac)
+            majo_pac = minimum(majo_pac[(yearnaiss <= 1951)], plafond)
+        return maximum(majo_born, majo_pac)

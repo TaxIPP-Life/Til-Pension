@@ -4,7 +4,8 @@ import calendar
 import collections
 import pdb
 import datetime as dt
-import numpy as np
+
+from numpy import array, ones
 from pandas import DataFrame
 
 from datetime import date
@@ -47,7 +48,7 @@ def valbytranches(param, info_ind):
 def build_long_values(param_long, first_year, last_year):   
     ''' Cette fonction permet de traduire les paramètres longitudinaux en vecteur numpy 
     comportant une valeur par année comprise en first_year et last_year '''
-    param = DataFrame( {'year' : range(first_year, last_year), 'param' : - np.ones(last_year - first_year)} ) 
+    param = DataFrame( {'year' : range(first_year, last_year), 'param' : - ones(last_year - first_year)} ) 
     param_t = []
     for year in range(first_year, last_year):
         param_old = param_t
@@ -58,7 +59,7 @@ def build_long_values(param_long, first_year, last_year):
         if not param_t:
             param_t = param_old
         param.loc[param['year'] == year, 'param'] = param_long[param_t[0]] # Hypothèse sous-jacente : on prend la première valeur de l'année
-    return np.array(param['param'])
+    return array(param['param'])
 
 def build_long_baremes(bareme_long, first_year, last_year, scale=None):   
     ''' Cette fonction permet de traduire les barèmes longitudinaux en dictionnaire de bareme
@@ -89,7 +90,7 @@ def build_salref_bareme(bareme_long, first_year, last_year, scale=None):
     '''
     assert first_year < 1972 
     assert last_year > 1972
-    salmin = DataFrame({'year': range(first_year, last_year ), 'sal': -np.ones(last_year - first_year)} ) 
+    salmin = DataFrame({'year': range(first_year, last_year ), 'sal': -ones(last_year - first_year)} ) 
     avts_year = []
     smic_year = []
     smic_long = bareme_long.smic
@@ -120,7 +121,7 @@ def build_salref_bareme(bareme_long, first_year, last_year, scale=None):
                 salmin.loc[salmin['year'] == year, 'sal'] = 200*smic_long[smic_year[0]]/6.5596
         else:
             salmin.loc[salmin['year'] == year, 'sal'] = 150*smic_long[smic_year[0]]
-    return np.array(salmin['sal'])
+    return array(salmin['sal'])
 
 def calculate_age(birth_date, date):
     ''' calculate age at date thanks birthdate '''

@@ -1,13 +1,14 @@
 # -*- coding:utf-8 -*-
 import math
-import numpy as np
-import pandas as pd
 from datetime import datetime
 
 import os
 parentdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.sys.path.insert(0,parentdir) 
 from time_array import TimeArray
+
+from numpy import maximum, minimum, array, divide, zeros, multiply, ceil
+from pandas import DataFrame
 
 from regime import RegimeBase
 from utils_pension import valbytranches, table_selected_dates, build_long_values, build_salref_bareme, print_info_numpy
@@ -88,7 +89,7 @@ class RegimeGeneral(RegimeBase):
             #TODO: remove the pandas call
             ''' Majoration pour enfant à charge : nombre de trimestres acquis
             Rq : cette majoration n'est applicable que pour les femmes dans le RG'''
-            mda = pd.DataFrame({'mda': np.zeros(len(list_id))}, index=list_id)
+            mda = DataFrame({'mda': zeros(len(list_id))}, index=list_id)
             # TODO: distinguer selon l'âge des enfants après 2003
             # ligne suivante seulement if info_child['age_enf'].min() > 16 :
             if yearsim < 1972 :
@@ -113,7 +114,7 @@ class RegimeGeneral(RegimeBase):
             #avpf_selection = avpf_selection[[col_year for col_year in avpf_selection.columns if str(col_year)[-2:]=='01']]
 
             salref = build_salref_bareme(self.P_longit.common, first_year_sal, self.yearsim) #TODO: it's used twice so once too much
-            sal_avpf_array = avpf_selection.array*np.divide(sali.array, salref) # Si certains salaires son déjà attribués à des états d'avpf on les conserve (cf.Destinie)
+            sal_avpf_array = avpf_selection.array*divide(sali.array, salref) # Si certains salaires son déjà attribués à des états d'avpf on les conserve (cf.Destinie)
             nb_trim = avpf_selection.array.sum(axis=1)*4
             sal_avpf_array = sal_avpf_array*(avpf_selection != 0)
             sal_avpf = TimeArray(sal_avpf_array, avpf_selection.dates) # Si certains salaires son déjà attribués à des états d'avpf on les conserve (cf.Destinie)
@@ -134,7 +135,7 @@ class RegimeGeneral(RegimeBase):
         self.trim_avpf = trim_avpf
         self.sal_avpf = sal_avpf
         #TO DO: passer à numpy au début de cette fonction pour réduire le temps d'exécution  
-        return np.array(nb_trim_mda + nb_trim_avpf), trim_avpf
+        return array(nb_trim_mda + nb_trim_avpf), trim_avpf
     
     def calculate_salref(self, workstate, sali, regime):
         ''' SAM : Calcul du salaire annuel moyen de référence : 
@@ -155,17 +156,17 @@ class RegimeGeneral(RegimeBase):
                 # TODO: check if annual step in sal_avpf and sal_RG
                 first_ix_avpf = 1972 - first_year_sal
                 trim_avpf.array = trim_avpf.array[:,first_ix_avpf:]
-                sal_avpf = np.multiply((trim_avpf.array != 0), smic) #*2028 = 151.66*12 if horaires
+                sal_avpf = multiply((trim_avpf.array != 0), smic) #*2028 = 151.66*12 if horaires
                 sal_RG.array[:,first_ix_avpf:] += sal_avpf
                 sal_RG.array += sali_to_RG.array
-                pd.DataFrame(sali_to_RG.array, columns=sali.dates).to_csv('test.csv')
-                return np.round(sal_RG.array,2)
+                DataFrame(sali_to_RG.array, columns=sali.dates).to_csv('test.csv')
+                return round(sal_RG.array,2)
             if data_type == 'pandas':
                 trim_avpf = table_selected_dates(trim_avpf, self.dates, first_year=1972, last_year=yearsim)
-                sal_avpf = np.multiply((trim_avpf != 0), smic ) #*2028 = 151.66*12 if horaires
+                sal_avpf = multiply((trim_avpf != 0), smic ) #*2028 = 151.66*12 if horaires
                 dates_avpf = [date for date in sal_RG.columns if date >= 197201]
                 sal_RG.loc[:,dates_avpf] += sal_avpf.loc[:,dates_avpf]
-                return np.round(sal_RG,2)
+                return round(sal_RG,2)
                     
         
         sal_sam = _sal_for_sam(regime['sal'], regime['trim_avpf'], regime['sali_FP_to'], smic_long)
@@ -173,7 +174,7 @@ class RegimeGeneral(RegimeBase):
         SAM = calculate_SAM(sal_sam, nb_years, time_step='year', plafond=plafond, revalorisation=revalo)
         self.sal_RG = sal_sam
         #print "plafond : {},revalo : {}, sal_sam: {}, calculate_sam:{}".format(t1-t0,t2-t1,t3 -t2, t4 - t3)
-        return np.round(SAM, 2)
+        return round(SAM, 2)
     
     def assurance_maj(self, trim_RG, trim_tot, agem):
         ''' Détermination de la durée d'assurance corrigée introduite par la réforme Boulin
@@ -184,12 +185,12 @@ class RegimeGeneral(RegimeBase):
         if year < 1983:
             return trim_RG
         elif year < 2004 :
-            trim_majo = np.maximum(math.ceil(agem/3 - 65*4),0)
+            trim_majo = maximum(math.ceil(agem/3 - 65*4),0)
             elig_majo = (trim_RG < P.N_CP)
             trim_corr = trim_RG*(1 + P.tx_maj*trim_majo*elig_majo )
             return trim_corr
         else:
-            trim_majo = np.maximum(0, np.ceil(agem/3 - 65*4))
+            trim_majo = maximum(0, ceil(agem/3 - 65*4))
             elig_majo = (trim_tot < P.N_CP)
             trim_corr = trim_RG*(1 + P.tx_maj*trim_majo*elig_majo )
             return trim_corr  
@@ -206,14 +207,14 @@ class RegimeGeneral(RegimeBase):
             trim_RG = trim_RG + (120 - trim_RG)/2
         #TODO: voir si on ne met pas cette disposition spécifique de la loi Boulin dans la déclaration des paramètres directement
         elif yearsim < 1973:
-            trim_RG = np.min(trim_RG, 128)
+            trim_RG = min(trim_RG, 128)
         elif yearsim < 1974:
-            trim_RG = np.min(trim_RG, 136)            
+            trim_RG = min(trim_RG, 136)            
         elif yearsim < 1975:
-            trim_RG = np.min(trim_RG, 144)   
+            trim_RG = min(trim_RG, 144)   
         else:
-            trim_RG = np.minimum(N_CP, trim_RG)
-        CP = np.minimum(1, trim_RG / N_CP)
+            trim_RG = minimum(N_CP, trim_RG)
+        CP = minimum(1, trim_RG / N_CP)
         return CP
     
     def _decote(self, trim_tot, agem):
@@ -224,13 +225,13 @@ class RegimeGeneral(RegimeBase):
         age_annulation = valbytranches(P.decote.age_null, self.info_ind)
         N_taux = valbytranches(P.plein.N_taux, self.info_ind)
         if yearsim < 1983:
-            trim_decote = np.max(0, np.divide(age_annulation - agem, 3))
+            trim_decote = max(0, divide(age_annulation - agem, 3))
         else:
-            decote_age = np.divide(age_annulation - agem, 3)
+            decote_age = divide(age_annulation - agem, 3)
             decote_cot = N_taux - trim_tot
             assert len(decote_age) == len(decote_cot)
 
-            trim_decote = np.maximum(0, np.minimum(decote_age, decote_cot))
+            trim_decote = maximum(0, minimum(decote_age, decote_cot))
         return trim_decote*tx_decote
         
     def _surcote(self, trim_by_year_tot, regime, agem, date_surcote):
@@ -262,7 +263,7 @@ class RegimeGeneral(RegimeBase):
             nb_trim_65 = nb_trim_surcote(trim_selected, date_surcote_65)
             nb_trim = nb_trim_surcote(trim_selected, date_surcote) 
             nb_trim = nb_trim - nb_trim_65
-            return taux_65*nb_trim_65 + taux_4trim*np.maximum(np.minimum(nb_trim,4), 0) + taux_5trim*np.maximum(nb_trim - 4, 0)
+            return taux_65*nb_trim_65 + taux_4trim*maximum(minimum(nb_trim,4), 0) + taux_5trim*maximum(nb_trim - 4, 0)
         
         def _trimestre_surcote_after_09(trim_by_year_RG, trim_years, date_surcote, P):
             ''' surcote associée aux trimestres côtisés en et après 2009 '''
@@ -274,7 +275,7 @@ class RegimeGeneral(RegimeBase):
         if yearsim < 2004:
             taux_surcote = P.surcote.taux_07
             trim_tot = self.trim_by_year.sum(axis=1)
-            return np.maximum(trim_tot - N_taux, 0)*taux_surcote 
+            return maximum(trim_tot - N_taux, 0)*taux_surcote 
         elif yearsim < 2007:
             taux_surcote = P.surcote.taux_07
             trim_surcote = nb_trim_surcote(trim_by_year_RG, date_surcote)
@@ -302,14 +303,14 @@ class RegimeGeneral(RegimeBase):
         if yearsim < 2004:
             mico = P.mico.entier 
             # TODO: règle relativement complexe à implémenter de la limite de cumul (voir site CNAV)
-            return  np.maximum(0, mico - pension_RG)*np.minimum(1, np.divide(trim_cot, N_CP))
+            return  maximum(0, mico - pension_RG)*minimum(1, divide(trim_cot, N_CP))
         else:
             mico_entier = P.mico.entier
             mico_maj = P.mico.entier_maj
             RG_exclusif = ( pension_RG == pension) | (trim <= N_taux)
-            mico_RG = mico_entier + np.minimum(1, np.divide(trim_cot, N_CP))*(mico_maj - mico_entier)
-            mico =  mico_RG*( RG_exclusif + (1 - RG_exclusif)*np.divide(trim_RG, trim))
-            return np.maximum(0, mico - pension_RG)
+            mico_RG = mico_entier + minimum(1, divide(trim_cot, N_CP))*(mico_maj - mico_entier)
+            mico =  mico_RG*( RG_exclusif + (1 - RG_exclusif)*divide(trim_RG, trim))
+            return maximum(0, mico - pension_RG)
         
     def plafond_pension(self, pension_RG, pension_surcote_RG):
         ''' plafonnement à 50% du PSS 
@@ -317,6 +318,6 @@ class RegimeGeneral(RegimeBase):
         PSS = self.P.common.plaf_ss
         P = reduce(getattr, self.param_name.split('.'), self.P)
         taux_PSS = P.plafond
-        return np.minimum(pension_RG - pension_surcote_RG, taux_PSS*PSS) + pension_surcote_RG
+        return minimum(pension_RG - pension_surcote_RG, taux_PSS*PSS) + pension_surcote_RG
         
             
