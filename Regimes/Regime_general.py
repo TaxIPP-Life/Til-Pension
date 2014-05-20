@@ -182,14 +182,12 @@ class RegimeGeneral(RegimeBase):
 #             sali = sum_by_years(sali)
         def sum_sam(data):
             nb_sali = data[-1]
+            if nb_sali == 0 :
+                return 0
             #data = -bn.partsort(-data, nb_sali)[:nb_sali]
             data = sort(data[:-1])
             data = data[-nb_sali:]
-            if nb_sali == 0 :
-                sam = 0
-            else:
-                sam = data.sum() / nb_sali
-            return sam
+            return data.sum() / nb_sali
         
         import pdb
         pdb.set_trace()
