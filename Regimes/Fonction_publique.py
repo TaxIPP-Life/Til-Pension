@@ -10,6 +10,7 @@ os.sys.path.insert(0,parentdir)
 
 from regime import RegimeBase
 from pension_functions import nb_trim_surcote
+from time_array import TimeArray
 from utils_pension import valbytranches
 
 code_avpf = 8
@@ -28,13 +29,18 @@ class FonctionPublique(RegimeBase):
         self.code_sedentaire = 6
         self.code_actif = 5
 
-    def get_trimester(self, workstate, sali, table=True):
+    def get_trimester(self, workstate, sali, to_check, table=True):
         output = dict()
         trim_valide = self.nb_trim_valide(workstate, table=True)
+        trim_by_year_to_RG = self.trim_to_RG(workstate, sali, trim_valide)
+        output['trim_by_year_FP_to_RG'] = trim_by_year_to_RG
+        output['sali_FP_to_RG'] = self.sali_to_RG(workstate, sali, trim_by_year_to_RG)
         output['trim_cot_FP'] = trim_valide.array.sum(1)
         output['actif_FP'] = self.nb_trim_valide(workstate, self.code_actif)
         output['trim_maj_FP'] = self.trim_bonif_CPCM(output['trim_cot_FP']) + self.trim_bonif_5eme(output['trim_cot_FP'])
         self.trim_actif = output['actif_FP'] 
+        if to_check :
+            to_check['trim_cot_FP'] = output['trim_cot_FP']
         if table == True:
             return output, {'FP': trim_valide}
         else:
@@ -83,13 +89,32 @@ class FonctionPublique(RegimeBase):
             return output
 
              
-    def cot_to_RG(self, trim_cot):
-        ''' Détermine les cotisations à reporter au régime général '''
-        P = self._P
+    def trim_to_RG(self, workstate, sali, trim_by_year):
+        ''' Détermine le nombre de trimestres par année à rapporter au régime général
+        output : trim_by_year_FP_to_RG '''
+        P = reduce(getattr, self.param_name.split('.'), self.P)
         # N_min donné en mois
-        to_RG_actif = (trim_cot*3 < P.actif.N_min)
-        to_RG_sedentaire = (trim_cot*3 < P.sedentaire.N_min)
+        trim_cot = trim_by_year.array.sum(1)
+        last_fp = self.traitement(workstate, sali)
+        to_RG_actif = (trim_cot*3 < P.actif.N_min)*(last_fp == self.code_actif)
+        to_RG_sedentaire = (trim_cot*3 < P.sedentaire.N_min)*(last_fp == self.code_sedentaire)
+        to_RG = (to_RG_actif + to_RG_sedentaire)
+        workstate_array = np.transpose(trim_by_year.array.T*to_RG.T)
+        return TimeArray(workstate_array, trim_by_year.dates)
 
+    def sali_to_RG(self, workstate, sali, trim_by_year):
+        ''' renvoie la table des salaires (même time_step que sali) qui basculent du RG à la FP 
+        output: sali_FP_to_RG
+        TODO: Gérer les redondances avec la fonction précédente'''
+        P = reduce(getattr, self.param_name.split('.'), self.P)
+        # N_min donné en mois
+        trim_cot = trim_by_year.array.sum(1)
+        last_fp = self.traitement(workstate, sali)
+        to_RG_actif = (trim_cot*3 < P.actif.N_min)*(last_fp == self.code_actif)*(trim_cot>0)
+        to_RG_sedentaire = (trim_cot*3 < P.sedentaire.N_min)*(last_fp == self.code_sedentaire)*(trim_cot>0)
+        to_RG = (to_RG_actif + to_RG_sedentaire)
+        sali_array = np.transpose((workstate.isin(self.code_regime).array*sali.array).T*to_RG.T)
+        return TimeArray(sali_array, sali.dates)
         
     def trim_bonif_CPCM(self, trim_cot):
         # TODO: autres bonifs : déportés politiques, campagnes militaires, services aériens, dépaysement 
@@ -105,15 +130,16 @@ class FonctionPublique(RegimeBase):
         bonif_5eme = np.minimum(trim_cot*taux_5eme, 5*4)
         return np.array(bonif_5eme*super_actif)
     
-    def calculate_coeff_proratisation(self, trim_cot):
+    def calculate_coeff_proratisation(self, regime):
         P = self.P.public.fp
         taux = P.plein.taux
         taux_bonif = P.taux_bonif
         N_CP = valbytranches(P.plein.N_taux, self.info_ind) 
-        trim_bonif_5eme = self.trim_bonif_5eme(trim_cot)
-        CP_5eme = np.minimum(np.divide(trim_cot + trim_bonif_5eme, N_CP), 1)
-        trim_bonif_CPCM = self.trim_bonif_CPCM(trim_cot)
-        CP_CPCM = np.minimum(np.divide(np.maximum(trim_cot, N_CP) + trim_bonif_CPCM, N_CP), np.divide(taux_bonif, taux))
+        trim_regime = regime['trim_tot']
+        trim_bonif_5eme = self.trim_bonif_5eme(trim_regime)
+        CP_5eme = np.minimum(np.divide(trim_regime + trim_bonif_5eme, N_CP), 1)
+        trim_bonif_CPCM = self.trim_bonif_CPCM(trim_regime)
+        CP_CPCM = np.minimum(np.divide(np.maximum(trim_regime, N_CP) + trim_bonif_CPCM, N_CP), np.divide(taux_bonif, taux))
         return np.maximum(CP_5eme, CP_CPCM)
 
     def _decote(self, trim_tot, agem):

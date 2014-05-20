@@ -10,11 +10,12 @@ os.sys.path.insert(0,parentdir)
 from time_array import TimeArray
 
 from regime import RegimeBase
-from utils_pension import valbytranches, table_selected_dates, build_long_values, build_salref_bareme
+from utils_pension import valbytranches, table_selected_dates, build_long_values, build_salref_bareme, print_info_numpy
 from pension_functions import calculate_SAM, nb_trim_surcote, sal_to_trimcot, unemployment_trimesters
 
 code_avpf = 8
-code_chomage = 5
+code_chomage = 2
+code_preretraite = 9
 first_year_sal = 1949
 compare_destinie = True 
 sal_avpf = False
@@ -31,12 +32,14 @@ class RegimeGeneral(RegimeBase):
         self.param_name = 'prive.RG'
      
      
-    def get_trimester(self, workstate, sali, table=False):
+    def get_trimester(self, workstate, sali, to_check=False,table=False):
         output = dict()
         nb_trim_cot, output['sal_RG'] = self.nb_trim_cot(workstate, sali, table=True)
         output['trim_cot_RG']  = nb_trim_cot.array.sum(axis=1)
         output['trim_ass_RG'] = self.nb_trim_ass(workstate, nb_trim_cot)
         output['trim_maj_RG'], output['trim_avpf_RG'] = self.nb_trim_maj(workstate, sali)
+        if to_check is not None:
+            to_check['DA_RG'] = (output['trim_cot_RG'] + output['trim_ass_RG'] + output['trim_maj_RG']) //4
         if table == True:
             return output, {'RG': nb_trim_cot}
         else:
@@ -72,6 +75,9 @@ class RegimeGeneral(RegimeBase):
         nb_trim_ass = nb_trim_chom # TODO: + nb_trim_war + ....
         trim_by_year = TimeArray(array=nb_trim_cot.array + table_chom.array, 
                                        dates=[100*year + 1 for year in range(first_year_sal, self.yearsim)])
+        
+        # TODO: remove if not pensipp
+        nb_trim_ass = (workstate.isin([code_chomage, code_preretraite])).array.sum(1)*4
         return nb_trim_ass
             
     def nb_trim_maj(self, workstate, sali):
@@ -89,17 +95,15 @@ class RegimeGeneral(RegimeBase):
                 return mda
             elif yearsim <1975:
                 # loi Boulin du 31 décembre 1971 
-                mda.iloc[info_child.index.values, 'mda'] = 4*info_child.values
+                mda.iloc[info_child.index.values, 'mda'] = 8*info_child.values
                 mda.loc[mda['mda'] < 2, 'mda'] = 0
                 return mda.astype(int)
             elif yearsim <2004:
-                mda.loc[info_child.index.values, 'mda'] = 4*info_child.values
-                mda.loc[mda['mda'] < 2, 'mda'] = 0
+                mda.loc[info_child.index.values, 'mda'] = 8*info_child.values
                 return mda.astype(int)
             else:
                 # Réforme de 2003 : min(1 trimestre à la naissance + 1 à chaque anniv, 8)
-                mda.loc[info_child.index.values, 'mda'] = 4*info_child.values
-                mda.loc[mda['mda'] < 2, 'mda'] = 0
+                mda.loc[info_child.index.values, 'mda'] = 8*info_child.values
                 return mda['mda'].astype(int)
             
         def _avpf(workstate, sali):
@@ -145,7 +149,7 @@ class RegimeGeneral(RegimeBase):
         for i in range(1, len(revalo)) :
             revalo[:i] *= revalo[i]
             
-        def _sal_for_sam(sal_RG, trim_avpf, smic, data_type='numpy'):
+        def _sal_for_sam(sal_RG, trim_avpf, sali_to_RG, smic, data_type='numpy'):
             ''' construit la matrice des salaires de références '''
             if data_type == 'numpy':
                 # TODO: check if annual step in sal_avpf and sal_RG
@@ -153,6 +157,8 @@ class RegimeGeneral(RegimeBase):
                 trim_avpf.array = trim_avpf.array[:,first_ix_avpf:]
                 sal_avpf = np.multiply((trim_avpf.array != 0), smic) #*2028 = 151.66*12 if horaires
                 sal_RG.array[:,first_ix_avpf:] += sal_avpf
+                sal_RG.array += sali_to_RG.array
+                pd.DataFrame(sali_to_RG.array, columns=sali.dates).to_csv('test.csv')
                 return np.round(sal_RG.array,2)
             if data_type == 'pandas':
                 trim_avpf = table_selected_dates(trim_avpf, self.dates, first_year=1972, last_year=yearsim)
@@ -162,7 +168,8 @@ class RegimeGeneral(RegimeBase):
                 return np.round(sal_RG,2)
                     
         
-        sal_sam = _sal_for_sam(regime['sal'], regime['trim_avpf'], smic_long)
+        sal_sam = _sal_for_sam(regime['sal'], regime['trim_avpf'], regime['sali_FP_to'], smic_long)
+        
         SAM = calculate_SAM(sal_sam, nb_years, time_step='year', plafond=plafond, revalorisation=revalo)
         self.sal_RG = sal_sam
         #print "plafond : {},revalo : {}, sal_sam: {}, calculate_sam:{}".format(t1-t0,t2-t1,t3 -t2, t4 - t3)
@@ -187,12 +194,14 @@ class RegimeGeneral(RegimeBase):
             trim_corr = trim_RG*(1 + P.tx_maj*trim_majo*elig_majo )
             return trim_corr  
         
-    def calculate_coeff_proratisation(self, trim_RG):
+    def calculate_coeff_proratisation(self, regime):
         ''' Calcul du coefficient de proratisation '''
         P =  reduce(getattr, self.param_name.split('.'), self.P)
         yearsim = self.yearsim
         N_CP = valbytranches(P.N_CP, self.info_ind)
-              
+        trim_cot_RG = regime['trim_tot'] 
+        trim_FP_to_RG = regime['trim_by_year_FP_to'].array.sum(1)
+        trim_RG = trim_cot_RG + trim_FP_to_RG
         if 1948 <= yearsim and yearsim < 1972: 
             trim_RG = trim_RG + (120 - trim_RG)/2
         #TODO: voir si on ne met pas cette disposition spécifique de la loi Boulin dans la déclaration des paramètres directement
