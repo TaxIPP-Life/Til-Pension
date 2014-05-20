@@ -7,12 +7,12 @@ parentdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.sys.path.insert(0,parentdir) 
 from time_array import TimeArray
 
-from numpy import maximum, minimum, array, divide, zeros, multiply, ceil
-from pandas import DataFrame
+from numpy import maximum, minimum, array, divide, zeros, multiply, ceil, sort, apply_along_axis
+from pandas import DataFrame, Series
 
 from regime import RegimeBase
 from utils_pension import valbytranches, table_selected_dates, build_long_values, build_salref_bareme, print_info_numpy
-from pension_functions import calculate_SAM, nb_trim_surcote, sal_to_trimcot, unemployment_trimesters
+from pension_functions import nb_trim_surcote, sal_to_trimcot, unemployment_trimesters
 
 code_avpf = 8
 code_chomage = 2
@@ -163,7 +163,7 @@ class RegimeGeneral(RegimeBase):
                 sal_avpf = multiply((trim_avpf.array != 0), smic) #*2028 = 151.66*12 if horaires
                 sal_RG.array[:,first_ix_avpf:] += sal_avpf
                 sal_RG.array += sali_to_RG.array
-                DataFrame(sali_to_RG.array, columns=sali.dates).to_csv('test.csv')
+#                 DataFrame(sali_to_RG.array, columns=sali.dates).to_csv('test.csv')
                 return round(sal_RG.array,2)
             if data_type == 'pandas':
                 trim_avpf = table_selected_dates(trim_avpf, self.dates, first_year=1972, last_year=yearsim)
@@ -172,10 +172,40 @@ class RegimeGeneral(RegimeBase):
                 sal_RG.loc[:,dates_avpf] += sal_avpf.loc[:,dates_avpf]
                 return round(sal_RG,2)
                     
-        
         sal_sam = _sal_for_sam(regime['sal'], regime['trim_avpf'], regime['sali_FP_to'], smic_long)
         
-        SAM = calculate_SAM(sal_sam, nb_years, time_step='year', plafond=plafond, revalorisation=revalo)
+#         SAM = calculate_SAM(sal_sam, nb_years, time_step='year', plafond=plafond, revalorisation=revalo)
+        nb_sali = (sal_sam != 0).sum(1)
+        nb_years = array(nb_years)
+        nb_years[nb_sali < nb_years] = nb_sali[nb_sali < nb_years]        
+#         if time_step == 'month' :
+#             sali = sum_by_years(sali)
+        def sum_sam(data):
+            nb_sali = data[-1]
+            #data = -bn.partsort(-data, nb_sali)[:nb_sali]
+            data = sort(data[:-1])
+            data = data[-nb_sali:]
+            if nb_sali == 0 :
+                sam = 0
+            else:
+                sam = data.sum() / nb_sali
+            return sam
+        
+        import pdb
+        pdb.set_trace()
+        if plafond is not None:
+            assert sali.shape[1] == len(plafond)
+            sali = minimum(sali, plafond) 
+        if revalo is not None:
+            assert sali.shape[1] == len(revalo)
+            sali = multiply(sali,revalo)
+        sali_sam = zeros((sali.shape[0],sali.shape[1]+1))
+        sali_sam[:,:-1] = sali
+        sali_sam[:,-1] = nb_years
+        sam = apply_along_axis(sum_sam, axis=1, arr=sali_sam)
+        #sali.apply(sum_sam, 1)
+        SAM = Series(sam, index = nb_years)
+
         self.sal_RG = sal_sam
         #print "plafond : {},revalo : {}, sal_sam: {}, calculate_sam:{}".format(t1-t0,t2-t1,t3 -t2, t4 - t3)
         return round(SAM, 2)
