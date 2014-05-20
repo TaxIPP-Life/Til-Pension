@@ -25,6 +25,8 @@ class AGIRC(RegimeComplementaires):
         self.info_child_mother = None
         self.info_child_father = None
         
+    def plaf_sali(self, workstate, sali):
+        return sali.array*(workstate.isin(self.code_regime).array)
         
     def majoration_enf(self, workstate, sali, nb_points, coeff_age, agem):
         ''' Application de la majoration pour enfants à charge. Deux types de majorations peuvent s'appliquer :
@@ -72,6 +74,13 @@ class ARRCO(RegimeComplementaires):
         
         self.info_child_mother = None
         self.info_child_father = None
+        
+    def plaf_sali(self, workstate, sali):
+        '''plafonne le salaire des cadres à 1 pss pour qu'il ne pait que la prmeière tranche '''
+        cadre_selection = (workstate.array == self.code_cadre)
+        noncadre_selection = (workstate.array == self.code_noncadre)
+        plaf_sali = self.plaf_sali_pss(sali) 
+        return sali.array*noncadre_selection + plaf_sali*cadre_selection
         
     def majoration_enf(self, workstate, sali, nb_points, coeff_age, agem):
         ''' Application de la majoration pour enfants à charge. Deux types de majorations peuvent s'appliquer :

@@ -108,9 +108,8 @@ class Regime(object):
     
     def calculate_pension(self, workstate, sali, trim_by_year_tot, trim_maj_tot, regime, to_check=None):
         reg = self.regime
-        trim_regime = regime['trim_tot']
         taux = self.calculate_taux(workstate, trim_by_year_tot, trim_maj_tot, regime, to_check)
-        cp = self.calculate_coeff_proratisation(trim_regime)
+        cp = self.calculate_coeff_proratisation(regime)
         salref = self.calculate_salref(workstate, sali, regime)
         if to_check is not None:
             to_check['CP_' + reg] = cp
@@ -165,19 +164,13 @@ class RegimeBase(Regime):
 
 class RegimeComplementaires(Regime):
     
-    def plaf_sali(self, sali):
+    def plaf_sali_pss(self, sali, nb_pss=1):
         ''' Cette fonction plafonne les salaires des cadres 1 pss pour qu'il ne paye que la première tranche '''
         sali = sali.array
         yearsim = self.yearsim
         plaf_ss = self.P_longit.common.plaf_ss
         pss = build_long_values(plaf_ss, first_year=first_year_sal, last_year=yearsim) 
-        return np.minimum(sali, pss)
-    
-    def old_plaf_sali(self, workstate, sali):
-        cadre_selection = (workstate.array == self.code_cadre)
-        noncadre_selection = ~cadre_selection
-        plaf_sali = self.plaf_sali(sali) 
-        return sali.array*noncadre_selection + plaf_sali*cadre_selection
+        return np.minimum(sali, nb_pss*pss)
     
     def nombre_points(self, workstate, sali, first_year=first_year_sal, last_year=None, data_type='numpy'):
         ''' Détermine le nombre de point à liquidation de la pension dans les régimes complémentaires (pour l'instant Ok pour ARRCO/AGIRC)
@@ -185,7 +178,7 @@ class RegimeComplementaires(Regime):
         et multiplier par le taux d'acquisition des points'''
         yearsim = self.yearsim
         last_year_sali = yearsim - 1
-        sali_plaf = self.old_plaf_sali(workstate, sali)
+        sali_plaf = self.plaf_sali(workstate, sali)
         if last_year == None:
             last_year = last_year_sali
         regime = self.regime
@@ -249,7 +242,6 @@ class RegimeComplementaires(Regime):
         P = reduce(getattr, self.param_name.split('.'), self.P)
         val_arrco = P.val_point 
         agem = self.info_ind['agem']
-        
         nb_points = self.nombre_points(workstate, sali)
         coeff_age = self.coefficient_age(agem, trim_base)
         maj_enf = self.majoration_enf(workstate, sali, nb_points, coeff_age, agem)
