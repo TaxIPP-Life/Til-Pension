@@ -57,7 +57,7 @@ class FonctionPublique(RegimeBase):
     
     def _build_age_max(self, workstate, sali):
         P = self.P.public.fp
-        last_fp = self.traitement(workstate, sali)
+        last_fp = self._traitement(workstate, sali)
         actif = (last_fp == self.code_actif)
         sedentaire = (1 - actif)*(last_fp != 0)
         age_max_s = valbytranches(P.sedentaire.age_max, self.info_ind)
@@ -65,7 +65,7 @@ class FonctionPublique(RegimeBase):
         age_max = actif*age_max_a + sedentaire*age_max_s
         return age_max
 
-    def traitement(self, workstate, sali, option='workstate'):
+    def _traitement(self, workstate, sali, option='workstate'):
         ''' Détermine le workstate lors de la dernière cotisation au régime FP pour lui associer sa catégorie 
         output (option=workstate): 0 = non-fonctionnaire, 6 = fonc. sédentaire, 5 = fonc.actif (cf, construction de age_max)
         output (option=sali) : 0 si non-fonctionnaire, dernier salaire annuel sinon'''
@@ -95,7 +95,7 @@ class FonctionPublique(RegimeBase):
         P = reduce(getattr, self.param_name.split('.'), self.P)
         # N_min donné en mois
         trim_cot = trim_by_year.array.sum(1)
-        last_fp = self.traitement(workstate, sali)
+        last_fp = self._traitement(workstate, sali)
         to_RG_actif = (trim_cot*3 < P.actif.N_min)*(last_fp == self.code_actif)
         to_RG_sedentaire = (trim_cot*3 < P.sedentaire.N_min)*(last_fp == self.code_sedentaire)
         to_RG = (to_RG_actif + to_RG_sedentaire)
@@ -109,7 +109,7 @@ class FonctionPublique(RegimeBase):
         P = reduce(getattr, self.param_name.split('.'), self.P)
         # N_min donné en mois
         trim_cot = trim_by_year.array.sum(1)
-        last_fp = self.traitement(workstate, sali)
+        last_fp = self._traitement(workstate, sali)
         to_RG_actif = (trim_cot*3 < P.actif.N_min)*(last_fp == self.code_actif)*(trim_cot>0)
         to_RG_sedentaire = (trim_cot*3 < P.sedentaire.N_min)*(last_fp == self.code_sedentaire)*(trim_cot>0)
         to_RG = (to_RG_actif + to_RG_sedentaire)
@@ -174,4 +174,4 @@ class FonctionPublique(RegimeBase):
             return taux_surcote*nb_trim
 
     def calculate_salref(self, workstate, sali, regime):
-        return self.traitement(workstate, sali, option='sali')
+        return self._traitement(workstate, sali, option='sali')
