@@ -46,7 +46,7 @@ class FonctionPublique(RegimeBase):
         else:
             return output
         
-    def _build_age_min(self, workstate):
+    def _age_start_surcote(self, workstate):
         P = self.P.public.fp
         trim_actif = self.nb_trim_valide(workstate, self.code_actif)
         # age_min = age_min_actif pour les fonctionnaires actif en fin de carrières ou carrière mixte ayant une durée de service actif suffisante
@@ -162,11 +162,10 @@ class FonctionPublique(RegimeBase):
             trim_decote = maximum(0, minimum(trim_decote_age, trim_decote_cot))
         return trim_decote*tx_decote
         
-    def _surcote(self, trim_by_year_tot, regime, agem, date_start_surcote):
+    def _calculate_surcote(self, yearsim, regime, date_start_surcote, age, trim_by_year_tot=None):
         ''' Détermination de la surcote à appliquer aux pensions '''
-        yearsim = self.yearsim
         if yearsim < 2004:
-            return agem*0
+            return age*0
         else:
             P = reduce(getattr, self.param_name.split('.'), self.P)
             taux_surcote = P.surcote.taux

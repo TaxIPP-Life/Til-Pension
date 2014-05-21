@@ -46,7 +46,7 @@ class RegimeGeneral(RegimeBase):
         else:
             return output
         
-    def _build_age_min(self, workstate=None):
+    def _age_start_surcote(self, workstate=None):
         P = reduce(getattr, self.param_name.split('.'), self.P)
         return valbytranches(P.age_min, self.info_ind)
 
@@ -266,7 +266,7 @@ class RegimeGeneral(RegimeBase):
             trim_decote = maximum(0, minimum(decote_age, decote_cot))
         return trim_decote*tx_decote
         
-    def _surcote(self, trim_by_year_tot, regime, agem, date_start_surcote):
+    def _calculate_surcote(self, yearsim, regime, date_start_surcote, age, trim_by_year_tot):
         ''' Détermination de la surcote à appliquer aux pensions '''
         yearsim = self.yearsim
         P = reduce(getattr, self.param_name.split('.'), self.P)
@@ -291,7 +291,12 @@ class RegimeGeneral(RegimeBase):
             trim_selected = trim_by_year_RG.selected_dates(first=2004, last=2009)
             #agemin = agem.copy()
             agemin = 65*12 
-            date_start_surcote_65 = self._date_start_surcote(trim_by_year_tot, trim_maj, agem, agemin=agemin)
+            datesim = 100*self.yearsim + 1
+            date_start = self._date_taux_plein(trim_by_year_tot, trim_maj)
+            date_start_surcote_65 = [int(max(datesim - year_surcote*100, 
+                                datesim - month_trim//12*100 - month_trim%12))
+                        for year_surcote, month_trim in zip(date_start, age-agemin)]
+
             nb_trim_65 = nb_trim_surcote(trim_selected, date_start_surcote_65)
             nb_trim = nb_trim_surcote(trim_selected, date_start_surcote) 
             nb_trim = nb_trim - nb_trim_65
@@ -318,7 +323,7 @@ class RegimeGeneral(RegimeBase):
             return surcote_03 + surcote_0408
         else:
             surcote_03 = _trimestre_surcote_0304(trim_by_year_RG, date_start_surcote, P.surcote)
-            surcote_0408 = _trimestre_surcote_0408(trim_by_year_RG, trim_maj, date_start_surcote, P.surcote)
+            surcote_0408 = _trimestre_surcote_0408(trim_by_year_RG, trim_by_year_tot, trim_maj, date_start_surcote, P.surcote)
             surcote_aft09 = _trimestre_surcote_after_09(trim_by_year_RG, date_start_surcote, P.surcote)
             return surcote_03 + surcote_0408 + surcote_aft09   
         

@@ -40,30 +40,40 @@ class Regime(object):
     def _decote(self):
         raise NotImplementedError
 
-    def _surcote(self):
+    def _surcote(self, workstate, trim_by_year_tot, trim_maj, regime, age):
+        datesim = 100*self.yearsim + 1
+        age_start = self._age_start_surcote(workstate)
+        date_start = self._date_taux_plein(trim_by_year_tot, trim_maj)
+        date_start_surcote = [int(max(datesim - year_surcote*100, 
+                                datesim - month_trim//12*100 - month_trim%12))
+                        for year_surcote, month_trim in zip(date_start, age-age_start)]
+        return self._calculate_surcote(self.yearsim, regime, date_start_surcote, age, trim_by_year_tot)
+    
+    def _calculate_surcote(self, yearsim, regime, date_start_surcote, age, trim_by_year_tot):
+        #TODO: remove trim_by_year_tot from arguments
         raise NotImplementedError
     
-    def _date_start_surcote(self, workstate, trim_by_year_tot, trim_maj, agem, agemin=None):
+    def _age_start_surcote(self, workstate):
+        ''' retourne l'age à partir duquel les trimestres peuvent être 
+             comptabilisés pour la surcote
+             Note: ça a l'air simple en général, juste un paramètre mais
+              pour la fonction publique il y a des grosses subtilités...
+        '''
+        raise NotImplementedError
+    
+    def _date_taux_plein(self, trim_by_year_tot, trim_maj):
         ''' Détermine la date individuelle a partir de laquelle il y a surcote 
         (a atteint l'âge légal de départ en retraite + côtisé le nombre de trimestres cible 
         Rq : pour l'instant on pourrait ne renvoyer que l'année'''
-        yearsim = self.yearsim
+        
         P = reduce(getattr, self.param_name.split('.'), self.P)
         N_taux = valbytranches(P.plein.N_taux, self.info_ind)
-        agemin = self._build_age_min(workstate)
-        date_liam = yearsim*100 + 1
+        
         cumul_trim = trim_by_year_tot.array.cumsum(axis=1)
         trim_limit = array((N_taux - nan_to_num(trim_maj)))
         years_surcote = greater(cumul_trim.T,trim_limit)
         nb_years_surcote = years_surcote.sum(axis=0)
-        #date_cond_trim = (nb_years_surcote).apply(lambda y: date - relativedelta(years = int(y) ))
-        #date_cond_age = (agem - agemin).apply(lambda m: date - relativedelta(months = int(m)))
-        #return maximum(date_cond_age, date_cond_trim)
-        date_start_surcote = [int(max(date_liam - year_surcote*100, 
-                                date_liam - month_trim//12*100 - month_trim%12))
-                        for year_surcote, month_trim in zip(nb_years_surcote, agem-agemin)]
-
-        return date_start_surcote
+        return nb_years_surcote
        
     def calculate_taux(self, workstate, trim_by_year_tot, trim_maj_tot, regime, to_check=None):
         ''' Détérmination du taux de liquidation à appliquer à la pension 
@@ -76,8 +86,8 @@ class Regime(object):
         taux_plein = P.plein.taux
         agem = self.info_ind['agem']
         decote = self._decote(trim_tot, agem)
-        date_start_surcote = self._date_start_surcote(workstate, trim_by_year_tot, trim_maj_tot, agem)
-        surcote = self._surcote(trim_by_year_tot, regime, agem, date_start_surcote)
+#         date_start_surcote = self._date_start_surcote(trim_by_year_tot, trim_maj_tot, agem)
+        surcote = self._surcote(workstate, trim_by_year_tot, trim_maj_tot, regime, agem)
         if to_check is not None:
             to_check['taux_plein_' + self.regime] = taux_plein*(trim_tot > 0)
             to_check['decote_' + self.regime] = decote*(trim_tot > 0)
