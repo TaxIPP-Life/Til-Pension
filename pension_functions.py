@@ -104,19 +104,19 @@ def calculate_SAM(sali, nb_years_pd, time_step, plafond=None, revalorisation=Non
     #sali.apply(sum_sam, 1)
     return Series(sam, index = nb_years_pd.index)
 
-def nb_trim_surcote(trim_by_year, date_surcote):
+def nb_trim_surcote(trim_by_year, date_start_surcote):
     ''' Cette fonction renvoie le vecteur numpy du nombre de trimestres surcotés à partir de :
     - la table du nombre de trimestre comptablisé au sein du régime par année : trim_by_year.array
     - le vecteur des dates (format yyyymm) à partir desquelles les individus surcote (détermination sur cotisations tout régime confondu)
     '''
     yearmax = max(trim_by_year.dates)
-    yearmin = min(date_surcote) 
+    yearmin = min(date_start_surcote) 
     # Possible dates for surcote :
     dates_surcote = [date for date in trim_by_year.dates
                       if date >= yearmin]
-    output = zeros(len(date_surcote))
+    output = zeros(len(date_start_surcote))
     for date in dates_surcote:
-        to_keep = where(greater(date, date_surcote))[0]
+        to_keep = where(greater(date, date_start_surcote))[0]
         ix_date = trim_by_year.dates.index(yearmax)
         if to_keep.any():
             output[to_keep] += trim_by_year.array[to_keep, ix_date]

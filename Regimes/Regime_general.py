@@ -266,7 +266,7 @@ class RegimeGeneral(RegimeBase):
             trim_decote = maximum(0, minimum(decote_age, decote_cot))
         return trim_decote*tx_decote
         
-    def _surcote(self, trim_by_year_tot, regime, agem, date_surcote):
+    def _surcote(self, trim_by_year_tot, regime, agem, date_start_surcote):
         ''' Détermination de la surcote à appliquer aux pensions '''
         yearsim = self.yearsim
         P = reduce(getattr, self.param_name.split('.'), self.P)
@@ -274,15 +274,15 @@ class RegimeGeneral(RegimeBase):
         trim_maj = regime['trim_maj']
         N_taux = valbytranches(P.plein.N_taux, self.info_ind)
       
-        def _trimestre_surcote_0304(trim_by_year_RG, date_surcote, P):
+        def _trimestre_surcote_0304(trim_by_year_RG, date_start_surcote, P):
             ''' surcote associée aux trimestres côtisés en 2003 
             TODO : structure pas approprié pour les réformes du type 'et si on surcotait avant 2003, ça donnerait quoi?'''
             taux_surcote = P.taux_4trim
             trim_selected = trim_by_year_RG.selected_dates(first=2003, last=2004)
-            nb_trim = nb_trim_surcote(trim_selected, date_surcote)
+            nb_trim = nb_trim_surcote(trim_selected, date_start_surcote)
             return taux_surcote*nb_trim
         
-        def _trimestre_surcote_0408(trim_by_year_RG, trim_by_year_tot, trim_maj, date_surcote, P): 
+        def _trimestre_surcote_0408(trim_by_year_RG, trim_by_year_tot, trim_maj, date_start_surcote, P): 
             ''' Fonction permettant de déterminer la surcote associée des trimestres côtisés entre 2004 et 2008 
             4 premiers à 0.75%, les suivants à 1% ou plus de 65 ans à 1.25% '''
             taux_4trim = P.taux_4trim
@@ -291,17 +291,17 @@ class RegimeGeneral(RegimeBase):
             trim_selected = trim_by_year_RG.selected_dates(first=2004, last=2009)
             #agemin = agem.copy()
             agemin = 65*12 
-            date_surcote_65 = self._date_surcote(trim_by_year_tot, trim_maj, agem, agemin=agemin)
-            nb_trim_65 = nb_trim_surcote(trim_selected, date_surcote_65)
-            nb_trim = nb_trim_surcote(trim_selected, date_surcote) 
+            date_start_surcote_65 = self._date_start_surcote(trim_by_year_tot, trim_maj, agem, agemin=agemin)
+            nb_trim_65 = nb_trim_surcote(trim_selected, date_start_surcote_65)
+            nb_trim = nb_trim_surcote(trim_selected, date_start_surcote) 
             nb_trim = nb_trim - nb_trim_65
             return taux_65*nb_trim_65 + taux_4trim*maximum(minimum(nb_trim,4), 0) + taux_5trim*maximum(nb_trim - 4, 0)
         
-        def _trimestre_surcote_after_09(trim_by_year_RG, trim_years, date_surcote, P):
+        def _trimestre_surcote_after_09(trim_by_year_RG, trim_years, date_start_surcote, P):
             ''' surcote associée aux trimestres côtisés en et après 2009 '''
             taux_surcote = P.taux
             trim_selected = trim_by_year_RG.selected_dates(first=2009, last=None)
-            nb_trim = nb_trim_surcote(trim_selected, date_surcote)
+            nb_trim = nb_trim_surcote(trim_selected, date_start_surcote)
             return taux_surcote*nb_trim
             
         if yearsim < 2004:
@@ -310,16 +310,16 @@ class RegimeGeneral(RegimeBase):
             return maximum(trim_tot - N_taux, 0)*taux_surcote 
         elif yearsim < 2007:
             taux_surcote = P.surcote.taux_07
-            trim_surcote = nb_trim_surcote(trim_by_year_RG, date_surcote)
+            trim_surcote = nb_trim_surcote(trim_by_year_RG, date_start_surcote)
             return trim_surcote*taux_surcote 
         elif yearsim < 2010:
-            surcote_03 = _trimestre_surcote_0304(trim_by_year_RG, date_surcote, P.surcote)
-            surcote_0408 = _trimestre_surcote_0408(trim_by_year_RG, trim_by_year_tot, trim_maj, date_surcote, P.surcote)
+            surcote_03 = _trimestre_surcote_0304(trim_by_year_RG, date_start_surcote, P.surcote)
+            surcote_0408 = _trimestre_surcote_0408(trim_by_year_RG, trim_by_year_tot, trim_maj, date_start_surcote, P.surcote)
             return surcote_03 + surcote_0408
         else:
-            surcote_03 = _trimestre_surcote_0304(trim_by_year_RG, date_surcote, P.surcote)
-            surcote_0408 = _trimestre_surcote_0408(trim_by_year_RG, trim_maj, date_surcote, P.surcote)
-            surcote_aft09 = _trimestre_surcote_after_09(trim_by_year_RG, date_surcote, P.surcote)
+            surcote_03 = _trimestre_surcote_0304(trim_by_year_RG, date_start_surcote, P.surcote)
+            surcote_0408 = _trimestre_surcote_0408(trim_by_year_RG, trim_maj, date_start_surcote, P.surcote)
+            surcote_aft09 = _trimestre_surcote_after_09(trim_by_year_RG, date_start_surcote, P.surcote)
             return surcote_03 + surcote_0408 + surcote_aft09   
         
     def minimum_contributif(self, pension_RG, pension, trim_RG, trim_cot, trim):

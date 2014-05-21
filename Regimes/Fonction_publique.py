@@ -162,7 +162,7 @@ class FonctionPublique(RegimeBase):
             trim_decote = maximum(0, minimum(trim_decote_age, trim_decote_cot))
         return trim_decote*tx_decote
         
-    def _surcote(self, trim_by_year_tot, regime, agem, date_surcote):
+    def _surcote(self, trim_by_year_tot, regime, agem, date_start_surcote):
         ''' Détermination de la surcote à appliquer aux pensions '''
         yearsim = self.yearsim
         if yearsim < 2004:
@@ -170,7 +170,7 @@ class FonctionPublique(RegimeBase):
         else:
             P = reduce(getattr, self.param_name.split('.'), self.P)
             taux_surcote = P.surcote.taux
-            nb_trim = nb_trim_surcote(regime['trim_by_year'], date_surcote)
+            nb_trim = nb_trim_surcote(regime['trim_by_year'], date_start_surcote)
             return taux_surcote*nb_trim
 
     def calculate_salref(self, workstate, sali, regime):

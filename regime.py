@@ -43,7 +43,7 @@ class Regime(object):
     def _surcote(self):
         raise NotImplementedError
     
-    def _date_surcote(self, workstate, trim_by_year_tot, trim_maj, agem, agemin=None):
+    def _date_start_surcote(self, workstate, trim_by_year_tot, trim_maj, agem, agemin=None):
         ''' Détermine la date individuelle a partir de laquelle il y a surcote 
         (a atteint l'âge légal de départ en retraite + côtisé le nombre de trimestres cible 
         Rq : pour l'instant on pourrait ne renvoyer que l'année'''
@@ -59,25 +59,25 @@ class Regime(object):
         #date_cond_trim = (nb_years_surcote).apply(lambda y: date - relativedelta(years = int(y) ))
         #date_cond_age = (agem - agemin).apply(lambda m: date - relativedelta(months = int(m)))
         #return maximum(date_cond_age, date_cond_trim)
-        date_surcote = [int(max(date_liam - year_surcote*100, 
+        date_start_surcote = [int(max(date_liam - year_surcote*100, 
                                 date_liam - month_trim//12*100 - month_trim%12))
                         for year_surcote, month_trim in zip(nb_years_surcote, agem-agemin)]
 
-        return date_surcote
+        return date_start_surcote
        
     def calculate_taux(self, workstate, trim_by_year_tot, trim_maj_tot, regime, to_check=None):
         ''' Détérmination du taux de liquidation à appliquer à la pension 
             La formule générale est taux pondéré par (1+surcote-decote)
             _surcote and _decote are called
-            _date_surcote is a general method helping surcote
+            _date_start_surcote is a general method helping surcote
             '''
         P = reduce(getattr, self.param_name.split('.'), self.P)
         trim_tot = trim_by_year_tot.array.sum(1)
         taux_plein = P.plein.taux
         agem = self.info_ind['agem']
         decote = self._decote(trim_tot, agem)
-        date_surcote = self._date_surcote(workstate, trim_by_year_tot, trim_maj_tot, agem)
-        surcote = self._surcote(trim_by_year_tot, regime, agem, date_surcote)
+        date_start_surcote = self._date_start_surcote(workstate, trim_by_year_tot, trim_maj_tot, agem)
+        surcote = self._surcote(trim_by_year_tot, regime, agem, date_start_surcote)
         if to_check is not None:
             to_check['taux_plein_' + self.regime] = taux_plein*(trim_tot > 0)
             to_check['decote_' + self.regime] = decote*(trim_tot > 0)
