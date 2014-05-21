@@ -146,7 +146,7 @@ class RegimeGeneral(RegimeBase):
         notamment application du plafonnement à un PSS'''
         yearsim = self.yearsim
         P = reduce(getattr, self.param_name.split('.'), self.P)
-        nb_years = valbytranches(P.nb_sam, self.info_ind)
+        nb_best_years_to_take = valbytranches(P.nb_sam, self.info_ind)
         plafond = build_long_values(param_long=self.P_longit.common.plaf_ss, first_year=first_year_sal, last_year=yearsim)
         revalo = build_long_values(param_long=self.P_longit.prive.RG.revalo, first_year=first_year_sal, last_year=yearsim)
         smic_long = build_long_values(param_long=self.P_longit.common.smic_proj, first_year=1972, last_year=yearsim) # avant pas d'avpf
@@ -154,7 +154,7 @@ class RegimeGeneral(RegimeBase):
         for i in range(1, len(revalo)) :
             revalo[:i] *= revalo[i]
             
-        def _sal_for_sam(sal_RG, trim_avpf, sali_to_RG, smic, data_type='numpy'):
+        def _sali_for_regime(sal_RG, trim_avpf, sali_to_RG, smic, data_type='numpy'):
             ''' construit la matrice des salaires de références '''
             if data_type == 'numpy':
                 # TODO: check if annual step in sal_avpf and sal_RG
@@ -164,49 +164,43 @@ class RegimeGeneral(RegimeBase):
                 sal_RG.array[:,first_ix_avpf:] += sal_avpf
                 sal_RG.array += sali_to_RG.array
 #                 DataFrame(sali_to_RG.array, columns=sali.dates).to_csv('test.csv')
-                return round(sal_RG.array,2)
+                return sal_RG.array.round(2)
             if data_type == 'pandas':
                 trim_avpf = table_selected_dates(trim_avpf, self.dates, first_year=1972, last_year=yearsim)
                 sal_avpf = multiply((trim_avpf != 0), smic ) #*2028 = 151.66*12 if horaires
                 dates_avpf = [date for date in sal_RG.columns if date >= 197201]
                 sal_RG.loc[:,dates_avpf] += sal_avpf.loc[:,dates_avpf]
-                return round(sal_RG,2)
-                    
-        sal_sam = _sal_for_sam(regime['sal'], regime['trim_avpf'], regime['sali_FP_to'], smic_long)
-        
-#         SAM = calculate_SAM(sal_sam, nb_years, time_step='year', plafond=plafond, revalorisation=revalo)
-        nb_sali = (sal_sam != 0).sum(1)
-        nb_years = array(nb_years)
-        nb_years[nb_sali < nb_years] = nb_sali[nb_sali < nb_years]        
+                return sal_RG.round(2)
+            
+        #TODO: d'ou vient regime['sal']
+        sal_regime = _sali_for_regime(regime['sal'], regime['trim_avpf'], regime['sali_FP_to'], smic_long)
+        years_sali = (sal_regime != 0).sum(1)
+#         SAM = calculate_SAM(sal_sam, nb_best_years_to_take, time_step='year', plafond=plafond, revalorisation=revalo)
+        nb_best_years_to_take = array(nb_best_years_to_take)
+        nb_best_years_to_take[years_sali < nb_best_years_to_take] = years_sali[years_sali < nb_best_years_to_take]        
 #         if time_step == 'month' :
 #             sali = sum_by_years(sali)
         def sum_sam(data):
-            nb_sali = data[-1]
-            if nb_sali == 0 :
+            years_sali = data[-1]
+            if years_sali == 0 :
                 return 0
-            #data = -bn.partsort(-data, nb_sali)[:nb_sali]
+            #data = -bn.partsort(-data, years_sali)[:years_sali]
             data = sort(data[:-1])
-            data = data[-nb_sali:]
-            return data.sum() / nb_sali
+            data = data[-years_sali:]
+            return data.sum() / years_sali
         
-        import pdb
-        pdb.set_trace()
         if plafond is not None:
-            assert sali.shape[1] == len(plafond)
-            sali = minimum(sali, plafond) 
+            assert sali.array.shape[1] == len(plafond)
+            sali.array = minimum(sali.array, plafond) 
         if revalo is not None:
-            assert sali.shape[1] == len(revalo)
-            sali = multiply(sali,revalo)
-        sali_sam = zeros((sali.shape[0],sali.shape[1]+1))
-        sali_sam[:,:-1] = sali
-        sali_sam[:,-1] = nb_years
-        sam = apply_along_axis(sum_sam, axis=1, arr=sali_sam)
-        #sali.apply(sum_sam, 1)
-        SAM = Series(sam, index = nb_years)
-
-        self.sal_RG = sal_sam
+            assert sali.array.shape[1] == len(revalo)
+            sali.array = multiply(sali.array,revalo)
+        sali_sam = zeros((sali.array.shape[0], sali.array.shape[1]+1))
+        sali_sam[:,:-1] = sali.array
+        sali_sam[:,-1] = nb_best_years_to_take
+        salref = apply_along_axis(sum_sam, axis=1, arr=sali_sam)
         #print "plafond : {},revalo : {}, sal_sam: {}, calculate_sam:{}".format(t1-t0,t2-t1,t3 -t2, t4 - t3)
-        return round(SAM, 2)
+        return salref.round(2)
     
     def assurance_maj(self, trim_RG, trim_tot, agem):
         ''' Détermination de la durée d'assurance corrigée introduite par la réforme Boulin

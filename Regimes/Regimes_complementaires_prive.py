@@ -85,7 +85,7 @@ class ARRCO(RegimeComplementaires):
         plaf_ss = self.P_longit.common.plaf_ss
         pss = build_long_values(plaf_ss, first_year=first_year_sal, last_year=yearsim) 
         plaf_sali = minimum(sali, nb_pss*pss)
-        return sali.array*noncadre_selection + plaf_sali*cadre_selection
+        return sali*noncadre_selection + plaf_sali*cadre_selection
         
     def majoration_enf(self, workstate, sali, nb_points, coeff_age, agem):
         ''' Application de la majoration pour enfants à charge. Deux types de majorations peuvent s'appliquer :
