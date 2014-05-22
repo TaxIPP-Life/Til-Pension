@@ -153,21 +153,14 @@ class RegimeGeneral(RegimeBase):
         for i in range(1, len(revalo)) :
             revalo[:i] *= revalo[i]
             
-        def _sali_for_salref(sal_RG, sal_avpf, sali_to_RG, smic, data_type='numpy'):
+        def _sali_for_salref(sal_RG, sal_avpf, sali_to_RG, smic):
             ''' construit la matrice des salaires de références '''
-            if data_type == 'numpy':
-                # TODO: check if annual step in sal_avpf and sal_RG
-                first_ix_avpf = first_year_avpf - first_year_sal
-                sal_RG.array[:,first_ix_avpf:] += sal_avpf.array
-                sal_RG.array += sali_to_RG.array
-                return TimeArray(sal_RG.array.round(2), sal_RG.dates)
-            if data_type == 'pandas':
-                trim_avpf = table_selected_dates(sal_avpf, self.dates, first_year=1972, last_year=yearsim)
-                sal_avpf = multiply((trim_avpf != 0), smic ) #*2028 = 151.66*12 if horaires
-                dates_avpf = [date for date in sal_RG.columns if date >= 197201]
-                sal_RG.loc[:,dates_avpf] += sal_avpf.loc[:,dates_avpf]
-                return sal_RG.round(2)
-            
+            # TODO: check if annual step in sal_avpf and sal_RG
+            first_ix_avpf = first_year_avpf - first_year_sal
+            sal_RG.array[:,first_ix_avpf:] += sal_avpf.array
+            sal_RG.array += sali_to_RG.array
+            return TimeArray(sal_RG.array.round(2), sal_RG.dates)
+     
         #TODO: d'ou vient regime['sal'] -> il vient de du calcul du nb de trim cotisés au RG (condition sur workstate + salaire plancher)
         sal_regime = _sali_for_salref(regime['sal'], regime['sal_avpf'], regime['sali_FP_to'], smic_long)
         years_sali = (sal_regime.array != 0).sum(1)

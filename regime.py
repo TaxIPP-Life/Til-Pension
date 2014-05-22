@@ -162,7 +162,7 @@ class RegimeComplementaires(Regime):
     def sali_for_regime(self, workstate, sali):
         raise NotImplementedError
     
-    def nombre_points(self, workstate, sali, first_year=first_year_sal, last_year=None, data_type='numpy'):
+    def nombre_points(self, workstate, sali, first_year=first_year_sal, last_year=None):
         ''' Détermine le nombre de point à liquidation de la pension dans les régimes complémentaires (pour l'instant Ok pour ARRCO/AGIRC)
         Pour calculer ces points, il faut diviser la cotisation annuelle ouvrant des droits par le salaire de référence de l'année concernée 
         et multiplier par le taux d'acquisition des points'''
@@ -179,29 +179,17 @@ class RegimeComplementaires(Regime):
         pss = build_long_values(plaf_ss, first_year=first_year_sal, last_year=yearsim)    
         taux_cot = build_long_baremes(Plong.taux_cot_moy, first_year=first_year_sal, last_year=yearsim, scale=pss)
         assert len(salref) == sali_plaf.shape[1] == len(taux_cot)
-        if data_type == 'pandas':
-            nb_points = Series(zeros(len(sali_plaf.index)), index=sali_plaf.index)
-            if last_year_sali < first_year:
-                return nb_points
-            for year in range(first_year, min(last_year_sali, last_year) + 1):
-                points_acquis = divide(taux_cot[year].calc(sali_plaf[year*100 + 1]), salref[year-first_year_sal]).round(2) 
-                gmp = P.gmp
-                #print year, taux_cot[year], sali.ix[1926 ,year *100 + 1], salref[year-first_year_sal]
-                #print 'result', Series(points_acquis, index=sali.index).ix[1926]
-                nb_points += maximum(points_acquis, gmp)*(points_acquis > 0)
+        nb_points = zeros(sali_plaf.shape[0])
+        if last_year_sali < first_year:
             return nb_points
-        if data_type == 'numpy':
-            nb_points = zeros(sali_plaf.shape[0])
-            if last_year_sali < first_year:
-                return nb_points
-            for year in range(first_year, min(last_year_sali, last_year) + 1):
-                ix_year = year - first_year
-                points_acquis = divide(taux_cot[year].calc(sali_plaf[:,ix_year]), salref[year-first_year_sal]).round(2) 
-                gmp = P.gmp
-                #print year, taux_cot[year], sali.ix[1926 ,year *100 + 1], salref[year-first_year_sal]
-                #print 'result', Series(points_acquis, index=sali.index).ix[1926]
-                nb_points += maximum(points_acquis, gmp)*(points_acquis > 0)
-            return nb_points
+        for year in range(first_year, min(last_year_sali, last_year) + 1):
+            ix_year = year - first_year
+            points_acquis = divide(taux_cot[year].calc(sali_plaf[:,ix_year]), salref[year-first_year_sal]).round(2) 
+            gmp = P.gmp
+            #print year, taux_cot[year], sali.ix[1926 ,year *100 + 1], salref[year-first_year_sal]
+            #print 'result', Series(points_acquis, index=sali.index).ix[1926]
+            nb_points += maximum(points_acquis, gmp)*(points_acquis > 0)
+        return nb_points
  
     def coefficient_age(self, agem, trim):
         ''' TODO: add surcote  pour avant 1955 '''
