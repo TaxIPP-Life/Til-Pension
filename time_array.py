@@ -23,7 +23,7 @@ class TimeArray(object):
         array_selection = in1d(self.array.copy(), code).reshape(self.array.shape)
         return TimeArray(array_selection, self.dates)
         
-    def selected_dates(self, first, last, date_type='year', inplace=False):
+    def selected_dates(self, first=None, last=None, date_type='year', inplace=False):
         ''' La table d'input dont les colonnes sont des dates est renvoyées amputée 
             des années postérieures à first (first incluse) 
             et antérieures strictement à last 
@@ -31,6 +31,10 @@ class TimeArray(object):
             '''
         array = self.array.copy()
         dates = self.dates
+        if first is None:
+            first = min(dates)
+        if last is None:
+            last = max(dates)
         if date_type == 'year':
             if first:
                 first = 100*first + 1

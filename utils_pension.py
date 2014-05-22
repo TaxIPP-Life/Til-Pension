@@ -90,7 +90,7 @@ def build_salref_bareme(bareme_long, first_year, last_year, scale=None):
     salaire trimestriel de référence minimum
     Rq : Toute la série chronologique est exprimé en euros
     '''
-    assert first_year < 1972 
+    assert first_year <= 1972 
     assert last_year > 1972
     salmin = DataFrame({'year': range(first_year, last_year ), 'sal': -ones(last_year - first_year)} ) 
     avts_year = []
