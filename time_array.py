@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from pandas import DataFrame
-from numpy import array, tile, divide, around, in1d, repeat
+from numpy import array, tile, divide, around, in1d, repeat, sort, apply_along_axis, zeros
 
 def determine_frequency(dates):
     if (array(dates) % 100 == 1).all() :
@@ -84,3 +84,20 @@ class TimeArray(object):
         else:
             return (output, output_dates)
     
+    def best_dates_mean(self, nb_best_dates):
+        ''' Cette fonction renvoie le vecteur de la moyenne des 'nb_best_dates' 
+        meilleures états de la matrice associée au TimeArray'''
+        def mean_best_dates_row(data):
+            years_sali = data[-1]
+            if years_sali == 0 :
+                return 0
+            data = sort(data[:-1])
+            data = data[-years_sali:]
+            return data.sum() / years_sali
+        
+        data = self.array
+        sali_sam = zeros((data.shape[0], data.shape[1]+1))
+        sali_sam[:,:-1] = data
+        sali_sam[:,-1] = nb_best_dates
+        salref = apply_along_axis(mean_best_dates_row, axis=1, arr=sali_sam)
+        return salref.round(2)

@@ -163,7 +163,6 @@ class RegimeGeneral(RegimeBase):
                 sal_avpf = multiply((trim_avpf.array != 0), smic) #*2028 = 151.66*12 if horaires
                 sal_RG.array[:,first_ix_avpf:] += sal_avpf
                 sal_RG.array += sali_to_RG.array
-#                 DataFrame(sali_to_RG.array, columns=sali.dates).to_csv('test.csv')
                 return TimeArray(sal_RG.array.round(2), sal_RG.dates)
             if data_type == 'pandas':
                 trim_avpf = table_selected_dates(trim_avpf, self.dates, first_year=1972, last_year=yearsim)
@@ -172,21 +171,12 @@ class RegimeGeneral(RegimeBase):
                 sal_RG.loc[:,dates_avpf] += sal_avpf.loc[:,dates_avpf]
                 return sal_RG.round(2)
             
-        #TODO: d'ou vient regime['sal']
+        #TODO: d'ou vient regime['sal'] -> il vient de du calcul du nb de trim cotisés au RG (condition sur workstate + salaire plancher)
         sal_regime = _sali_for_regime(regime['sal'], regime['trim_avpf'], regime['sali_FP_to'], smic_long)
         years_sali = (sal_regime.array != 0).sum(1)
         nb_best_years_to_take = array(nb_best_years_to_take)
-        nb_best_years_to_take[years_sali < nb_best_years_to_take] = years_sali[years_sali < nb_best_years_to_take]        
-#         if time_step == 'month' :
-#             sali = sum_by_years(sali)
-        def sum_sam(data):
-            years_sali = data[-1]
-            if years_sali == 0 :
-                return 0
-            #data = -bn.partsort(-data, years_sali)[:years_sali]
-            data = sort(data[:-1])
-            data = data[-years_sali:]
-            return data.sum() / years_sali
+        nb_best_years_to_take[years_sali < nb_best_years_to_take] = years_sali[years_sali < nb_best_years_to_take]    
+        sal_regime.translate_frequency(output_frequency='year', method='sum')    
         
         if plafond is not None:
             assert sal_regime.array.shape[1] == len(plafond)
@@ -194,12 +184,8 @@ class RegimeGeneral(RegimeBase):
         if revalo is not None:
             assert sal_regime.array.shape[1] == len(revalo)
             sal_regime.array = multiply(sal_regime.array,revalo)
-        sali_sam = zeros((sal_regime.array.shape[0], sal_regime.array.shape[1]+1))
-        sali_sam[:,:-1] = sal_regime.array
-        sali_sam[:,-1] = nb_best_years_to_take
-        salref = apply_along_axis(sum_sam, axis=1, arr=sali_sam)
-        #print "plafond : {},revalo : {}, sal_sam: {}, calculate_sam:{}".format(t1-t0,t2-t1,t3 -t2, t4 - t3)
-        return salref.round(2)
+
+        return sal_regime.best_dates_mean(nb_best_years_to_take)
     
     def assurance_maj(self, trim_RG, trim_tot, agem):
         ''' Détermination de la durée d'assurance corrigée introduite par la réforme Boulin
