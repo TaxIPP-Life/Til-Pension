@@ -161,10 +161,11 @@ def trim_sum(option,*kwargs):
     else:
         return trim_tot.sum(axis=1)
     
-def trim_by_year_all(trimestres_by_year):
+def trim_by_year_all(trimestres):
     ''' Stock dans un dictionnaire les vecteurs et matrices de comptabilisation des trimestres
     qui sont nécessaires à la détermination des montants des pensions '''
-    trim_by_year = trim_sum('output_table', *list(trimestres_by_year.values()))
+    trimestres_by_year = [trimestres[key] for key in trimestres.keys() if 'trim_by_year' in key]
+    trim_by_year = trim_sum('output_table', *trimestres_by_year)
     return trim_by_year
     
 def trim_maj_all(trimestres):

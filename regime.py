@@ -40,14 +40,16 @@ class Regime(object):
     def _decote(self):
         raise NotImplementedError
 
-    def _surcote(self, workstate, trim_by_year_tot, trim_maj, regime, age):
+    def _surcote(self, workstate, trimestres, age):
+        trim_by_year_tot = trimestres['trim_by_year_tot']
+        trim_maj = trimestres['trim_maj_tot']
         datesim = 100*self.yearsim + 1
         age_start = self._age_start_surcote(workstate)
         date_start = self._date_taux_plein(trim_by_year_tot, trim_maj)
         date_start_surcote = [int(max(datesim - year_surcote*100, 
                                 datesim - month_trim//12*100 - month_trim%12))
                         for year_surcote, month_trim in zip(date_start, age-age_start)]
-        return self._calculate_surcote(self.yearsim, regime, date_start_surcote, age, trim_by_year_tot)
+        return self._calculate_surcote(self.yearsim, trimestres, date_start_surcote, age)
     
     def _calculate_surcote(self, yearsim, regime, date_start_surcote, age, trim_by_year_tot):
         #TODO: remove trim_by_year_tot from arguments
@@ -75,19 +77,20 @@ class Regime(object):
         nb_years_surcote = years_surcote.sum(axis=0)
         return nb_years_surcote
        
-    def calculate_taux(self, workstate, trim_by_year_tot, trim_maj_tot, regime, to_check=None):
+    def calculate_taux(self, workstate, trimestres, to_check=None):
         ''' Détérmination du taux de liquidation à appliquer à la pension 
             La formule générale est taux pondéré par (1+surcote-decote)
             _surcote and _decote are called
             _date_start_surcote is a general method helping surcote
             '''
         P = reduce(getattr, self.param_name.split('.'), self.P)
+        trim_by_year_tot = trimestres['trim_by_year_tot']
         trim_tot = trim_by_year_tot.array.sum(1)
         taux_plein = P.plein.taux
         agem = self.info_ind['agem']
         decote = self._decote(trim_tot, agem)
 #         date_start_surcote = self._date_start_surcote(trim_by_year_tot, trim_maj_tot, agem)
-        surcote = self._surcote(workstate, trim_by_year_tot, trim_maj_tot, regime, agem)
+        surcote = self._surcote(workstate, trimestres, agem)
         if to_check is not None:
             to_check['taux_plein_' + self.regime] = taux_plein*(trim_tot > 0)
             to_check['decote_' + self.regime] = decote*(trim_tot > 0)*(trim_tot > 0)
@@ -101,14 +104,14 @@ class Regime(object):
 #         self.sal_regime = sali.array*_isin(self.workstate.array,self.code_regime)
         raise NotImplementedError
     
-    def calculate_pension(self, workstate, sali, trim_by_year_tot, trim_maj_tot, regime, to_check=None):
+    def calculate_pension(self, workstate, sali, trimestres, to_check=None):
         reg = self.regime
-        taux = self.calculate_taux(workstate, trim_by_year_tot, trim_maj_tot, regime, to_check)
-        cp = self.calculate_coeff_proratisation(regime)
-        salref = self.calculate_salref(workstate, sali, regime)
+        taux = self.calculate_taux(workstate, trimestres, to_check)
+        cp = self.calculate_coeff_proratisation(trimestres)
+        salref = self.calculate_salref(workstate, sali, trimestres)
         if to_check is not None:
             to_check['CP_' + reg] = cp
-            to_check['taux_' + reg] = taux*(regime['trim_tot']>0)
+            to_check['taux_' + reg] = taux*(trimestres['trim_tot']>0)
             to_check['salref_' + reg] = salref
         return cp*salref*taux
 

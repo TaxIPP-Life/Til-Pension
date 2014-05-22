@@ -29,10 +29,11 @@ class FonctionPublique(RegimeBase):
         self.code_sedentaire = 6
         self.code_actif = 5
 
-    def get_trimester(self, workstate, sali, to_check, table=True):
+    def get_trimester(self, workstate, sali, to_check):
         output = dict()
         trim_valide = self.nb_trim_valide(workstate, table=True)
         trim_by_year_to_RG = self.trim_to_RG(workstate, sali, trim_valide)
+        output['trim_by_year_FP'] = trim_valide
         output['trim_by_year_FP_to_RG'] = trim_by_year_to_RG
         output['sali_FP_to_RG'] = self.sali_to_RG(workstate, sali, trim_by_year_to_RG)
         output['trim_cot_FP'] = trim_valide.array.sum(1)
@@ -41,10 +42,7 @@ class FonctionPublique(RegimeBase):
         self.trim_actif = output['actif_FP'] 
         if to_check :
             to_check['DA_FP'] = (output['trim_cot_RG'] + output['trim_maj_FP']) //4
-        if table == True:
-            return output, {'FP': trim_valide}
-        else:
-            return output
+        return output
         
     def _age_start_surcote(self, workstate):
         P = self.P.public.fp

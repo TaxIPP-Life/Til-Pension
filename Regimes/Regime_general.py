@@ -34,19 +34,17 @@ class RegimeGeneral(RegimeBase):
         self.param_name = 'prive.RG'
      
      
-    def get_trimester(self, workstate, sali, to_check=False,table=False):
+    def get_trimester(self, workstate, sali, to_check=False):
         output = dict()
         nb_trim_cot = self.nb_trim_cot(workstate, sali)
+        output['trim_by_year_RG'] = nb_trim_cot
         output['trim_cot_RG']  = nb_trim_cot.array.sum(axis=1)
         output['sal_RG'] = self.sali_for_regime(sali, nb_trim_cot)
         output['trim_ass_RG'] = self.nb_trim_ass(workstate, nb_trim_cot)
         output['trim_maj_RG'], output['sal_avpf_RG'] = self.nb_trim_maj(workstate, sali)
         if to_check is not None:
             to_check['DA_RG'] = (output['trim_cot_RG'] + output['trim_ass_RG'] + output['trim_maj_RG']) //4
-        if table == True:
-            return output, {'RG': nb_trim_cot}
-        else:
-            return output
+        return output
         
     def _age_start_surcote(self, workstate=None):
         P = reduce(getattr, self.param_name.split('.'), self.P)
@@ -235,12 +233,14 @@ class RegimeGeneral(RegimeBase):
             trim_decote = maximum(0, minimum(decote_age, decote_cot))
         return trim_decote*tx_decote
         
-    def _calculate_surcote(self, yearsim, regime, date_start_surcote, age, trim_by_year_tot):
+    def _calculate_surcote(self, yearsim, trimestres, date_start_surcote, age):
         ''' Détermination de la surcote à appliquer aux pensions '''
         yearsim = self.yearsim
         P = reduce(getattr, self.param_name.split('.'), self.P)
-        trim_by_year_RG = regime['trim_by_year']
-        trim_maj = regime['trim_maj']
+        trim_by_year_RG = trimestres['trim_by_year']
+        trim_maj = trimestres['trim_maj']
+        trim_by_year_tot = trimestres['trim_by_year_tot']
+        #trim_maj_tot = trimestres['trim_maj_tot']
         N_taux = valbytranches(P.plein.N_taux, self.info_ind)
       
         def _trimestre_surcote_0304(trim_by_year_RG, date_start_surcote, P):
