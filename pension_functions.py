@@ -63,46 +63,7 @@ def unemployment_trimesters(timearray, code_regime=None, input_step='month', out
         return nb_trim_chom, TimeArray(unemp_trim, table.dates)
     else:
         return nb_trim_chom
-
-
-def calculate_SAM(sali, nb_years_pd, time_step, plafond=None, revalorisation=None, data_type='numpy'):
-    ''' renvoie un vecteur des SAM 
-    plaf : vecteur chronologique plafonnant les salaires (si abs pas de plafonnement)'''
     
-    nb_sali = (sali != 0).sum(1)
-    nb_years = array(nb_years_pd)
-    nb_years[nb_sali < nb_years] = nb_sali[nb_sali < nb_years]
-    if data_type == 'pandas':
-        assert max(sali.index) == max(nb_years.index)
-        sali = sali.fillna(0) 
-        sali = array(sali)
-    if time_step == 'month' :
-        sali = sum_by_years(sali)
-    def sum_sam(data):
-        nb_sali = data[-1]
-        #data = -bn.partsort(-data, nb_sali)[:nb_sali]
-        data = sort(data[:-1])
-        data = data[-nb_sali:]
-        if nb_sali == 0 :
-            sam = 0
-        else:
-            sam = data.sum() / nb_sali
-        return sam
-
-    # deux tables aient le même index (DataFrame({'sali': sali.index.values, 'nb_years': nb_years.index.values}).to_csv('testindex.csv'))
-
-    if plafond is not None:
-        assert sali.shape[1] == len(plafond)
-        sali = minimum(sali, plafond) 
-    if revalorisation is not None:
-        assert sali.shape[1] == len(revalorisation)
-        sali = multiply(sali,revalorisation)
-    sali_sam = zeros((sali.shape[0],sali.shape[1]+1))
-    sali_sam[:,:-1] = sali
-    sali_sam[:,-1] = nb_years
-    sam = apply_along_axis(sum_sam, axis=1, arr=sali_sam)
-    #sali.apply(sum_sam, 1)
-    return Series(sam, index = nb_years_pd.index)
 
 def nb_trim_surcote(trim_by_year, date_start_surcote):
     ''' Cette fonction renvoie le vecteur numpy du nombre de trimestres surcotés à partir de :
