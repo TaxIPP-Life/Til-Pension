@@ -175,6 +175,7 @@ if __name__ == '__main__':
     '''
         # 4 --Importation des barèmes IPP retraite
     xlsxfile = pd.ExcelFile('Retraite.xlsx')
+
     # Paramètres généraux
     data = xlsxfile.parse('MICO', index_col = None, header = True)
     mico =  np.array(data['Minimum contributif'][1:42])
@@ -206,7 +207,16 @@ if __name__ == '__main__':
     agirc =  np.array(data[u'Valeur du point AGIRC (en euros)'])[:-7].round(4)
     dates = np.array(data[u"Date d'entrée en vigueur"])[:-7]
     #from_excel_to_xml(data = agirc, description = "Valeur du point AGIRC (en euros)", code = "val_point", format = "float", data_date = dates)
+      
+    # AVPF
+    data = xlsxfile.parse('AVPF', index_col = None, header = True)
+    avpf = data["Montant mensuel de l'Assurance vieillesse des parents au foyer (AVPF)"][1:50]
+    dates = data[u"Date d'entrée en vigueur"][1:50]
+    avpf = np.array(avpf)
+    dates = np.array(dates)
+    from_excel_to_xml(data=avpf, description = "Assurance vieillesse des parents au foyer", code = "avpf", format = "float", data_date = dates)
     
+
         # 5 -- Importation des paramètres Destinie :
     # 5-1 : retraite de base
     Retbase = pd.read_csv('ParamRetBase.csv', sep=";")

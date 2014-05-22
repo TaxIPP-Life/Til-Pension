@@ -11,8 +11,8 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 -->
 
 <NODE description= "Retraites" code="ret">
-  <NODE description="Commun à tous les régimes" code="common" >
-	<CODE description= "Montant du smic horaire (barème ipp)" code="smic" format="float" longitudinal="true">
+  <NODE description="Commun à tous les régimes" code="common">
+	<CODE description="Montant du smic horaire (barème ipp)" code="smic" format="float" longitudinal="true">
 	  <VALUE valeur= "9.53" deb="2014-01-01" fin="2100-12-01"/>
 	  <VALUE valeur= "9.43" deb="2013-01-01" fin="2013-12-31"/>
 	  <VALUE valeur= "9.4" deb="2012-07-01" fin="2012-12-31"/>
@@ -717,6 +717,57 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 	  <VALUE valeur= "0.00273463621843" deb="1922-01-01" fin="1922-12-31"/>
 	  <VALUE valeur= "0.00273463621843" deb="1921-01-01" fin="1921-12-31"/>
 	  <VALUE valeur= "0.00273463621843" deb="1920-01-01" fin="1920-12-31"/>
+	</CODE>
+	<CODE description="Assurance vieillesse des parents au foyer" code="avpf" format="float" longitudinal="true">
+	  <VALUE valeur="1594" deb="2014-01-01" fin="2100-12-01"/>
+	  <VALUE valeur="1588.6" deb="2013-01-01" fin="2013-12-31"/>
+	  <VALUE valeur="1521" deb="2012-11-01" fin="2012-12-31"/>
+	  <VALUE valeur="1521" deb="2012-01-01" fin="2012-10-31"/>
+	  <VALUE valeur="1497.34" deb="2011-01-01" fin="2011-12-31"/>
+	  <VALUE valeur="1490.58" deb="2010-01-01" fin="2010-12-31"/>
+	  <VALUE valeur="1471.99" deb="2009-01-01" fin="2009-12-31"/>
+	  <VALUE valeur="1426.36" deb="2008-01-01" fin="2008-12-31"/>
+	  <VALUE valeur="1397.63" deb="2007-01-01" fin="2007-12-31"/>
+	  <VALUE valeur="1357.07" deb="2006-01-01" fin="2006-12-31"/>
+	  <VALUE valeur="1286.09" deb="2005-01-01" fin="2005-12-31"/>
+	  <VALUE valeur="1215.11" deb="2004-07-01" fin="2004-12-31"/>
+	  <VALUE valeur="1215.11" deb="2004-01-01" fin="2004-06-30"/>
+	  <VALUE valeur="1154.27" deb="2003-01-01" fin="2003-12-31"/>
+	  <VALUE valeur="1127.23" deb="2002-01-01" fin="2002-12-31"/>
+	  <VALUE valeur="7101.38" deb="2001-01-01" fin="2001-12-31"/>
+	  <VALUE valeur="6881.68" deb="2000-01-01" fin="2000-12-31"/>
+	  <VALUE valeur="6797.18" deb="1999-01-01" fin="1999-12-31"/>
+	  <VALUE valeur="6663.67" deb="1998-01-01" fin="1998-12-31"/>
+	  <VALUE valeur="6406.79" deb="1997-01-01" fin="1997-12-31"/>
+	  <VALUE valeur="6249.62" deb="1996-01-01" fin="1996-12-31"/>
+	  <VALUE valeur="6009.64" deb="1995-01-01" fin="1995-12-31"/>
+	  <VALUE valeur="5886.27" deb="1994-01-01" fin="1994-12-31"/>
+	  <VALUE valeur="5756.14" deb="1993-01-01" fin="1993-12-31"/>
+	  <VALUE valeur="5519.54" deb="1992-01-01" fin="1992-12-31"/>
+	  <VALUE valeur="5286.32" deb="1991-02-01" fin="1991-12-31"/>
+	  <VALUE valeur="5286.32" deb="1991-01-01" fin="1991-01-31"/>
+	  <VALUE valeur="5054.79" deb="1990-01-01" fin="1990-12-31"/>
+	  <VALUE valeur="4860.44" deb="1989-01-01" fin="1989-12-31"/>
+	  <VALUE valeur="4704.96" deb="1988-01-01" fin="1988-12-31"/>
+	  <VALUE valeur="4549.48" deb="1987-07-01" fin="1987-12-31"/>
+	  <VALUE valeur="4549.48" deb="1987-01-01" fin="1987-06-30"/>
+	  <VALUE valeur="4400.76" deb="1986-08-01" fin="1986-12-31"/>
+	  <VALUE valeur="4400.76" deb="1986-01-01" fin="1986-07-31"/>
+	  <VALUE valeur="4028.96" deb="1985-01-01" fin="1985-12-31"/>
+	  <VALUE valeur="3699.41" deb="1984-01-01" fin="1984-12-31"/>
+	  <VALUE valeur="3319.16" deb="1983-01-01" fin="1983-12-31"/>
+	  <VALUE valeur="2898.07" deb="1982-01-01" fin="1982-12-31"/>
+	  <VALUE valeur="2426.62" deb="1981-01-01" fin="1981-12-31"/>
+	  <VALUE valeur="2105.95" deb="1980-01-01" fin="1980-12-31"/>
+	  <VALUE valeur="1880.63" deb="1979-01-01" fin="1979-12-31"/>
+	  <VALUE valeur="1660.5" deb="1978-01-01" fin="1978-12-31"/>
+	  <VALUE valeur="1487.17" deb="1977-01-01" fin="1977-12-31"/>
+	  <VALUE valeur="1308.64" deb="1976-10-01" fin="1976-12-31"/>
+	  <VALUE valeur="1308.64" deb="1976-01-01" fin="1976-09-30"/>
+	  <VALUE valeur="1109.31" deb="1975-01-01" fin="1975-12-31"/>
+	  <VALUE valeur="901.32" deb="1974-01-01" fin="1974-12-31"/>
+	  <VALUE valeur="745.32" deb="1973-01-01" fin="1973-12-31"/>
+	  <VALUE valeur="667.32" deb="1972-07-01" fin="1972-12-31"/>
 	</CODE>
     <NODE description="Allocation aux vieux travailleurs salariés" code="avts" >
 	<CODE description= "Montant de l'allocations aux vieux travailleurs salariés (avnt 1962 : métropole plus de 5000 hab)" code="montant" format="float" longitudinal="true">

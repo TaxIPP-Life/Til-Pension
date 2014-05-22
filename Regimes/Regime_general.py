@@ -18,6 +18,7 @@ code_avpf = 8
 code_chomage = 2
 code_preretraite = 9
 first_year_sal = 1949
+first_year_avpf = 1972
 compare_destinie = True 
 sal_avpf = False
 
@@ -39,7 +40,7 @@ class RegimeGeneral(RegimeBase):
         output['trim_cot_RG']  = nb_trim_cot.array.sum(axis=1)
         output['sal_RG'] = self.sali_for_regime(sali, nb_trim_cot)
         output['trim_ass_RG'] = self.nb_trim_ass(workstate, nb_trim_cot)
-        output['trim_maj_RG'], output['trim_avpf_RG'] = self.nb_trim_maj(workstate, sali)
+        output['trim_maj_RG'], output['sal_avpf_RG'] = self.nb_trim_maj(workstate, sali)
         if to_check is not None:
             to_check['DA_RG'] = (output['trim_cot_RG'] + output['trim_ass_RG'] + output['trim_maj_RG']) //4
         if table == True:
@@ -67,7 +68,7 @@ class RegimeGeneral(RegimeBase):
         ''' Cette fonction renvoie le TimeArray ne contenant que les salaires annuelles 
         pour lesquels au moins un trimestre a été validé au RG '''
         sal_by_year = sali.translate_frequency(output_frequency='year')
-        return TimeArray((trim_cot_by_year> 0)*sal_by_year.array, sal_by_year.dates)
+        return TimeArray((trim_cot_by_year.array> 0)*sal_by_year.array, sal_by_year.dates)
     
     def nb_trim_ass(self, workstate, nb_trim_cot):
         ''' 
@@ -81,8 +82,7 @@ class RegimeGeneral(RegimeBase):
         nb_trim_ass = nb_trim_chom # TODO: + nb_trim_war + ....
         trim_by_year = TimeArray(array=nb_trim_cot.array + table_chom.array, 
                                        dates=[100*year + 1 for year in range(first_year_sal, self.yearsim)])
-        
-        # TODO: remove if not pensipp
+        # TODO: remove if not pensipp :
         nb_trim_ass = (workstate.isin([code_chomage, code_preretraite])).array.sum(1)*4
         return nb_trim_ass
             
@@ -112,19 +112,20 @@ class RegimeGeneral(RegimeBase):
                 mda.loc[info_child.index.values, 'mda'] = 8*info_child.values
                 return mda['mda'].astype(int)
             
-        def _avpf(workstate, sali):
-            ''' Allocation vieillesse des parents au foyer : nombre de trimestres acquis'''
-            avpf_selection = workstate.isin([code_avpf])
+        def _sal_avpf(workstate, sali):
+            ''' Allocation vieillesse des parents au foyer : salaires de remplacements imputés
+            Si certains salaires son déjà attribués à des états d'avpf on les conserve (cf.Destinie) sinon on applique la règle d'imputation'''
+            avpf_selection = workstate.isin([code_avpf]).selected_dates(first_year_avpf)
+            sal_for_avpf = sali.selected_dates(first_year_avpf)
+            sal_for_avpf.array = sal_for_avpf.array*avpf_selection.array
+            if sal_for_avpf.array.all() == 0:
+                # TODO: frquency warning, cette manière de calculer les trimestres avpf ne fonctionne qu'avec des tables annuelles
+                avpf = build_long_values(param_long=self.P_longit.common.avpf, first_year=first_year_avpf, last_year=yearsim)
+                sal_for_avpf.array = multiply(avpf_selection.array, 12*avpf)    
+            salref = build_salref_bareme(self.P_longit.common, first_year_avpf, self.yearsim)
             avpf_selection.translate_frequency(output_frequency='year', inplace=True)
-            #avpf_selection = avpf_selection[[col_year for col_year in avpf_selection.columns if str(col_year)[-2:]=='01']]
-
-            salref = build_salref_bareme(self.P_longit.common, first_year_sal, self.yearsim) #TODO: it's used twice so once too much
-            sal_avpf_array = avpf_selection.array*divide(sali.array, salref) # Si certains salaires son déjà attribués à des états d'avpf on les conserve (cf.Destinie)
-            nb_trim = avpf_selection.array.sum(axis=1)*4
-            sal_avpf_array = sal_avpf_array*(avpf_selection != 0)
-            sal_avpf = TimeArray(sal_avpf_array, avpf_selection.dates) # Si certains salaires son déjà attribués à des états d'avpf on les conserve (cf.Destinie)
-
-            return nb_trim, avpf_selection, sal_avpf
+            sal_avpf_array = avpf_selection.array*divide(sal_for_avpf.array, salref)  
+            return TimeArray(sal_avpf_array, sal_for_avpf.dates) 
         
         child_mother = self.info_ind.loc[self.info_ind['sexe'] == 1, 'nb_born']
         list_id = self.info_ind.index
@@ -134,13 +135,10 @@ class RegimeGeneral(RegimeBase):
         else :
             nb_trim_mda = 0
             
-        nb_trim_avpf, trim_avpf, sal_avpf = _avpf(workstate.copy(), sali)
-
-        # Les trimestres d'avpf sont comptabilisés dans le calcul du SAM
-        self.trim_avpf = trim_avpf
-        self.sal_avpf = sal_avpf
-        #TO DO: passer à numpy au début de cette fonction pour réduire le temps d'exécution  
-        return array(nb_trim_mda + nb_trim_avpf), trim_avpf
+        sal_avpf = _sal_avpf(workstate.copy(), sali.copy())
+        # TODO: frquency warning, cette manière de calculer les trimestres avpf ne fonctionne qu'avec des tables annuelles
+        nb_trim_avpf = workstate.isin([code_avpf]).selected_dates(first_year_avpf).array.sum(1) 
+        return array(nb_trim_mda + nb_trim_avpf), sal_avpf
     
     def calculate_salref(self, workstate, sali, regime):
         ''' SAM : Calcul du salaire annuel moyen de référence : 
@@ -155,25 +153,23 @@ class RegimeGeneral(RegimeBase):
         for i in range(1, len(revalo)) :
             revalo[:i] *= revalo[i]
             
-        def _sali_for_salref(sal_RG, trim_avpf, sali_to_RG, smic, data_type='numpy'):
+        def _sali_for_salref(sal_RG, sal_avpf, sali_to_RG, smic, data_type='numpy'):
             ''' construit la matrice des salaires de références '''
             if data_type == 'numpy':
                 # TODO: check if annual step in sal_avpf and sal_RG
-                first_ix_avpf = 1972 - first_year_sal
-                trim_avpf.array = trim_avpf.array[:,first_ix_avpf:]
-                sal_avpf = multiply((trim_avpf.array != 0), smic) #*2028 = 151.66*12 if horaires
-                sal_RG.array[:,first_ix_avpf:] += sal_avpf
+                first_ix_avpf = first_year_avpf - first_year_sal
+                sal_RG.array[:,first_ix_avpf:] += sal_avpf.array
                 sal_RG.array += sali_to_RG.array
                 return TimeArray(sal_RG.array.round(2), sal_RG.dates)
             if data_type == 'pandas':
-                trim_avpf = table_selected_dates(trim_avpf, self.dates, first_year=1972, last_year=yearsim)
+                trim_avpf = table_selected_dates(sal_avpf, self.dates, first_year=1972, last_year=yearsim)
                 sal_avpf = multiply((trim_avpf != 0), smic ) #*2028 = 151.66*12 if horaires
                 dates_avpf = [date for date in sal_RG.columns if date >= 197201]
                 sal_RG.loc[:,dates_avpf] += sal_avpf.loc[:,dates_avpf]
                 return sal_RG.round(2)
             
         #TODO: d'ou vient regime['sal'] -> il vient de du calcul du nb de trim cotisés au RG (condition sur workstate + salaire plancher)
-        sal_regime = _sali_for_salref(regime['sal'], regime['trim_avpf'], regime['sali_FP_to'], smic_long)
+        sal_regime = _sali_for_salref(regime['sal'], regime['sal_avpf'], regime['sali_FP_to'], smic_long)
         years_sali = (sal_regime.array != 0).sum(1)
         nb_best_years_to_take = array(nb_best_years_to_take)
         nb_best_years_to_take[years_sali < nb_best_years_to_take] = years_sali[years_sali < nb_best_years_to_take]    
