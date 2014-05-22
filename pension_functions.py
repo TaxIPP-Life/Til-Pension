@@ -173,7 +173,7 @@ def trim_maj_all(trimestres):
     trim_maj_tot = sum(trimestres_maj)
     return trim_maj_tot
 
-def sal_to_trimcot(sal_cot, salref, option='vector', data_type='numpy'):
+def sal_to_trimcot(sal_cot, salref, data_type='numpy'):
     ''' A partir de la table des salaires annuels côtisés au sein du régime, on détermine le vecteur du nombre de trimestres côtisés jusqu'à la date mentionnée
     sal_cot : table ne contenant que les salaires annuels cotisés au sein du régime (lignes : individus / colonnes : date)
     salref : vecteur des salaires minimum (annuels) à comparer pour obtenir le nombre de trimestre
@@ -183,7 +183,4 @@ def sal_to_trimcot(sal_cot, salref, option='vector', data_type='numpy'):
     if data_type == 'pandas':
         sal_cot = sal_cot.fillna(0)
     nb_trim_cot = minimum(divide(sal_cot.array,salref).astype(int), 4)
-    if option == 'table':
-        return TimeArray(nb_trim_cot, sal_cot.dates)
-    else :
-        return nb_trim_cot.sum(axis=1)
+    return TimeArray(nb_trim_cot, sal_cot.dates)

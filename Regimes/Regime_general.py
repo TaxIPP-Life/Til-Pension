@@ -35,8 +35,9 @@ class RegimeGeneral(RegimeBase):
      
     def get_trimester(self, workstate, sali, to_check=False,table=False):
         output = dict()
-        nb_trim_cot, output['sal_RG'] = self.nb_trim_cot(workstate, sali, table=True)
+        nb_trim_cot = self.nb_trim_cot(workstate, sali)
         output['trim_cot_RG']  = nb_trim_cot.array.sum(axis=1)
+        output['sal_RG'] = self.sali_for_regime(sali, nb_trim_cot)
         output['trim_ass_RG'] = self.nb_trim_ass(workstate, nb_trim_cot)
         output['trim_maj_RG'], output['trim_avpf_RG'] = self.nb_trim_maj(workstate, sali)
         if to_check is not None:
@@ -51,7 +52,7 @@ class RegimeGeneral(RegimeBase):
         return valbytranches(P.age_min, self.info_ind)
 
     def nb_trim_cot(self, workstate, sali, table=False):
-        ''' Nombre de trimestres côtisés pour le régime général
+        ''' Nombre de trimestres côtisés pour le régime général par année 
         ref : code de la sécurité sociale, article R351-9
         '''
         # Selection des salaires à prendre en compte dans le décompte (mois où il y a eu côtisation au régime)
@@ -59,15 +60,15 @@ class RegimeGeneral(RegimeBase):
         sal_selection = TimeArray(wk_selection.array*sali.array, sali.dates)
         sal_selection.translate_frequency(output_frequency='year', method='sum', inplace=True)
         salref = build_salref_bareme(self.P_longit.common, first_year_sal, self.yearsim)
-        trim_by_year = sal_to_trimcot(sal_selection, salref, option='table')
-        # sal_section = (sal_to_trimcot(sum_by_years(sal_selection), self.salref, self.datesim.year, option='table') != 0)*sal_selection
-        # logiquement c'est mieux de garder que les salaires où il y a eu cotisation -> pour comparaison avec Pensipp plus simple de commenter
-        if table == True:
-            return trim_by_year, sal_selection
-        else:
-            return trim_by_year.array.sum(1)
-
-        
+        trim_cot_by_year = sal_to_trimcot(sal_selection, salref)
+        return trim_cot_by_year
+    
+    def sali_for_regime(self, sali, trim_cot_by_year):
+        ''' Cette fonction renvoie le TimeArray ne contenant que les salaires annuelles 
+        pour lesquels au moins un trimestre a été validé au RG '''
+        sal_by_year = sali.translate_frequency(output_frequency='year')
+        return TimeArray((trim_cot_by_year> 0)*sal_by_year.array, sal_by_year.dates)
+    
     def nb_trim_ass(self, workstate, nb_trim_cot):
         ''' 
         Comptabilisation des périodes assimilées à des durées d'assurance
@@ -154,7 +155,7 @@ class RegimeGeneral(RegimeBase):
         for i in range(1, len(revalo)) :
             revalo[:i] *= revalo[i]
             
-        def _sali_for_regime(sal_RG, trim_avpf, sali_to_RG, smic, data_type='numpy'):
+        def _sali_for_salref(sal_RG, trim_avpf, sali_to_RG, smic, data_type='numpy'):
             ''' construit la matrice des salaires de références '''
             if data_type == 'numpy':
                 # TODO: check if annual step in sal_avpf and sal_RG
@@ -172,7 +173,7 @@ class RegimeGeneral(RegimeBase):
                 return sal_RG.round(2)
             
         #TODO: d'ou vient regime['sal'] -> il vient de du calcul du nb de trim cotisés au RG (condition sur workstate + salaire plancher)
-        sal_regime = _sali_for_regime(regime['sal'], regime['trim_avpf'], regime['sali_FP_to'], smic_long)
+        sal_regime = _sali_for_salref(regime['sal'], regime['trim_avpf'], regime['sali_FP_to'], smic_long)
         years_sali = (sal_regime.array != 0).sum(1)
         nb_best_years_to_take = array(nb_best_years_to_take)
         nb_best_years_to_take[years_sali < nb_best_years_to_take] = years_sali[years_sali < nb_best_years_to_take]    

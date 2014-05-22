@@ -58,7 +58,7 @@ class TimeArray(object):
             if inplace == True:
                 return 'rien'
             else:
-                return (array, self.dates)
+                return TimeArray(array, self.dates)
         if output_frequency == 'year': # if True here, input_frequency=='month'
             assert len(self.dates) % 12 == 0 #TODO: to remove eventually
             nb_years = len(self.dates) // 12
@@ -82,7 +82,7 @@ class TimeArray(object):
             self.dates = output_dates
             self.frequency = output_frequency
         else:
-            return (output, output_dates)
+            return TimeArray(output, output_dates)
     
     def best_dates_mean(self, nb_best_dates):
         ''' Cette fonction renvoie le vecteur de la moyenne des 'nb_best_dates' 
