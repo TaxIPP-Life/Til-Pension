@@ -164,7 +164,7 @@ class RegimeGeneral(RegimeBase):
                 sal_RG.array[:,first_ix_avpf:] += sal_avpf
                 sal_RG.array += sali_to_RG.array
 #                 DataFrame(sali_to_RG.array, columns=sali.dates).to_csv('test.csv')
-                return sal_RG.array.round(2)
+                return TimeArray(sal_RG.array.round(2), sal_RG.dates)
             if data_type == 'pandas':
                 trim_avpf = table_selected_dates(trim_avpf, self.dates, first_year=1972, last_year=yearsim)
                 sal_avpf = multiply((trim_avpf != 0), smic ) #*2028 = 151.66*12 if horaires
@@ -174,8 +174,7 @@ class RegimeGeneral(RegimeBase):
             
         #TODO: d'ou vient regime['sal']
         sal_regime = _sali_for_regime(regime['sal'], regime['trim_avpf'], regime['sali_FP_to'], smic_long)
-        years_sali = (sal_regime != 0).sum(1)
-#         SAM = calculate_SAM(sal_sam, nb_best_years_to_take, time_step='year', plafond=plafond, revalorisation=revalo)
+        years_sali = (sal_regime.array != 0).sum(1)
         nb_best_years_to_take = array(nb_best_years_to_take)
         nb_best_years_to_take[years_sali < nb_best_years_to_take] = years_sali[years_sali < nb_best_years_to_take]        
 #         if time_step == 'month' :
@@ -190,13 +189,13 @@ class RegimeGeneral(RegimeBase):
             return data.sum() / years_sali
         
         if plafond is not None:
-            assert sali.array.shape[1] == len(plafond)
-            sali.array = minimum(sali.array, plafond) 
+            assert sal_regime.array.shape[1] == len(plafond)
+            sal_regime.array = minimum(sal_regime.array, plafond) 
         if revalo is not None:
-            assert sali.array.shape[1] == len(revalo)
-            sali.array = multiply(sali.array,revalo)
-        sali_sam = zeros((sali.array.shape[0], sali.array.shape[1]+1))
-        sali_sam[:,:-1] = sali.array
+            assert sal_regime.array.shape[1] == len(revalo)
+            sal_regime.array = multiply(sal_regime.array,revalo)
+        sali_sam = zeros((sal_regime.array.shape[0], sal_regime.array.shape[1]+1))
+        sali_sam[:,:-1] = sal_regime.array
         sali_sam[:,-1] = nb_best_years_to_take
         salref = apply_along_axis(sum_sam, axis=1, arr=sali_sam)
         #print "plafond : {},revalo : {}, sal_sam: {}, calculate_sam:{}".format(t1-t0,t2-t1,t3 -t2, t4 - t3)
