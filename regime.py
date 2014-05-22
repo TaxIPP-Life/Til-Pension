@@ -90,8 +90,8 @@ class Regime(object):
         surcote = self._surcote(workstate, trim_by_year_tot, trim_maj_tot, regime, agem)
         if to_check is not None:
             to_check['taux_plein_' + self.regime] = taux_plein*(trim_tot > 0)
-            to_check['decote_' + self.regime] = decote*(trim_tot > 0)
-            to_check['surcote_' + self.regime] = surcote*(trim_tot > 0)
+            to_check['decote_' + self.regime] = decote*(trim_tot > 0)*(trim_tot > 0)
+            to_check['surcote_' + self.regime] = surcote*(trim_tot > 0)*(trim_tot > 0)
         return taux_plein*(1 - decote + surcote)
     
     def calculate_coeff_proratisation(self):
@@ -108,7 +108,7 @@ class Regime(object):
         salref = self.calculate_salref(workstate, sali, regime)
         if to_check is not None:
             to_check['CP_' + reg] = cp
-            to_check['taux_' + reg] = taux
+            to_check['taux_' + reg] = taux*(regime['trim_tot']>0)
             to_check['salref_' + reg] = salref
         return cp*salref*taux
 

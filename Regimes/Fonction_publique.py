@@ -40,7 +40,7 @@ class FonctionPublique(RegimeBase):
         output['trim_maj_FP'] = self.trim_bonif_CPCM(output['trim_cot_FP']) + self.trim_bonif_5eme(output['trim_cot_FP'])
         self.trim_actif = output['actif_FP'] 
         if to_check :
-            to_check['trim_cot_FP'] = output['trim_cot_FP']
+            to_check['DA_FP'] = (output['trim_cot_RG'] + output['trim_maj_FP']) //4
         if table == True:
             return output, {'FP': trim_valide}
         else:
