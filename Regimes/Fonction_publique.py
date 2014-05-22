@@ -70,22 +70,38 @@ class FonctionPublique(RegimeBase):
         output (option=workstate): 0 = non-fonctionnaire, 6 = fonc. sédentaire, 5 = fonc.actif (cf, construction de age_max)
         output (option=sali) : 0 si non-fonctionnaire, dernier salaire annuel sinon'''
         workstate = workstate.copy()
-        wk_selection = workstate.isin(self.code_regime).array*workstate.array.copy()
-        index_selection = zip(nonzero(wk_selection)[0], nonzero(wk_selection)[1])
-        groups = defaultdict(list)
-        dict_by_rows = dict()
-        for obj in index_selection:
-            groups[obj[0]].append(obj[1])
-            dict_by_rows.update(groups)
-        index_row = [id_row for id_row in dict_by_rows.keys()]
-        index_col = [max(id_cols) for id_cols in dict_by_rows.values()]
-        #index = [(id_row, max(id_cols)) for id_row, id_cols in dict_by_rows.iteritems()]
-        output = zeros(workstate.array.shape[0])
+        wk_selection = workstate.isin(self.code_regime).array*workstate.array
+
+        len_dates = wk_selection.shape[1]
+        nrows = wk_selection.shape[0]
+        output = zeros(nrows)
+        for date in reversed(range(len_dates)):
+            cond = wk_selection[:,date] != 0
+            cond = cond & (output == 0)
+            output[cond] = date
+            
+#             # some ideas to faster the calculation
+#         len_dates = wk_selection.shape[1]
+#         output = wk_selection.argmax(axis=1) 
+#         obvious_case1 = (wk_selection.max(axis=1) == 0) | (wk_selection.max(axis=1) == min(self.code_regime)) #on a directement la valeur 
+                                                                                                            # et avec argmac l'indice
+#         obvious_case2 = wk_selection[:,-1] != 0 # on sait que c'est le dernier
+#         output[obvious_case2] = len_dates - 1 #-1 because it's the index of last column
+#         
+#         not_yet_selected = (~obvious_case1) & (~obvious_case2)
+#         output[not_yet_selected] = -1 # si on réduit, on va peut-être plus vite
+#         subset = wk_selection[not_yet_selected,:-1] #we know from obvious case2 condition that there are zero on last column
+#         for date in reversed(range(len_dates-1)):
+#             cond = subset[:,date] != 0
+#             output[not_yet_selected[cond]] = date
+        selected_output = output[output != 0]
+        selected_rows = array(range(nrows))[output != 0]
+        workstate.array[(selected_rows.tolist(), selected_output.tolist())]
         if option == 'sali':
-            output[index_row] = sali.array[(index_row, index_col)]
+            output[selected_rows.tolist()] = sali.array[(selected_rows.tolist(), selected_output.tolist())]
             return output
         else:
-            output[index_row] = workstate.array[(index_row, index_col)]
+            output[selected_rows.tolist()] = workstate.array[(selected_rows.tolist(), selected_output.tolist())]
             return output
 
              
