@@ -11,7 +11,7 @@ from numpy import maximum, minimum, array, divide, zeros, multiply, ceil
 from pandas import DataFrame
 
 from regime import RegimeBase
-from utils_pension import valbytranches, build_long_values, build_salref_bareme, _info_numpy, print_multi_info_numpy
+from utils_pension import build_long_values, build_salref_bareme, _info_numpy, print_multi_info_numpy
 from pension_functions import nb_trim_surcote, sal_to_trimcot, unemployment_trimesters
 
 code_avpf = 8
@@ -50,7 +50,7 @@ class RegimeGeneral(RegimeBase):
         
     def _age_start_surcote(self, workstate=None):
         P = reduce(getattr, self.param_name.split('.'), self.P)
-        return valbytranches(P.age_min, self.info_ind)
+        return P.age_min
 
     def nb_trim_cot(self, workstate, sali, table=False):
         ''' Nombre de trimestres côtisés pour le régime général par année 
@@ -152,7 +152,7 @@ class RegimeGeneral(RegimeBase):
         notamment application du plafonnement à un PSS'''
         yearsim = self.yearsim
         P = reduce(getattr, self.param_name.split('.'), self.P)
-        nb_best_years_to_take = valbytranches(P.nb_sam, self.info_ind)
+        nb_best_years_to_take = P.nb_sam
         plafond = build_long_values(param_long=self.P_longit.common.plaf_ss, first_year=first_year_sal, last_year=yearsim)
         revalo = build_long_values(param_long=self.P_longit.prive.RG.revalo, first_year=first_year_sal, last_year=yearsim)
      
@@ -205,7 +205,6 @@ class RegimeGeneral(RegimeBase):
         ''' Calcul du coefficient de proratisation '''
         P =  reduce(getattr, self.param_name.split('.'), self.P)
         yearsim = self.yearsim
-        N_CP = valbytranches(P.N_CP, info_ind)
         trim_cot_RG = regime['trim_tot'] 
         trim_FP_to_RG = regime['trim_by_year_FP_to'].array.sum(1)
         trim_RG = trim_cot_RG + trim_FP_to_RG
@@ -219,17 +218,17 @@ class RegimeGeneral(RegimeBase):
         elif yearsim < 1975:
             trim_RG = min(trim_RG, 144)   
         else:
-            trim_RG = minimum(N_CP, trim_RG)
-        CP = minimum(1, trim_RG / N_CP)
+            trim_RG = minimum(P.N_CP, trim_RG)
+        CP = minimum(1, trim_RG / P.N_CP)
         return CP
     
     def _decote(self, trim_tot, agem):
         ''' Détermination de la décote à appliquer aux pensions '''
         yearsim = self.yearsim
         P = reduce(getattr, self.param_name.split('.'), self.P)
-        tx_decote = valbytranches(P.decote.taux, self.info_ind)
-        age_annulation = valbytranches(P.decote.age_null, self.info_ind)
-        N_taux = valbytranches(P.plein.N_taux, self.info_ind)
+        tx_decote = P.decote.taux
+        age_annulation = P.decote.age_null
+        N_taux =P.plein.N_taux
         if yearsim < 1983:
             trim_decote = max(0, divide(age_annulation - agem, 3))
         else:
@@ -247,7 +246,7 @@ class RegimeGeneral(RegimeBase):
         trim_maj = trimestres['trim_maj']
         trim_by_year_tot = trimestres['trim_by_year_tot']
         #trim_maj_tot = trimestres['trim_maj_tot']
-        N_taux = valbytranches(P.plein.N_taux, self.info_ind)
+        N_taux = P.plein.N_taux
       
         def _trimestre_surcote_0304(trim_by_year_RG, date_start_surcote, P):
             ''' surcote associée aux trimestres côtisés en 2003 
@@ -309,18 +308,16 @@ class RegimeGeneral(RegimeBase):
         + mécanisme de répartition si cotisations à plusieurs régimes'''
         yearsim = self.yearsim
         P = reduce(getattr, self.param_name.split('.'), self.P)
-        N_taux = valbytranches(P.plein.N_taux, self.info_ind)
-        N_CP = valbytranches(P.N_CP, self.info_ind)
-        
+        N_taux = P.plein.N_taux
         if yearsim < 2004:
             mico = P.mico.entier 
             # TODO: règle relativement complexe à implémenter de la limite de cumul (voir site CNAV)
-            return  maximum(0, mico - pension_RG)*minimum(1, divide(trim_cot, N_CP))
+            return  maximum(0, mico - pension_RG)*minimum(1, divide(trim_cot, P.N_CP))
         else:
             mico_entier = P.mico.entier
             mico_maj = P.mico.entier_maj
             RG_exclusif = ( pension_RG == pension) | (trim <= N_taux)
-            mico_RG = mico_entier + minimum(1, divide(trim_cot, N_CP))*(mico_maj - mico_entier)
+            mico_RG = mico_entier + minimum(1, divide(trim_cot, P.N_CP))*(mico_maj - mico_entier)
             mico =  mico_RG*( RG_exclusif + (1 - RG_exclusif)*divide(trim_RG, trim))
             return maximum(0, mico - pension_RG)
         

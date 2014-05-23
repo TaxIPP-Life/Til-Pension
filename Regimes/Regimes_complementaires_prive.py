@@ -21,9 +21,6 @@ class AGIRC(RegimeComplementaires):
         self.param_name = 'prive.complementaire.agirc'
         self.param_RG = 'prive.RG'
         self.code_cadre = 4
-        self.info_ind = None
-        self.info_child_mother = None
-        self.info_child_father = None
         
     def sali_for_regime(self, workstate, sali):
         return sali.array*(workstate.isin(self.code_regime).array)

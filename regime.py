@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
-from numpy import maximum, minimum, array, nan_to_num, greater, divide, around, zeros
+from numpy import maximum, array, nan_to_num, greater, divide, around, zeros
 from pandas import Series
 from time_array import TimeArray
-from utils_pension import build_long_values, build_long_baremes, valbytranches
+from utils_pension import build_long_values, build_long_baremes
 first_year_sal = 1949
 
 class Regime(object):
@@ -16,10 +16,8 @@ class Regime(object):
         self.code_regime = None
         self.regime = None
         self.param_name = None
-        
-        self.info_ind = None
-        self.dates = None
-        
+    
+        self.dates = None     
         self.time_step = None
         self.data_type = None
         self.first_year = None
@@ -69,8 +67,7 @@ class Regime(object):
         Rq : pour l'instant on pourrait ne renvoyer que l'année'''
         
         P = reduce(getattr, self.param_name.split('.'), self.P)
-        N_taux = valbytranches(P.plein.N_taux, self.info_ind)
-        
+        N_taux = P.plein.N_taux
         cumul_trim = trim_by_year_tot.array.cumsum(axis=1)
         trim_limit = array((N_taux - nan_to_num(trim_maj)))
         years_surcote = greater(cumul_trim.T,trim_limit)
@@ -198,8 +195,8 @@ class RegimeComplementaires(Regime):
         ''' TODO: add surcote  pour avant 1955 '''
         P = reduce(getattr, self.param_name.split('.'), self.P)
         coef_mino = P.coef_mino
-        age_annulation_decote = valbytranches(self.P.prive.RG.decote.age_null, self.info_ind) #TODO: change the param place
-        N_taux = valbytranches(self.P.prive.RG.plein.N_taux, self.info_ind) #TODO: change the param place
+        age_annulation_decote = self.P.prive.RG.decote.age_null
+        N_taux = self.P.prive.RG.plein.N_taux
         diff_age = maximum(divide(age_annulation_decote - agem, 12), 0)
         coeff_min = Series(zeros(len(agem)), index=agem.index)
         coeff_maj = Series(zeros(len(agem)), index=agem.index)

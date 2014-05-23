@@ -11,7 +11,6 @@ from pandas import Series
 from regime import RegimeBase
 from pension_functions import nb_trim_surcote
 from time_array import TimeArray
-from utils_pension import valbytranches
 
 code_avpf = 8
 code_chomage = 5
@@ -48,8 +47,8 @@ class FonctionPublique(RegimeBase):
         P = self.P.public.fp
         trim_actif = self.nb_trim_valide(workstate, self.code_actif)
         # age_min = age_min_actif pour les fonctionnaires actif en fin de carrières ou carrière mixte ayant une durée de service actif suffisante
-        age_min_s = valbytranches(P.sedentaire.age_min, self.info_ind)
-        age_min_a = valbytranches(P.actif.age_min, self.info_ind)
+        age_min_s = P.sedentaire.age_min
+        age_min_a = P.actif.age_min
         age_min = age_min_a*(trim_actif >= P.actif.N_min) + age_min_s*(trim_actif < P.actif.N_min)
         return age_min
     
@@ -58,8 +57,8 @@ class FonctionPublique(RegimeBase):
         last_fp = self._traitement(workstate, sali)
         actif = (last_fp == self.code_actif)
         sedentaire = (1 - actif)*(last_fp != 0)
-        age_max_s = valbytranches(P.sedentaire.age_max, self.info_ind)
-        age_max_a = valbytranches(P.actif.age_max, self.info_ind)
+        age_max_s = P.sedentaire.age_max
+        age_max_a = P.actif.age_max
         age_max = actif*age_max_a + sedentaire*age_max_s
         return age_max
 
@@ -148,7 +147,7 @@ class FonctionPublique(RegimeBase):
         P = self.P.public.fp
         taux = P.plein.taux
         taux_bonif = P.taux_bonif
-        N_CP = valbytranches(P.plein.N_taux, info_ind) 
+        N_CP = P.plein.N_taux
         trim_regime = regime['trim_tot']
         trim_bonif_5eme = self.trim_bonif_5eme(trim_regime)
         CP_5eme = minimum(divide(trim_regime + trim_bonif_5eme, N_CP), 1)
@@ -164,12 +163,12 @@ class FonctionPublique(RegimeBase):
         else:
             P = reduce(getattr, self.param_name.split('.'), self.P)
             try:
-                tx_decote = valbytranches(P.decote.taux, self.info_ind)
-                age_annulation = valbytranches(P.decote.age_null, self.info_ind)
+                tx_decote = P.decote.taux
+                age_annulation = P.decote.age_null
             except:
                 import pdb
                 pdb.set_trace()
-            N_taux = valbytranches(P.plein.N_taux, self.info_ind)
+            N_taux = P.plein.N_taux
             trim_decote_age = divide(age_annulation - agem, 3)
             trim_decote_cot = N_taux - trim_tot
             assert len(trim_decote_age) == len(trim_decote_cot)
