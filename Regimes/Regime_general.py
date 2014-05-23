@@ -7,11 +7,11 @@ parentdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.sys.path.insert(0,parentdir) 
 from time_array import TimeArray
 
-from numpy import maximum, minimum, array, divide, zeros, multiply, ceil, sort, apply_along_axis
-from pandas import DataFrame, Series
+from numpy import maximum, minimum, array, divide, zeros, multiply, ceil
+from pandas import DataFrame
 
 from regime import RegimeBase
-from utils_pension import valbytranches, table_selected_dates, build_long_values, build_salref_bareme, _info_numpy, print_multi_info_numpy
+from utils_pension import valbytranches, build_long_values, build_salref_bareme, _info_numpy, print_multi_info_numpy
 from pension_functions import nb_trim_surcote, sal_to_trimcot, unemployment_trimesters
 
 code_avpf = 8
@@ -42,7 +42,7 @@ class RegimeGeneral(RegimeBase):
         sal_for_avpf = self.sal_avpf(workstate,sali)
         output['sal_avpf_RG'] = sal_for_avpf
         nb_trim_avpf = self.nb_trim_avpf(sal_for_avpf)
-        output['trim_maj_RG'] = self.nb_trim_maj(workstate, sali, nb_trim_avpf)
+        output['trim_maj_RG'] = self.nb_trim_maj(nb_trim_avpf)
         output['trim_by_year_RG'] = nb_trim_cot.add(nb_trim_avpf)
         if to_check is not None:
             to_check['DA_RG'] = (output['trim_cot_RG'] + output['trim_ass_RG'] + output['trim_maj_RG']) //4
