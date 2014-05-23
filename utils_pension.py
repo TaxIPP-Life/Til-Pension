@@ -172,14 +172,22 @@ def load_param(param_file, date):
     compact_legislation_long = legislations.compact_long_dated_node_json(long_dated_legislation_json)
     return compact_legislation, compact_legislation_long
 
-def print_info_numpy(np_object, ident, list_ident, text=None):
+def _info_numpy(np_object, ident, list_ident, text=None):
     id_ix = list(list_ident).index(ident)
     if text:
         print str(text) + " : "
     if len(np_object.shape) == 2:
         #type = '2d-matrix'
-        print np_object[id_ix, :]
+        return np_object[id_ix, :]
     else:
         #type = 'vector'
-        print np_object[id_ix]
+        return np_object[id_ix]
 
+def print_multi_info_numpy(list_timearray, ident, list_ident):
+    to_print = {}
+    for timearray in list_timearray:
+        np_object = timearray.array
+        assert len(np_object.shape) == 2
+        to_print[timearray.name] = _info_numpy(np_object, ident, list_ident, text=None)
+    print DataFrame(to_print).to_string()
+        
