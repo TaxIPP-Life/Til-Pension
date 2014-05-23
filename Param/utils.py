@@ -67,7 +67,7 @@ def from_excel_to_xml(data, code, data_date, description, xml = 'test_xml', form
         data_date = data_date[::-1]
 
     with open(xml, "w") as f:
-        to_write = '<CODE description= "' + description + '" code="' + code + '" format="' + format + '">\n'
+        to_write = '<CODE description="' + description + '" code="' + code + '" format="' + format + '">\n'
         f.write(to_write)
         # Insertions des paramètres
         for i in range(len(data)):
@@ -113,8 +113,8 @@ if __name__ == '__main__':
         data = [w.replace('FRF', '')  for w in data]
         data = [w.replace(' ', '') for w in data]
         data = np.array(data, dtype = np.float)
-        data[ix:] = data[ix:] / 6.5596
-        return data
+        data[ix:] =data[ix:] / 6.5596
+        return data.round(2)
     
     def _oldfrancs_to_francs(data,ix):
         data = [w.replace(',', '.') for w in data.astype(str)] 
@@ -212,8 +212,10 @@ if __name__ == '__main__':
     data = xlsxfile.parse('AVPF', index_col = None, header = True)
     avpf = data["Montant mensuel de l'Assurance vieillesse des parents au foyer (AVPF)"][1:50]
     dates = data[u"Date d'entrée en vigueur"][1:50]
-    avpf = np.array(avpf)
+    avpf =  _francs_to_euro(np.array(avpf), 15)
     dates = np.array(dates)
+    print avpf
+    print
     from_excel_to_xml(data=avpf, description = "Assurance vieillesse des parents au foyer", code = "avpf", format = "float", data_date = dates)
     
 
