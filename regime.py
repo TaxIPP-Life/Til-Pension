@@ -77,7 +77,7 @@ class Regime(object):
         nb_years_surcote = years_surcote.sum(axis=0)
         return nb_years_surcote
        
-    def calculate_taux(self, workstate, trimestres, to_check=None):
+    def calculate_taux(self, workstate, info_ind, trimestres, to_check=None):
         ''' Détérmination du taux de liquidation à appliquer à la pension 
             La formule générale est taux pondéré par (1+surcote-decote)
             _surcote and _decote are called
@@ -87,7 +87,7 @@ class Regime(object):
         trim_by_year_tot = trimestres['trim_by_year_tot']
         trim_tot = trim_by_year_tot.array.sum(1)
         taux_plein = P.plein.taux
-        agem = self.info_ind['agem']
+        agem = info_ind['agem']
         decote = self._decote(trim_tot, agem)
 #         date_start_surcote = self._date_start_surcote(trim_by_year_tot, trim_maj_tot, agem)
         surcote = self._surcote(workstate, trimestres, agem)
@@ -104,10 +104,10 @@ class Regime(object):
 #         self.sal_regime = sali.array*_isin(self.workstate.array,self.code_regime)
         raise NotImplementedError
     
-    def calculate_pension(self, workstate, sali, trimestres, to_check=None):
+    def calculate_pension(self, workstate, sali, info_ind, trimestres, to_check=None):
         reg = self.regime
-        taux = self.calculate_taux(workstate, trimestres, to_check)
-        cp = self.calculate_coeff_proratisation(trimestres)
+        taux = self.calculate_taux(workstate, info_ind, trimestres, to_check)
+        cp = self.calculate_coeff_proratisation(info_ind, trimestres)
         salref = self.calculate_salref(workstate, sali, trimestres)
         if to_check is not None:
             to_check['CP_' + reg] = cp
@@ -218,17 +218,16 @@ class RegimeComplementaires(Regime):
     def majoration_enf(self):     
         raise NotImplementedError
     
-    def calculate_pension(self, workstate, sali, trim_base, to_check=None):
+    def calculate_pension(self, workstate, sali, info_ind, trim_base, to_check=None):
         reg = self.regime
         P = reduce(getattr, self.param_name.split('.'), self.P)
         val_arrco = P.val_point 
-        agem = self.info_ind['agem']
         nb_points = self.nombre_points(workstate, sali)
-        coeff_age = self.coefficient_age(agem, trim_base)
-        maj_enf = self.majoration_enf(workstate, sali, nb_points, coeff_age, agem)
+        coeff_age = self.coefficient_age(info_ind['agem'], trim_base)
+        maj_enf = self.majoration_enf(workstate, sali, info_ind, nb_points, coeff_age)
         
         if to_check is not None:
             to_check['nb_points_' + reg] = nb_points
             to_check['coeff_age_' + reg] = coeff_age
             to_check['maj_' + reg] = maj_enf
-        return val_arrco * nb_points * coeff_age + maj_enf
+        return val_arrco*nb_points*coeff_age + maj_enf

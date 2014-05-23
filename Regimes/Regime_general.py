@@ -33,7 +33,7 @@ class RegimeGeneral(RegimeBase):
         self.param_name = 'prive.RG'
      
      
-    def get_trimester(self, workstate, sali, to_check=False):
+    def get_trimester(self, workstate, sali, info_ind, to_check=False):
         output = dict()
         nb_trim_cot = self.nb_trim_cot(workstate, sali)
         output['trim_cot_RG']  = nb_trim_cot.array.sum(axis=1)
@@ -42,7 +42,7 @@ class RegimeGeneral(RegimeBase):
         sal_for_avpf = self.sal_avpf(workstate,sali)
         output['sal_avpf_RG'] = sal_for_avpf
         nb_trim_avpf = self.nb_trim_avpf(sal_for_avpf)
-        output['trim_maj_RG'] = self.nb_trim_maj(nb_trim_avpf)
+        output['trim_maj_RG'] = self.nb_trim_maj(info_ind, nb_trim_avpf)
         output['trim_by_year_RG'] = nb_trim_cot.add(nb_trim_avpf)
         if to_check is not None:
             to_check['DA_RG'] = (output['trim_cot_RG'] + output['trim_ass_RG'] + output['trim_maj_RG']) //4
@@ -110,7 +110,7 @@ class RegimeGeneral(RegimeBase):
         trim_avpf_by_year = sal_to_trimcot(sal_avpf, salref, plafond=10)
         return trim_avpf_by_year
     
-    def nb_trim_maj(self, trim_avpf_by_year):
+    def nb_trim_maj(self, info_ind, trim_avpf_by_year):
         ''' Trimestres majorants acquis au titre de la MDA, 
             de l'assurance pour congé parental ou de l'AVPF '''
         
@@ -136,8 +136,8 @@ class RegimeGeneral(RegimeBase):
                 mda.loc[info_child.index.values, 'mda'] = 8*info_child.values
                 return mda['mda'].astype(int)
 
-        child_mother = self.info_ind.loc[self.info_ind['sexe'] == 1, 'nb_born']
-        list_id = self.info_ind.index
+        child_mother = info_ind.loc[info_ind['sexe'] == 1, 'nb_born']
+        list_id = info_ind.index
         yearsim = self.yearsim
         if child_mother is not None:
             nb_trim_mda = _trim_mda(child_mother, list_id, yearsim)
@@ -201,11 +201,11 @@ class RegimeGeneral(RegimeBase):
             trim_corr = trim_RG*(1 + P.tx_maj*trim_majo*elig_majo )
             return trim_corr  
         
-    def calculate_coeff_proratisation(self, regime):
+    def calculate_coeff_proratisation(self, info_ind, regime):
         ''' Calcul du coefficient de proratisation '''
         P =  reduce(getattr, self.param_name.split('.'), self.P)
         yearsim = self.yearsim
-        N_CP = valbytranches(P.N_CP, self.info_ind)
+        N_CP = valbytranches(P.N_CP, info_ind)
         trim_cot_RG = regime['trim_tot'] 
         trim_FP_to_RG = regime['trim_by_year_FP_to'].array.sum(1)
         trim_RG = trim_cot_RG + trim_FP_to_RG
@@ -236,7 +236,6 @@ class RegimeGeneral(RegimeBase):
             decote_age = divide(age_annulation - agem, 3)
             decote_cot = N_taux - trim_tot
             assert len(decote_age) == len(decote_cot)
-
             trim_decote = maximum(0, minimum(decote_age, decote_cot))
         return trim_decote*tx_decote
         

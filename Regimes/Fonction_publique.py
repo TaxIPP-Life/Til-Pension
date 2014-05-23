@@ -29,7 +29,7 @@ class FonctionPublique(RegimeBase):
         self.code_sedentaire = 6
         self.code_actif = 5
 
-    def get_trimester(self, workstate, sali, to_check):
+    def get_trimester(self, workstate, sali, info_ind, to_check):
         output = dict()
         trim_valide = self.nb_trim_valide(workstate, table=True)
         trim_by_year_to_RG = self.trim_to_RG(workstate, sali, trim_valide)
@@ -38,7 +38,7 @@ class FonctionPublique(RegimeBase):
         output['sali_FP_to_RG'] = self.sali_to_RG(workstate, sali, trim_by_year_to_RG)
         output['trim_cot_FP'] = trim_valide.array.sum(1)
         output['actif_FP'] = self.nb_trim_valide(workstate, self.code_actif)
-        output['trim_maj_FP'] = self.trim_bonif_CPCM(output['trim_cot_FP']) + self.trim_bonif_5eme(output['trim_cot_FP'])
+        output['trim_maj_FP'] = self.trim_bonif_CPCM(info_ind, output['trim_cot_FP']) + self.trim_bonif_5eme(output['trim_cot_FP'])
         self.trim_actif = output['actif_FP'] 
         if to_check :
             to_check['DA_FP'] = (output['trim_cot_RG'] + output['trim_maj_FP']) //4
@@ -130,10 +130,10 @@ class FonctionPublique(RegimeBase):
         sali_array = transpose((workstate.isin(self.code_regime).array*sali.array).T*to_RG.T)
         return TimeArray(sali_array, sali.dates)
         
-    def trim_bonif_CPCM(self, trim_cot):
+    def trim_bonif_CPCM(self, info_ind, trim_cot):
         # TODO: autres bonifs : déportés politiques, campagnes militaires, services aériens, dépaysement 
-        info_child = self.info_ind.loc[self.info_ind['sexe'] == 1, 'nb_born'] #Majoration attribuée aux mères uniquement
-        bonif_enf = Series(0, index = self.info_ind.index)
+        info_child = info_ind.loc[info_ind['sexe'] == 1, 'nb_born'] #Majoration attribuée aux mères uniquement
+        bonif_enf = Series(0, index = info_ind.index)
         bonif_enf[info_child.index.values] = 4*info_child.values
         return array(bonif_enf*(trim_cot>0)) #+...
     
@@ -144,15 +144,15 @@ class FonctionPublique(RegimeBase):
         bonif_5eme = minimum(trim_cot*taux_5eme, 5*4)
         return array(bonif_5eme*super_actif)
     
-    def calculate_coeff_proratisation(self, regime):
+    def calculate_coeff_proratisation(self, info_ind, regime):
         P = self.P.public.fp
         taux = P.plein.taux
         taux_bonif = P.taux_bonif
-        N_CP = valbytranches(P.plein.N_taux, self.info_ind) 
+        N_CP = valbytranches(P.plein.N_taux, info_ind) 
         trim_regime = regime['trim_tot']
         trim_bonif_5eme = self.trim_bonif_5eme(trim_regime)
         CP_5eme = minimum(divide(trim_regime + trim_bonif_5eme, N_CP), 1)
-        trim_bonif_CPCM = self.trim_bonif_CPCM(trim_regime)
+        trim_bonif_CPCM = self.trim_bonif_CPCM(info_ind, trim_regime)
         CP_CPCM = minimum(divide(maximum(trim_regime, N_CP) + trim_bonif_CPCM, N_CP), divide(taux_bonif, taux))
         return maximum(CP_5eme, CP_CPCM)
 
