@@ -11,10 +11,11 @@ def determine_frequency(dates):
 
 class TimeArray(object):
     
-    def __init__(self, array, dates):
+    def __init__(self, array, dates, name=None):
         self.array = array
         self.dates = dates
         self.frequency = determine_frequency(dates)
+        self.name = name
     
     def copy(self):
         return TimeArray(self.array.copy(), self.dates)
@@ -105,3 +106,14 @@ class TimeArray(object):
         sali_sam[:,-1] = nb_best_dates
         salref = apply_along_axis(mean_best_dates_row, axis=1, arr=sali_sam)
         return salref.round(2)
+    
+    def add(self, other_time_array):
+        array = self.array.copy()
+        dates = self.dates
+        other_dates = other_time_array.dates
+        test_dates = [date for date in other_dates if date in dates]
+        assert test_dates == other_dates
+        assert array.shape[0] == other_time_array.array.shape[0]
+        list_ix_col = [list(dates).index(date) for date in other_dates]
+        array[:,list_ix_col] += other_time_array.array
+        return TimeArray(array, dates)
