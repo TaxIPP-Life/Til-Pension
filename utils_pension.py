@@ -32,20 +32,6 @@ def substract_months(sourcedate, months):
     day = min(sourcedate.day,calendar.monthrange(year,month)[1])
     return dt.date(year,month,day)
 
-def valbytranches(param, info_ind):
-    ''' Associe à chaque individu la bonne valeur du paramètre selon la valeur de la variable de control 
-    var_control spécifié au format date (exemple : date de naissance) '''
-    if isinstance(param, float) or isinstance(param, int):
-        return param
-    if '_control' in  param.__dict__ :
-        var_control = info_ind[str(param.control)]
-        param_indiv = var_control.copy()
-        for i in range(param._nb) :
-            param_indiv[(var_control >= param._tranches[i][0])] = param._tranches[i][1]
-        return param_indiv
-    else:
-        return param
-
 
 def build_long_values(param_long, first_year, last_year):   
     ''' Cette fonction permet de traduire les paramètres longitudinaux en vecteur numpy 
@@ -158,7 +144,7 @@ def table_selected_dates(table, dates, first_year=None, last_year=None):
     idx_to_take = range(idx1, idx2)
     return table[:,idx_to_take]
 
-def load_param(param_file, date):
+def load_param(param_file, info_ind, date):
     ''' It's a simplification of an (old) openfisca program '''
     legislation_tree = ElementTree.parse(param_file)
     legislation_xml_json = conv.check(legislationsxml.xml_legislation_to_json)(legislation_tree.getroot(),
@@ -167,7 +153,7 @@ def load_param(param_file, date):
         state = conv.default_state)
     _, legislation_json = legislationsxml.transform_node_xml_json_to_json(legislation_xml_json)
     dated_legislation_json = legislations.generate_dated_legislation_json(legislation_json, date)
-    compact_legislation = legislations.compact_dated_node_json(dated_legislation_json)
+    compact_legislation = legislations.compact_dated_node_json(dated_legislation_json, info_ind)
     long_dated_legislation_json = legislations.generate_long_legislation_json(legislation_json, date)
     compact_legislation_long = legislations.compact_long_dated_node_json(long_dated_legislation_json)
     return compact_legislation, compact_legislation_long

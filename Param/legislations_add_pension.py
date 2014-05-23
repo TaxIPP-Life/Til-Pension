@@ -32,7 +32,19 @@ import itertools
 
 from openfisca_core import conv
 from Scales import Bareme, Generation
-
+def valbytranches(param, info_ind):
+    ''' Associe à chaque individu la bonne valeur du paramètre selon la valeur de la variable de control 
+    var_control spécifié au format date (exemple : date de naissance) '''
+    if isinstance(param, float) or isinstance(param, int):
+        return param
+    if '_control' in  param.__dict__ :
+        var_control = info_ind[str(param.control)]
+        param_indiv = var_control.copy()
+        for i in range(param._nb) :
+            param_indiv[(var_control >= param._tranches[i][0])] = param._tranches[i][1]
+        return param_indiv
+    else:
+        return param
 
 units = [
     u'currency',
@@ -54,7 +66,7 @@ class CompactNode(object):
 # Functions
 
 
-def compact_dated_node_json(dated_node_json, code = None):
+def compact_dated_node_json(dated_node_json, info_ind, code = None):
     node_type = dated_node_json['@type']
     if node_type == u'Node':
         compact_node = CompactNode()
@@ -63,7 +75,7 @@ def compact_dated_node_json(dated_node_json, code = None):
             compact_node.datesim = datetime.date(*(int(fragment) for fragment in dated_node_json['datesim'].split('-')))
         compact_node_dict = compact_node.__dict__
         for key, value in dated_node_json['children'].iteritems():
-            compact_node_dict[key] = compact_dated_node_json(value, code = key)
+            compact_node_dict[key] = compact_dated_node_json(value, info_ind, code = key)
         return compact_node
     if node_type == 'Parameter':
         return dated_node_json.get('value')
@@ -85,7 +97,7 @@ def compact_dated_node_json(dated_node_json, code = None):
             threshold = dated_slice_json.get('threshold')
             if val is not None and threshold is not None:
                 generation.addTranche(threshold, val)
-        return generation
+        return valbytranches(generation, info_ind)
     
 def compact_long_dated_node_json(long_node_json, code = None):
     node_type = long_node_json['@type']
