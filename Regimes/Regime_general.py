@@ -180,7 +180,8 @@ class RegimeGeneral(RegimeBase):
         if revalo is not None:
             assert sal_regime.array.shape[1] == len(revalo)
             sal_regime.array = multiply(sal_regime.array,revalo)
-        return sal_regime.best_dates_mean(nb_best_years_to_take)
+        salref = sal_regime.best_dates_mean(nb_best_years_to_take)
+        return salref.round(2)
     
     def assurance_maj(self, trim_RG, trim_tot, agem):
         ''' Détermination de la durée d'assurance corrigée introduite par la réforme Boulin

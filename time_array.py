@@ -92,20 +92,20 @@ class TimeArray(object):
     def best_dates_mean(self, nb_best_dates):
         ''' Cette fonction renvoie le vecteur de la moyenne des 'nb_best_dates' 
         meilleures états de la matrice associée au TimeArray'''
-        def mean_best_dates_row(data):
-            years_sali = data[-1]
-            if years_sali == 0 :
+        def mean_best_dates_row(row):
+            nb_best = row[-1]
+            if nb_best == 0 :
                 return 0
-            data = sort(data[:-1])
-            data = data[-years_sali:]
-            return data.sum() / years_sali
+            row = sort(row[:-1])
+            row = row[-nb_best:]
+            return row.sum()/nb_best
         
-        data = self.array
-        sali_sam = zeros((data.shape[0], data.shape[1]+1))
-        sali_sam[:,:-1] = data
-        sali_sam[:,-1] = nb_best_dates
-        salref = apply_along_axis(mean_best_dates_row, axis=1, arr=sali_sam)
-        return salref.round(2)
+        array = self.array
+        array_ = zeros((array.shape[0], array.shape[1]+1))
+        array_[:,:-1] = array
+        array_[:,-1] = nb_best_dates
+        return apply_along_axis(mean_best_dates_row, axis=1, arr=array_)
+    
     
     def add(self, other_time_array):
         array = self.array.copy()
