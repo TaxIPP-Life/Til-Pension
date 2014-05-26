@@ -2609,6 +2609,143 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 	 	</NODE> 
 	 </NODE> 
  </NODE>
+ <NODE description="Retraite des non-salariés" code="indep" >
+  	<NODE description="Régime Social des indépendants" code="rsi" >
+  	  <VALBYTRANCHES description=" Nombre d'années prises en compte pour le RAM" code="nb_ram" format="integer">
+ 		<VARCONTROL>
+		  <CONTROL valeur="naiss" deb="1994-01-01" fin="2100-12-31" format="date"/>
+	    </VARCONTROL> 
+	    <TRANCHE code ="tranche1">
+	      <SEUIL>
+  	        <VALUE valeur="1900-01-01" deb="1972-01-01" fin="2100-12-31"/>
+		  </SEUIL>
+		  <VALEUR>
+		    <VALUE valeur="10" deb="1945-01-01" fin="2100-12-31"/>
+		  </VALEUR>
+		</TRANCHE>
+		<TRANCHE code ="tranche2">
+	      <SEUIL>
+		    <VALUE valeur="1934-01-01" deb="1994-01-01" fin="2100-12-31"/>
+		  </SEUIL>
+		  <VALEUR>
+		    <VALUE valeur="11" deb="1994-01-01" fin="2100-12-31"/>
+		  </VALEUR>
+	    </TRANCHE>
+	    <TRANCHE code ="tranche3">
+	      <SEUIL>
+		    <VALUE valeur="1936-01-01" deb="1994-01-01" fin="2100-12-31"/>
+	      </SEUIL>
+	      <VALEUR>
+		    <VALUE valeur="12" deb="1994-01-01" fin="2100-12-31"/>
+	      </VALEUR>
+	    </TRANCHE>
+	    <TRANCHE code ="tranche4">
+	      <SEUIL>
+		    <VALUE valeur="1938-01-01" deb="1994-01-01" fin="2100-12-31"/>
+          </SEUIL>
+	      <VALEUR>
+	  	    <VALUE valeur="13" deb="2011-07-01" fin="2100-12-31"/>
+	      </VALEUR>
+        </TRANCHE>
+	    <TRANCHE code ="tranche5">
+	      <SEUIL>
+	  	    <VALUE valeur="1940-01-01" deb="1994-01-01" fin="2100-12-31"/>
+	      </SEUIL>
+	      <VALEUR>
+	  	    <VALUE valeur="14" deb="1994-01-01" fin="2100-12-31"/>
+	      </VALEUR>
+	    </TRANCHE>
+        <TRANCHE code ="tranche6">
+          <SEUIL>
+      	    <VALUE valeur="1942-01-01" deb="1994-01-01" fin="2100-12-31"/>
+          </SEUIL>
+          <VALEUR>
+      	    <VALUE valeur="15" deb="1994-01-01" fin="2100-12-31"/>
+          </VALEUR>
+        </TRANCHE>
+       	<TRANCHE code ="tranche7">
+	      <SEUIL>
+  	        <VALUE valeur="1944-01-01" deb="1994-01-01" fin="2100-12-31"/>
+		  </SEUIL>
+		  <VALEUR>
+		    <VALUE valeur="16" deb="1945-01-01" fin="2100-12-31"/>
+		  </VALEUR>
+		</TRANCHE>
+		<TRANCHE code ="tranche8">
+	      <SEUIL>
+		    <VALUE valeur="1945-01-01" deb="1994-01-01" fin="2100-12-31"/>
+		  </SEUIL>
+		  <VALEUR>
+		    <VALUE valeur="17" deb="1994-01-01" fin="2100-12-31"/>
+		  </VALEUR>
+	    </TRANCHE>
+	    <TRANCHE code ="tranche9">
+	      <SEUIL>
+		    <VALUE valeur="1946-01-01" deb="1994-01-01" fin="2100-12-31"/>
+	      </SEUIL>
+	      <VALEUR>
+		    <VALUE valeur="18" deb="1994-01-01" fin="2100-12-31"/>
+	      </VALEUR>
+	    </TRANCHE>
+	    <TRANCHE code ="tranche10">
+	      <SEUIL>
+		    <VALUE valeur="1947-01-01" deb="1994-01-01" fin="2100-12-31"/>
+          </SEUIL>
+	      <VALEUR>
+	  	    <VALUE valeur="19" deb="2011-07-01" fin="2100-12-31"/>
+	      </VALEUR>
+        </TRANCHE>
+	    <TRANCHE code ="tranche11">
+	      <SEUIL>
+	  	    <VALUE valeur="1948-01-01" deb="1994-01-01" fin="2100-12-31"/>
+	      </SEUIL>
+	      <VALEUR>
+	  	    <VALUE valeur="20" deb="1994-01-01" fin="2100-12-31"/>
+	      </VALEUR>
+	    </TRANCHE>
+        <TRANCHE code ="tranche12">
+          <SEUIL>
+      	    <VALUE valeur="1949-01-01" deb="1994-01-01" fin="2100-12-31"/>
+          </SEUIL>
+          <VALEUR>
+      	    <VALUE valeur="21" deb="1994-01-01" fin="2100-12-31"/>
+          </VALEUR>
+        </TRANCHE>
+        <TRANCHE code ="tranche13">
+	      <SEUIL>
+		    <VALUE valeur="1950-01-01" deb="1994-01-01" fin="2100-12-31"/>
+          </SEUIL>
+	      <VALEUR>
+	  	    <VALUE valeur="22" deb="2011-07-01" fin="2100-12-31"/>
+	      </VALEUR>
+        </TRANCHE>
+	    <TRANCHE code ="tranche14">
+	      <SEUIL>
+	  	    <VALUE valeur="1951-01-01" deb="1994-01-01" fin="2100-12-31"/>
+	      </SEUIL>
+	      <VALEUR>
+	  	    <VALUE valeur="23" deb="1994-01-01" fin="2100-12-31"/>
+	      </VALEUR>
+	    </TRANCHE>
+        <TRANCHE code ="tranche15">
+          <SEUIL>
+      	    <VALUE valeur="1952-01-01" deb="1994-01-01" fin="2100-12-31"/>
+          </SEUIL>
+          <VALEUR>
+      	    <VALUE valeur="24" deb="1994-01-01" fin="2100-12-31"/>
+          </VALEUR>
+        </TRANCHE>
+        <TRANCHE code ="tranche16">
+          <SEUIL>
+      	    <VALUE valeur="1953-01-01" deb="2008-01-01" fin="2100-12-31"/>
+          </SEUIL>
+          <VALEUR>
+      	    <VALUE valeur="25" deb="1994-01-01" fin="2100-12-31"/>
+          </VALEUR>
+        </TRANCHE>
+       </VALBYTRANCHES>
+	</NODE>
+  </NODE>
   <NODE description="Retraite du secteur public" code="public">
   	<NODE description="Retraite de base de la fonction publique" code="fp">
   		<NODE description="Taux plein" code="plein" >

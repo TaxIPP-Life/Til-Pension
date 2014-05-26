@@ -7,19 +7,18 @@ parentdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.sys.path.insert(0,parentdir) 
 from time_array import TimeArray
 
-from numpy import maximum, minimum, array, divide, zeros, multiply, ceil
+from numpy import maximum, minimum, array, divide, zeros, multiply
 from pandas import DataFrame
 
-from regime import RegimeBase
+from regime import RegimeBase, compare_destinie
 from utils_pension import build_long_values, build_salref_bareme, _info_numpy, print_multi_info_numpy
 from pension_functions import nb_trim_surcote, sal_to_trimcot, unemployment_trimesters
 
 code_avpf = 8
 code_chomage = 2
 code_preretraite = 9
-first_year_sal = 1949
+#first_year_sal = 1949
 first_year_avpf = 1972
-compare_destinie = True 
 id_test = 186
 
 def date_(year, month, day):
@@ -61,6 +60,7 @@ class RegimeGeneral(RegimeBase):
         ref : code de la sécurité sociale, article R351-9
         '''
         # Selection des salaires à prendre en compte dans le décompte (mois où il y a eu côtisation au régime)
+        first_year_sal = min(workstate.dates) // 100
         wk_selection = workstate.isin(self.code_regime)
         sal_selection = TimeArray(wk_selection.array*sali.array, sali.dates)
         sal_selection.translate_frequency(output_frequency='year', method='sum', inplace=True)
@@ -155,6 +155,7 @@ class RegimeGeneral(RegimeBase):
         yearsim = self.yearsim
         P = reduce(getattr, self.param_name.split('.'), self.P)
         nb_best_years_to_take = P.nb_sam
+        first_year_sal = min(workstate.dates) // 100
         plafond = build_long_values(param_long=self.P_longit.common.plaf_ss, first_year=first_year_sal, last_year=yearsim)
         revalo = build_long_values(param_long=self.P_longit.prive.RG.revalo, first_year=first_year_sal, last_year=yearsim)
      
@@ -167,15 +168,15 @@ class RegimeGeneral(RegimeBase):
             first_ix_avpf = first_year_avpf - first_year_sal
             sal_RG.array[:,first_ix_avpf:] += sal_avpf.array
             sal_RG.array += sali_to_RG.array
-            print_multi_info_numpy([sal_RG, sali, workstate], id_test, self.index)
             return TimeArray(sal_RG.array.round(2), sal_RG.dates)
 
         #TODO: d'ou vient regime['sal'] -> il vient de du calcul du nb de trim cotisés au RG (condition sur workstate + salaire plancher)
         sal_regime = _sali_for_salref(regime['sal'], regime['sal_avpf'], regime['sali_FP_to'])
+        sal_regime.translate_frequency(output_frequency='year', method='sum', inplace=True)
         years_sali = (sal_regime.array != 0).sum(1)
         nb_best_years_to_take = array(nb_best_years_to_take)
         nb_best_years_to_take[years_sali < nb_best_years_to_take] = years_sali[years_sali < nb_best_years_to_take]    
-        sal_regime.translate_frequency(output_frequency='year', method='sum')    
+            
         
         if plafond is not None:
             assert sal_regime.array.shape[1] == len(plafond)
@@ -204,7 +205,9 @@ class RegimeGeneral(RegimeBase):
         ''' Calcul du coefficient de proratisation '''
         P =  reduce(getattr, self.param_name.split('.'), self.P)
         yearsim = self.yearsim
-        trim_RG = regime['trim_tot'] + regime['trim_by_year_FP_to'].array.sum(1)
+        trim_RG = regime['trim_tot'] 
+        if 'trim_by_year_FP_to' in regime.keys():
+            trim_RG += regime['trim_by_year_FP_to'].array.sum(1)
         trim_tot = regime['trim_by_year_tot'].array.sum(1) + regime['trim_maj_tot']
         agem = info_ind['agem']
         trim_CP = self.assurance_maj(trim_RG, trim_RG, agem)
@@ -244,7 +247,10 @@ class RegimeGeneral(RegimeBase):
         yearsim = self.yearsim
         P = reduce(getattr, self.param_name.split('.'), self.P)
         trim_by_year_RG = trimestres['trim_by_year']
-        trim_maj = trimestres['trim_maj']
+        if 'trim_maj' in trimestres.keys() :
+            trim_maj = trimestres['trim_maj']
+        else:
+            trim_maj = 0
         trim_by_year_tot = trimestres['trim_by_year_tot']
         #trim_maj_tot = trimestres['trim_maj_tot']
         N_taux = P.plein.N_taux
