@@ -40,29 +40,22 @@ def select_unemployment(data, code_regime, option='dummy', data_type='numpy'):
             unemp = unemp.replace(1, chomage)
         return unemp == 1
 
-def unemployment_trimesters(timearray, code_regime=None, input_step='month', output=None):
+def unemployment_trimesters(timearray, code_regime=None):
     ''' Input : monthly or yearly-table (lines: indiv, col: dates 'yyyymm') 
     Output : vector with number of trimesters for unemployment'''
     table = timearray.copy()
     if not code_regime:
         print "Indiquer le code identifiant du régime"
-        
-    def _calculate_trim_unemployment(data, step, code_regime):
-        ''' Détermination du vecteur donnant le nombre de trimestres comptabilisés comme chômage pour le RG '''
-        unemp_trim = select_unemployment(data, code_regime)
-        nb_trim = unemp_trim.sum(axis=1)
-        if step == 'month':
-            return divide(nb_trim, 3).round(), unemp_trim
-        else:
-            assert step == 'year'
-            return 4*nb_trim, unemp_trim 
-    table = table.isin(code_regime + [chomage])
-    table.translate_frequency(output_frequency=input_step, inplace=True)
-    nb_trim_chom, unemp_trim = _calculate_trim_unemployment(table.array, step=input_step, code_regime=code_regime)
-    if output == 'table_unemployement':
-        return nb_trim_chom, TimeArray(unemp_trim, table.dates)
+
+    table = table.isin(code_regime + [chomage]) 
+    unemp_trim = select_unemployment(table.array, code_regime)
+    if timearray.frequency == 'month':
+        trim_unemp = TimeArray(divide(unemp_trim,3), timearray.dates)
+        trim_by_year_unemp = trim_unemp.translate_frequency('year', method='sum')
+        return trim_by_year_unemp   
     else:
-        return nb_trim_chom
+        assert timearray.frequency == 'year'
+        return TimeArray(multiply(unemp_trim, 4), timearray.dates)
     
 
 def nb_trim_surcote(trim_by_year, date_start_surcote):
@@ -84,9 +77,8 @@ def nb_trim_surcote(trim_by_year, date_start_surcote):
     return output
 
 def count_enf_pac(info_child, index):
-    info_child['enf_pac'] = ( info_child['age_enf'] <= 18) * ( info_child['age_enf'] >= 0 )
-    info = info_child.groupby(['id_parent', 'enf_pac']).size().reset_index()
-    info = info.loc[info['enf_pac'] == True].drop('enf_pac', 1)
+    info_child['enf_pac'] = ( info_child['age_enf'] <= 18)*( info_child['age_enf'] >= 0 )*info_child['nb_enf']
+    info = info_child.groupby(['id_parent'])['enf_pac'].sum().reset_index()
     info.columns = ['id_parent', 'nb_pac']
     info.index = info['id_parent']
     nb_pac= Series(zeros(len(index)), index=index)
@@ -94,9 +86,8 @@ def count_enf_pac(info_child, index):
     return nb_pac.fillna(0)
 
 def count_enf_born(info_child, index):
-    info_child['enf_born'] =  ( info_child['age_enf'] >= 0 )
-    info = info_child.groupby(['id_parent', 'enf_born']).size().reset_index()
-    info = info.loc[info['enf_born'] == True].drop('enf_born', 1)
+    info_child['enf_born'] =  ( info_child['age_enf'] >= 0 )*info_child['nb_enf']
+    info = info_child.groupby(['id_parent'])['enf_born'].sum().reset_index()
     info.columns = ['id_parent', 'nb_born']
     info.index = info['id_parent']
     nb_born= Series(zeros(len(index)), index=index)

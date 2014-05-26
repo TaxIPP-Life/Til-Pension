@@ -20,6 +20,7 @@ code_preretraite = 9
 first_year_sal = 1949
 first_year_avpf = 1972
 compare_destinie = True 
+id_test = 186
 
 def date_(year, month, day):
     return datetime.date(year, month, day)
@@ -38,14 +39,17 @@ class RegimeGeneral(RegimeBase):
         nb_trim_cot = self.nb_trim_cot(workstate, sali)
         output['trim_cot_RG']  = nb_trim_cot.array.sum(axis=1)
         output['sal_RG'] = self.sali_for_regime(sali, nb_trim_cot)
-        output['trim_ass_RG'] = self.nb_trim_ass(workstate, nb_trim_cot)
+        nb_trim_ass = self.nb_trim_ass(workstate, nb_trim_cot)
+        output['trim_ass_RG'] = nb_trim_ass.array.sum(axis=1)
         sal_for_avpf = self.sal_avpf(workstate,sali)
         output['sal_avpf_RG'] = sal_for_avpf
         nb_trim_avpf = self.nb_trim_avpf(sal_for_avpf)
         output['trim_maj_RG'] = self.nb_trim_maj(info_ind, nb_trim_avpf)
-        output['trim_by_year_RG'] = nb_trim_cot.add(nb_trim_avpf)
+        
+        output['trim_by_year_RG'] = nb_trim_cot.add(nb_trim_avpf).add(nb_trim_ass)
+        output['trim_tot_RG'] = output['trim_cot_RG'] + output['trim_ass_RG'] + output['trim_maj_RG']
         if to_check is not None:
-            to_check['DA_RG'] = (output['trim_cot_RG'] + output['trim_ass_RG'] + output['trim_maj_RG']) //4
+            to_check['DA_RG'] = output['trim_tot_RG']/4
         return output
         
     def _age_start_surcote(self, workstate=None):
@@ -77,14 +81,12 @@ class RegimeGeneral(RegimeBase):
         qui succède directement à une période de côtisation au RG workstate == [3,4]
         TODO: ne pas comptabiliser le chômage de début de carrière
         '''
-        nb_trim_chom, table_chom = unemployment_trimesters(workstate, code_regime=self.code_regime,
-                                                            input_step=self.time_step, output='table_unemployement')
-        nb_trim_ass = nb_trim_chom # TODO: + nb_trim_war + ....
-        trim_by_year = TimeArray(array=nb_trim_cot.array + table_chom.array, 
-                                       dates=[100*year + 1 for year in range(first_year_sal, self.yearsim)])
+        trim_by_year_chom = unemployment_trimesters(workstate, code_regime=self.code_regime)
+        trim_by_year_ass = trim_by_year_chom #+...
+        
         if compare_destinie == True:
-            nb_trim_ass = (workstate.isin([code_chomage, code_preretraite])).array.sum(1)*4
-        return nb_trim_ass
+            trim_by_year_ass.array = (workstate.isin([code_chomage, code_preretraite])).array*4
+        return trim_by_year_ass
     
     def sal_avpf(self, workstate, sali):
         ''' Allocation vieillesse des parents au foyer : salaires de remplacements imputés
@@ -102,12 +104,13 @@ class RegimeGeneral(RegimeBase):
         return sal_for_avpf
     
     def nb_trim_avpf(self, sal_for_avpf):
-        ''' Allocation vieillesse des parents au foyer : nombre de trimestres attribués
+        ''' Allocation vieillesse des parents au foyer : nombre de trimestres attribués 
+        output: TimeArray donnant le nombre de trimestres par anée
         Le nombre de trimestres validés au titre de l'AVPF se détermine à partir de sal_for_avpf
         de la même manière que trim_cot se déduit de sal_RG. Seule différence : plafonner à 10/an et non à 4'''
         salref = build_salref_bareme(self.P_longit.common, first_year_avpf, self.yearsim)
         sal_avpf = sal_for_avpf.translate_frequency(output_frequency='year', method='sum')
-        trim_avpf_by_year = sal_to_trimcot(sal_avpf, salref, plafond=10)
+        trim_avpf_by_year = sal_to_trimcot(sal_avpf, salref)
         return trim_avpf_by_year
     
     def nb_trim_maj(self, info_ind, trim_avpf_by_year):
@@ -135,7 +138,6 @@ class RegimeGeneral(RegimeBase):
                 # Réforme de 2003 : min(1 trimestre à la naissance + 1 à chaque anniv, 8)
                 mda.loc[info_child.index.values, 'mda'] = 8*info_child.values
                 return mda['mda'].astype(int)
-
         child_mother = info_ind.loc[info_ind['sexe'] == 1, 'nb_born']
         list_id = info_ind.index
         yearsim = self.yearsim
@@ -165,6 +167,7 @@ class RegimeGeneral(RegimeBase):
             first_ix_avpf = first_year_avpf - first_year_sal
             sal_RG.array[:,first_ix_avpf:] += sal_avpf.array
             sal_RG.array += sali_to_RG.array
+            print_multi_info_numpy([sal_RG, sali, workstate], id_test, self.index)
             return TimeArray(sal_RG.array.round(2), sal_RG.dates)
 
         #TODO: d'ou vient regime['sal'] -> il vient de du calcul du nb de trim cotisés au RG (condition sur workstate + salaire plancher)
@@ -188,39 +191,36 @@ class RegimeGeneral(RegimeBase):
         (majoration quand départ à la retraite après 65 ans) '''
         P = reduce(getattr, self.param_name.split('.'), self.P)
         year = self.yearsim
-
+        age_taux_plein = P.decote.age_null
         if year < 1983:
             return trim_RG
-        elif year < 2004 :
-            trim_majo = maximum(math.ceil(agem/3 - 65*4),0)
-            elig_majo = (trim_RG < P.N_CP)
-            trim_corr = trim_RG*(1 + P.tx_maj*trim_majo*elig_majo )
-            return trim_corr
         else:
-            trim_majo = maximum(0, ceil(agem/3 - 65*4))
-            elig_majo = (trim_tot < P.N_CP)
-            trim_corr = trim_RG*(1 + P.tx_maj*trim_majo*elig_majo )
-            return trim_corr  
+            trim_majo = maximum(divide(agem - age_taux_plein, 3), 0)
+            elig_majo = (trim_RG < P.N_CP)
+            trim_corr = trim_RG*(1 + P.tx_maj*trim_majo*elig_majo)
+            return trim_corr
         
     def calculate_coeff_proratisation(self, info_ind, regime):
         ''' Calcul du coefficient de proratisation '''
         P =  reduce(getattr, self.param_name.split('.'), self.P)
         yearsim = self.yearsim
-        trim_cot_RG = regime['trim_tot'] 
-        trim_FP_to_RG = regime['trim_by_year_FP_to'].array.sum(1)
-        trim_RG = trim_cot_RG + trim_FP_to_RG
+        trim_RG = regime['trim_tot'] + regime['trim_by_year_FP_to'].array.sum(1)
+        trim_tot = regime['trim_by_year_tot'].array.sum(1) + regime['trim_maj_tot']
+        agem = info_ind['agem']
+        trim_CP = self.assurance_maj(trim_RG, trim_RG, agem)
+        
         if 1948 <= yearsim and yearsim < 1972: 
-            trim_RG = trim_RG + (120 - trim_RG)/2
+            trim_CP= trim_CP + (120 - trim_CP)/2
         #TODO: voir si on ne met pas cette disposition spécifique de la loi Boulin dans la déclaration des paramètres directement
         elif yearsim < 1973:
-            trim_RG = min(trim_RG, 128)
+            trim_CP = min(trim_CP, 128)
         elif yearsim < 1974:
-            trim_RG = min(trim_RG, 136)            
+            trim_CP = min(trim_CP, 136)            
         elif yearsim < 1975:
-            trim_RG = min(trim_RG, 144)   
+            trim_CP = min(trim_CP, 144)   
         else:
-            trim_RG = minimum(P.N_CP, trim_RG)
-        CP = minimum(1, trim_RG / P.N_CP)
+            trim_CP = minimum(trim_CP, P.N_CP)
+        CP = minimum(1, divide(trim_CP, P.N_CP))
         return CP
     
     def _decote(self, trim_tot, agem):
