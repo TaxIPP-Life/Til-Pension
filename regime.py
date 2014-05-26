@@ -95,7 +95,7 @@ class Regime(object):
             to_check['taux_plein_' + self.regime] = taux_plein*(trim_regime > 0)
             to_check['decote_' + self.regime] = decote*(trim_tot > 0)*(trim_regime > 0)
             to_check['surcote_' + self.regime] = surcote*(trim_tot > 0)*(trim_regime > 0)
-        return taux_plein*(1 - decote + surcote)
+        return taux_plein*(1 - decote + surcote), surcote
     
     def calculate_coeff_proratisation(self):
         raise NotImplementedError
@@ -106,11 +106,11 @@ class Regime(object):
     
     def calculate_pension(self, workstate, sali, info_ind, trimestres, to_check=None):
         reg = self.regime
-        taux = self.calculate_taux(workstate, info_ind, trimestres, to_check)
+        taux, surcote = self.calculate_taux(workstate, info_ind, trimestres, to_check)
         cp = self.calculate_coeff_proratisation(info_ind, trimestres)
         salref = self.calculate_salref(workstate, sali, trimestres)
         pension_brute = cp*salref*taux
-        pension = self.plafond_pension()
+        pension = self.plafond_pension(pension_brute, salref, cp, surcote)
         if to_check is not None:
             to_check['CP_' + reg] = cp
             to_check['taux_' + reg] = taux*(trimestres['trim_tot']>0)

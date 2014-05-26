@@ -188,3 +188,6 @@ class FonctionPublique(RegimeBase):
 
     def calculate_salref(self, workstate, sali, regime):
         return self._traitement(workstate, sali, option='sali')
+    
+    def plafond_pension(self, pension_brute, salref, cp, surcote):
+        return pension_brute

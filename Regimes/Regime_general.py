@@ -328,12 +328,14 @@ class RegimeGeneral(RegimeBase):
             mico =  mico_RG*( RG_exclusif + (1 - RG_exclusif)*divide(trim_RG, trim))
             return maximum(0, mico - pension_RG)
         
-    def plafond_pension(self, pension_RG, pension_surcote_RG):
+    def plafond_pension(self, pension_brute, salref, cp, surcote):
         ''' plafonnement à 50% du PSS 
         TODO: gérer les plus de 65 ans au 1er janvier 1983'''
         PSS = self.P.common.plaf_ss
         P = reduce(getattr, self.param_name.split('.'), self.P)
+        taux_plein = P.plein.taux
         taux_PSS = P.plafond
-        return minimum(pension_RG - pension_surcote_RG, taux_PSS*PSS) + pension_surcote_RG
+        pension_surcote_RG = taux_plein*salref*cp*surcote
+        return minimum(pension_brute - pension_surcote_RG, taux_PSS*PSS) + pension_surcote_RG
         
             
