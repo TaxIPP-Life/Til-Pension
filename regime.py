@@ -22,6 +22,7 @@ class Regime(object):
         self.data_type = None
         self.first_year = None
         self.yearsim = None
+        self.index = None
         
         self.P = None
         self.P_longit = None

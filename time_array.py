@@ -58,7 +58,7 @@ class TimeArray(object):
             idea : format_table as an argument instead of testing with isinstance
             '''
         array = self.array.copy()
-        input_frequency = determine_frequency(self.dates)
+        input_frequency = self.frequency
         if input_frequency == output_frequency:
             if inplace == True:
                 return 'rien'
@@ -107,7 +107,7 @@ class TimeArray(object):
         return apply_along_axis(mean_best_dates_row, axis=1, arr=array_)
     
     
-    def add(self, other_time_array):
+    def add(self, other_time_array, replace=False):
         array = self.array.copy()
         dates = self.dates
         other_dates = other_time_array.dates
@@ -116,4 +116,7 @@ class TimeArray(object):
         assert array.shape[0] == other_time_array.array.shape[0]
         list_ix_col = [list(dates).index(date) for date in other_dates]
         array[:,list_ix_col] += other_time_array.array
-        return TimeArray(array, dates)
+        if replace == True:
+            self.array = array
+        else:
+            return TimeArray(array, dates)
