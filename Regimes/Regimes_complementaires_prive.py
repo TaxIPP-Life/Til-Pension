@@ -5,10 +5,9 @@ parentdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.sys.path.insert(0,parentdir) 
 
 from numpy import maximum, minimum, divide
-from regime import RegimeComplementaires
+from regime import RegimeComplementaires, compare_destinie
 from utils_pension import build_long_values
 
-first_year_sal = 1949
 
 class AGIRC(RegimeComplementaires):
     ''' L'Association générale des institutions de retraite des cadres gère le régime de retraite des cadres du secteur privé 
@@ -72,6 +71,7 @@ class ARRCO(RegimeComplementaires):
         
     def sali_for_regime(self, workstate, sali):
         '''plafonne le salaire des cadres à 1 pss pour qu'il ne pait que la prmeière tranche '''
+        first_year_sal = min(workstate.dates) // 100
         nb_pss=1
         cadre_selection = (workstate.array == self.code_cadre)
         noncadre_selection = (workstate.array == self.code_noncadre)
