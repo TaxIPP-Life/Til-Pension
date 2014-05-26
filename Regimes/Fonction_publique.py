@@ -8,13 +8,12 @@ os.sys.path.insert(0,parentdir)
 from numpy import maximum, minimum, array, nonzero, divide, transpose, zeros
 from pandas import Series
 
-from regime import RegimeBase
+from regime import RegimeBase, compare_destinie
 from pension_functions import nb_trim_surcote
 from time_array import TimeArray
 
 code_avpf = 8
 code_chomage = 5
-compare_destinie = True 
 
 
 class FonctionPublique(RegimeBase):
@@ -32,15 +31,17 @@ class FonctionPublique(RegimeBase):
         output = dict()
         trim_valide = self.nb_trim_valide(workstate, table=True)
         trim_by_year_to_RG = self.trim_to_RG(workstate, sali, trim_valide)
+        trim_valide.substract(trim_by_year_to_RG, inplace=True)
         output['trim_by_year_FP'] = trim_valide
         output['trim_by_year_FP_to_RG'] = trim_by_year_to_RG
         output['sali_FP_to_RG'] = self.sali_to_RG(workstate, sali, trim_by_year_to_RG)
         output['trim_cot_FP'] = trim_valide.array.sum(1)
         output['actif_FP'] = self.nb_trim_valide(workstate, self.code_actif)
         output['trim_maj_FP'] = self.trim_bonif_CPCM(info_ind, output['trim_cot_FP']) + self.trim_bonif_5eme(output['trim_cot_FP'])
+        output['trim_tot_FP'] = output['trim_cot_FP'] + output['trim_maj_FP']
         self.trim_actif = output['actif_FP'] 
         if to_check :
-            to_check['DA_FP'] = (output['trim_cot_RG'] + output['trim_maj_FP']) //4
+            to_check['DA_FP'] = (output['trim_tot']) //4
         return output
         
     def _age_start_surcote(self, workstate):

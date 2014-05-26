@@ -5,6 +5,7 @@ from pandas import Series
 from time_array import TimeArray
 from utils_pension import build_long_values, build_long_baremes
 first_year_sal = 1949
+compare_destinie = True 
 
 class Regime(object):
     """
@@ -90,9 +91,10 @@ class Regime(object):
 #         date_start_surcote = self._date_start_surcote(trim_by_year_tot, trim_maj_tot, agem)
         surcote = self._surcote(workstate, trimestres, agem)
         if to_check is not None:
-            to_check['taux_plein_' + self.regime] = taux_plein*(trim_tot > 0)
-            to_check['decote_' + self.regime] = decote*(trim_tot > 0)*(trim_tot > 0)
-            to_check['surcote_' + self.regime] = surcote*(trim_tot > 0)*(trim_tot > 0)
+            trim_regime = trimestres['trim_tot']
+            to_check['taux_plein_' + self.regime] = taux_plein*(trim_regime > 0)
+            to_check['decote_' + self.regime] = decote*(trim_tot > 0)*(trim_regime > 0)
+            to_check['surcote_' + self.regime] = surcote*(trim_tot > 0)*(trim_regime > 0)
         return taux_plein*(1 - decote + surcote)
     
     def calculate_coeff_proratisation(self):
@@ -107,11 +109,13 @@ class Regime(object):
         taux = self.calculate_taux(workstate, info_ind, trimestres, to_check)
         cp = self.calculate_coeff_proratisation(info_ind, trimestres)
         salref = self.calculate_salref(workstate, sali, trimestres)
+        pension_brute = cp*salref*taux
+        pension = self.plafond_pension()
         if to_check is not None:
             to_check['CP_' + reg] = cp
             to_check['taux_' + reg] = taux*(trimestres['trim_tot']>0)
             to_check['salref_' + reg] = salref
-        return cp*salref*taux
+        return pension
 
 
 class RegimeBase(Regime):
