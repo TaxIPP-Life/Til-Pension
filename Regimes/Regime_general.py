@@ -40,15 +40,15 @@ class RegimeGeneral(RegimeBase):
         trim_ass = self.trim_ass_by_year(workstate, trim_cot)
         trim_avpf = self.trim_avpf_by_year(sal_for_avpf)
         
-        trimesters['trim_cot_RG']  = trim_cot
-        wages['sal_cot_RG'] = self.sali_for_regime(sali, trim_cot)
-        trimesters['trim_ass_RG'] = trim_ass
-        wages['sal_avpf_RG'] = sal_for_avpf
-        trimesters['trim_maj_RG'] = self.nb_trim_maj(info_ind, trim_avpf)
+        trimesters['cot_RG']  = trim_cot
+        wages['cot_RG'] = self.sali_for_regime(sali, trim_cot)
+        trimesters['ass_RG'] = trim_ass
+        wages['avpf_RG'] = sal_for_avpf
+        trimesters['maj_RG'] = self.nb_trim_maj(info_ind, trim_avpf)
 
         if to_check is not None:
-            to_check['DA_RG'] = ((trimesters['trim_cot_RG'] + trimesters['trim_ass_RG']).array.sum(1) 
-                                 + trimesters['trim_maj_RG'])/4
+            to_check['DA_RG'] = ((trimesters['cot_RG'] + trimesters['ass_RG']).array.sum(1) 
+                                 + trimesters['maj_RG'])/4
         return trimesters, wages
         
     def _age_start_surcote(self, workstate=None):
@@ -201,16 +201,14 @@ class RegimeGeneral(RegimeBase):
             trim_corr = trim_RG*(1 + P.tx_maj*trim_majo*elig_majo)
             return trim_corr
         
-    def calculate_coeff_proratisation(self, info_ind, regime):
+    def calculate_coeff_proratisation(self, info_ind, trimesters):
         ''' Calcul du coefficient de proratisation '''
         P =  reduce(getattr, self.param_name.split('.'), self.P)
         yearsim = self.yearsim
-        trim_RG = regime['trim_tot'] 
-        if 'trim_by_year_FP_to' in regime.keys():
-            trim_RG += regime['trim_by_year_FP_to'].array.sum(1)
-        trim_tot = regime['trim_by_year_tot'].array.sum(1) + regime['trim_maj_tot']
+        trim_regime = trimesters['by_year_regime'].sum()
+        trim_tot = trimesters['by_year_tot'].sum(1) + trimesters['maj_tot']
         agem = info_ind['agem']
-        trim_CP = self.assurance_maj(trim_RG, trim_RG, agem)
+        trim_CP = self.assurance_maj(trim_regime, trim_tot, agem)
         
         if 1948 <= yearsim and yearsim < 1972: 
             trim_CP= trim_CP + (120 - trim_CP)/2
@@ -242,17 +240,17 @@ class RegimeGeneral(RegimeBase):
             trim_decote = maximum(0, minimum(decote_age, decote_cot))
         return trim_decote*tx_decote
         
-    def _calculate_surcote(self, yearsim, trimestres, date_start_surcote, age):
+    def _calculate_surcote(self, yearsim, trimesters, date_start_surcote, age):
         ''' Détermination de la surcote à appliquer aux pensions '''
         yearsim = self.yearsim
         P = reduce(getattr, self.param_name.split('.'), self.P)
-        trim_by_year_RG = trimestres['trim_by_year']
-        if 'trim_maj' in trimestres.keys() :
-            trim_maj = trimestres['trim_maj']
+        trim_by_year_RG = trimesters['by_year_regime']
+        if 'maj' in trimesters.keys() :
+            trim_maj = trimesters['maj']
         else:
             trim_maj = 0
-        trim_by_year_tot = trimestres['trim_by_year_tot']
-        #trim_maj_tot = trimestres['trim_maj_tot']
+        trim_by_year_tot = trimesters['by_year_tot']
+        #trim_maj_tot = trimesters['trim_maj_tot']
         N_taux = P.plein.N_taux
       
         def _trimestre_surcote_0304(trim_by_year_RG, date_start_surcote, P):

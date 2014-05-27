@@ -40,23 +40,23 @@ class Regime(object):
     def _decote(self):
         raise NotImplementedError
 
-    def _surcote(self, workstate, trimestres, age):
-        trim_by_year_tot = trimestres['trim_by_year_tot']
-        trim_maj = trimestres['trim_maj_tot']
+    def _surcote(self, workstate, trimesters, age):
+        trim_by_year_tot = trimesters['by_year_tot']
+        trim_maj = trimesters['maj_tot']
         datesim = 100*self.yearsim + 1
         age_start = self._age_start_surcote(workstate)
         date_start = self._date_taux_plein(trim_by_year_tot, trim_maj)
         date_start_surcote = [int(max(datesim - year_surcote*100, 
                                 datesim - month_trim//12*100 - month_trim%12))
                         for year_surcote, month_trim in zip(date_start, age-age_start)]
-        return self._calculate_surcote(self.yearsim, trimestres, date_start_surcote, age)
+        return self._calculate_surcote(self.yearsim, trimesters, date_start_surcote, age)
     
     def _calculate_surcote(self, yearsim, regime, date_start_surcote, age, trim_by_year_tot):
         #TODO: remove trim_by_year_tot from arguments
         raise NotImplementedError
     
     def _age_start_surcote(self, workstate):
-        ''' retourne l'age à partir duquel les trimestres peuvent être 
+        ''' retourne l'age à partir duquel les trimesters peuvent être 
              comptabilisés pour la surcote
              Note: ça a l'air simple en général, juste un paramètre mais
               pour la fonction publique il y a des grosses subtilités...
@@ -74,24 +74,24 @@ class Regime(object):
         trim_limit = array((N_taux - nan_to_num(trim_maj)))
         years_surcote = greater(cumul_trim.T,trim_limit)
         nb_years_surcote = years_surcote.sum(axis=0)
-        return (- nb_years_surcote + self.yearsim)*100 + 1
+        return nb_years_surcote 
        
-    def calculate_taux(self, workstate, info_ind, trimestres, to_check=None):
+    def calculate_taux(self, workstate, info_ind, trimesters, to_check=None):
         ''' Détérmination du taux de liquidation à appliquer à la pension 
             La formule générale est taux pondéré par (1+surcote-decote)
             _surcote and _decote are called
             _date_start_surcote is a general method helping surcote
             '''
         P = reduce(getattr, self.param_name.split('.'), self.P)
-        trim_by_year_tot = trimestres['trim_by_year_tot']
+        trim_by_year_tot = trimesters['by_year_tot']
         trim_tot = trim_by_year_tot.array.sum(1)
         taux_plein = P.plein.taux
         agem = info_ind['agem']
         decote = self._decote(trim_tot, agem)
 #         date_start_surcote = self._date_start_surcote(trim_by_year_tot, trim_maj_tot, agem)
-        surcote = self._surcote(workstate, trimestres, agem)
+        surcote = self._surcote(workstate, trimesters, agem)
         if to_check is not None:
-            trim_regime = trimestres['trim_tot']
+            trim_regime = trimesters['by_year_regime'].sum()
             to_check['taux_plein_' + self.regime] = taux_plein*(trim_regime > 0)
             to_check['decote_' + self.regime] = decote*(trim_tot > 0)*(trim_regime > 0)
             to_check['surcote_' + self.regime] = surcote*(trim_tot > 0)*(trim_regime > 0)
@@ -104,16 +104,16 @@ class Regime(object):
 #         self.sal_regime = sali.array*_isin(self.workstate.array,self.code_regime)
         raise NotImplementedError
     
-    def calculate_pension(self, workstate, sali, info_ind, trimestres, to_check=None):
+    def calculate_pension(self, workstate, sali, info_ind, trimesters, salaires, to_check=None):
         reg = self.regime
-        taux, surcote = self.calculate_taux(workstate, info_ind, trimestres, to_check)
-        cp = self.calculate_coeff_proratisation(info_ind, trimestres)
-        salref = self.calculate_salref(workstate, sali, trimestres)
+        taux, surcote = self.calculate_taux(workstate, info_ind, trimesters, to_check)
+        cp = self.calculate_coeff_proratisation(info_ind, trimesters)
+        salref = self.calculate_salref(workstate, sali, trimesters)
         pension_brute = cp*salref*taux
         pension = self.plafond_pension(pension_brute, salref, cp, surcote)
         if to_check is not None:
             to_check['CP_' + reg] = cp
-            to_check['taux_' + reg] = taux*(trimestres['trim_tot']>0)
+            to_check['taux_' + reg] = taux*(trimesters['by_year_regime'].sum()>0)
             to_check['salref_' + reg] = salref
         return pension
 
@@ -121,7 +121,7 @@ class Regime(object):
 class RegimeBase(Regime):
 
     def trim_cot_by_year(self, workstate, code=None): #sali,
-        ''' Cette fonction pertmet de calculer des nombres par trimestres validés dans un régime
+        ''' Cette fonction pertmet de calculer des nombres par trimesters validés dans un régime
         validation au sein du régime = 'workstate' = code
         TODO: gérer la comptabilisation des temps partiels quand variable présente'''
         assert isinstance(workstate, TimeArray)
@@ -139,7 +139,7 @@ class RegimeBase(Regime):
         return trim_service
 
     def revenu_valides(self, workstate, sali, code=None): #sali, 
-        ''' Cette fonction pertmet de calculer des nombres par trimestres
+        ''' Cette fonction pertmet de calculer des nombres par trimesters
         TODO: gérer la comptabilisation des temps partiels quand variable présente'''
         assert isinstance(workstate, TimeArray)
         #assert isinstance(sali, TimeArray)

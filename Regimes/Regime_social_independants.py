@@ -29,21 +29,17 @@ class RegimeSocialIndependants(RegimeGeneral):
         self.param_indep = 'indep.rsi'
 
     def get_trimesters_wages(self, workstate, sali, info_ind, to_check=False):
-        trimestres = dict()
+        trimesters = dict()
         wages = dict()
         work = workstate.selected_dates(first=first_year_indep)
         sal = sali.selected_dates(first=first_year_indep)
         nb_trim_cot = self.trim_cot_by_year(work, sal)
-        trimestres['trim_cot_RSI']  = nb_trim_cot
+        trimesters['cot_RSI']  = nb_trim_cot
         nb_trim_ass = self.trim_ass_by_year(work, nb_trim_cot)
-        trimestres['trim_ass_RSI'] = nb_trim_ass
+        trimesters['ass_RSI'] = nb_trim_ass
         nb_trim_cot.add(nb_trim_ass)
         trim_by_year = workstate.translate_frequency('year')
-        first_year_sal = min(sali.dates) // 100
-        trim_by_year.array[:, : first_year_indep - first_year_sal] = 0
-        trim_by_year.array[:, first_year_indep - first_year_sal :] = nb_trim_cot.array
-        trimestres['trim_by_year_RSI'] = trim_by_year
-        return trimestres, wages
+        return trimesters, wages
     
     def calculate_salref(self, workstate, sali, regime):
         ''' RAM : Calcul du revenu annuel moyen de référence : 

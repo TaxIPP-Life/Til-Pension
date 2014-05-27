@@ -33,13 +33,13 @@ class FonctionPublique(RegimeBase):
         trim_valide = self.trim_cot_by_year(workstate)
         trim_by_year_to_RG = self.trim_to_RG(workstate, sali, trim_valide)
         trim_valide.substract(trim_by_year_to_RG, inplace=True)
-        trimesters['trim_cot_FP'] = trim_valide
-        trimesters['trim_cot_FP_to_RG'] = trim_by_year_to_RG
-        wages['sali_FP_to_RG'] = self.sali_to_RG(workstate, sali, trim_by_year_to_RG)
-        trimesters['trim_maj_FP'] = self.trim_bonif_CPCM(info_ind, trim_valide.sum()) + self.trim_bonif_5eme(trim_valide.sum())
+        trimesters['cot_FP'] = trim_valide
+        trimesters['cot_to_RG'] = trim_by_year_to_RG
+        wages['to_RG'] = self.sali_to_RG(workstate, sali, trim_by_year_to_RG)
+        trimesters['maj_FP'] = self.trim_bonif_CPCM(info_ind, trim_valide.sum()) + self.trim_bonif_5eme(trim_valide.sum())
         self.trim_actif = self.trim_cot_by_year(workstate, code=self.code_actif)
         if to_check :
-            to_check['DA_FP'] = (trimesters['trim_cot_FP'].sum() + trimesters['trim_maj_FP'].sum()) //4
+            to_check['DA_FP'] = (trimesters['cot_FP'].sum() + trimesters['maj_FP'].sum()) //4
         return trimesters, wages
         
     def _age_start_surcote(self, workstate):
@@ -142,12 +142,12 @@ class FonctionPublique(RegimeBase):
         bonif_5eme = minimum(trim_cot*taux_5eme, 5*4)
         return array(bonif_5eme*super_actif)
     
-    def calculate_coeff_proratisation(self, info_ind, regime):
+    def calculate_coeff_proratisation(self, info_ind, trimesters):
         P = self.P.public.fp
         taux = P.plein.taux
         taux_bonif = P.taux_bonif
         N_CP = P.plein.N_taux
-        trim_regime = regime['trim_tot']
+        trim_regime = trimesters['by_year_regime'].sum(1) +  trimesters['maj']
         trim_bonif_5eme = self.trim_bonif_5eme(trim_regime)
         CP_5eme = minimum(divide(trim_regime + trim_bonif_5eme, N_CP), 1)
         trim_bonif_CPCM = self.trim_bonif_CPCM(info_ind, trim_regime)
@@ -181,7 +181,7 @@ class FonctionPublique(RegimeBase):
         else:
             P = reduce(getattr, self.param_name.split('.'), self.P)
             taux_surcote = P.surcote.taux
-            nb_trim = nb_trim_surcote(regime['trim_by_year'], date_start_surcote)
+            nb_trim = nb_trim_surcote(regime['by_year_regime'], date_start_surcote)
             return taux_surcote*nb_trim
 
     def calculate_salref(self, workstate, sali, regime):
