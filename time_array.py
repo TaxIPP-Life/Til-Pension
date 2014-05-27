@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from pandas import DataFrame
-from numpy import array, tile, divide, around, in1d, repeat, sort, apply_along_axis, zeros
+from numpy import array, tile, divide, around, in1d, repeat, sort, apply_along_axis, zeros, minimum
 
 def determine_frequency(dates):
     if (array(dates) % 100 == 1).all() :
@@ -162,3 +162,13 @@ class TimeArray(object):
             self.array = array
         else:
             return TimeArray(array, dates)
+        
+    def ceil(self, plaf=None, inplace=False):
+        array = self.array.copy()
+        if plaf is not None:
+            array = minimum(array, plaf)
+        if inplace == True:
+            self.array = array
+        else:
+            return TimeArray(array, self.dates)  
+            
