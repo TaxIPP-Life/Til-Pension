@@ -94,31 +94,16 @@ def count_enf_born(info_child, index):
     nb_born += info['nb_born']
     return nb_born.fillna(0)
 
-def trim_sum(option,*kwargs):
-    ''' nombre de trimestres d'assurance total, tous régimes (de base) confondus. 
-    Input : TimeArrays par régime donnant le nombre de trimestres côtisés par année
-    Output : vecteur du nombre de trimestres d'assurance tous régimes'''
-    trim_by_year_regimes = kwargs
-    first = trim_by_year_regimes[0]
-    dates_to_test = first.dates
-    trim_tot = zeros(first.array.shape)
-    for trim_by_year in trim_by_year_regimes:
-        assert trim_by_year.dates == dates_to_test
-        assert trim_by_year.array.shape == first.array.shape
-        dates_to_test = trim_by_year.dates
-        trim_tot += trim_by_year.array
-    trim_tot = minimum(trim_tot,4)
-    if option == 'output_table':
-        return TimeArray(trim_tot, first.dates)
-    else:
-        return trim_tot.sum(axis=1)
-    
-def trim_by_year_all(trimestres):
-    ''' Stock dans un dictionnaire les vecteurs et matrices de comptabilisation des trimestres
-    qui sont nécessaires à la détermination des montants des pensions '''
-    trimestres_by_year = [trimestres[key] for key in trimestres.keys() if 'trim_by_year' in key]
-    trim_by_year = trim_sum('output_table', *trimestres_by_year)
-    return trim_by_year
+def sum_from_dict(dictionnary, key='by_year', plafond=None):
+    ''' Somme les TimeArray contenus dans un dictionnaire et dont le nom contient la 'key' '''
+    timearray_with_key = [trim for name, trim in dictionnary.items() if key in name]
+    first = timearray_with_key[0]
+    trim_tot = TimeArray(zeros(first.array.shape), first.dates)
+    for timearray in timearray_with_key:
+        trim_tot += timearray
+    trim_tot = trim_tot.ceil(plaf=plafond)
+    return trim_tot
+
     
 def trim_maj_all(trimestres):
     ''' Détermine la somme des trimestres majorés des différents régimes '''
