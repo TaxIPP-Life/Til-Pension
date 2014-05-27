@@ -37,7 +37,6 @@ class RegimeSocialIndependants(RegimeGeneral):
         trimesters['cot_RSI']  = nb_trim_cot
         nb_trim_ass = self.trim_ass_by_year(work, nb_trim_cot)
         trimesters['ass_RSI'] = nb_trim_ass
-        nb_trim_cot.add(nb_trim_ass)
         wages['regime_RSI'] = self.sali_in_regime(sali, workstate)
         return trimesters, wages
     

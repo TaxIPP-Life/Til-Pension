@@ -112,23 +112,7 @@ class TimeArray(object):
         array_[:,:-1] = array
         array_[:,-1] = nb_best_dates
         return apply_along_axis(mean_best_dates_row, axis=1, arr=array_)
-    
-    
-    def add(self, other_time_array, inplace=False):
-        array = self.array.copy()
-        dates = self.dates
-        other_dates = other_time_array.dates
-        test_dates = [date for date in other_dates if date in dates]
-        assert test_dates == other_dates
-        assert array.shape[0] == other_time_array.array.shape[0]
-        list_ix_col = [list(dates).index(date) for date in other_dates]
-        array[:,list_ix_col] += other_time_array.array
-        if inplace == True:
-            self.array = array
-        else:
-            return TimeArray(array, dates)
-        
-    
+
     def __add__(self, other):
         initial_dates = self.dates
         array = self.array
