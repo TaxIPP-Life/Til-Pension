@@ -28,22 +28,23 @@ class RegimeSocialIndependants(RegimeGeneral):
         self.code_regime = [7]
         self.param_indep = 'indep.rsi'
 
-    def get_trimester(self, workstate, sali, info_ind, to_check=False):
-        output = dict()
+    def get_trimesters_wages(self, workstate, sali, info_ind, to_check=False):
+        trimestres = dict()
+        wages = dict()
         work = workstate.selected_dates(first=first_year_indep)
         sal = sali.selected_dates(first=first_year_indep)
         nb_trim_cot = self.nb_trim_cot(work, sal)
-        output['trim_cot_RSI']  = nb_trim_cot.array.sum(axis=1)
+        trimestres['trim_cot_RSI']  = nb_trim_cot.array.sum(axis=1)
         nb_trim_ass = self.nb_trim_ass(work, nb_trim_cot)
-        output['trim_ass_RSI'] = nb_trim_ass.array.sum(axis=1)
+        trimestres['trim_ass_RSI'] = nb_trim_ass.array.sum(axis=1)
         nb_trim_cot.add(nb_trim_ass)
         trim_by_year = workstate.translate_frequency('year')
         first_year_sal = min(sali.dates) // 100
         trim_by_year.array[:, : first_year_indep - first_year_sal] = 0
         trim_by_year.array[:, first_year_indep - first_year_sal :] = nb_trim_cot.array
-        output['trim_by_year_RSI'] = trim_by_year
-        output['trim_tot_RSI'] = output['trim_cot_RSI'] + output['trim_ass_RSI']
-        return output
+        trimestres['trim_by_year_RSI'] = trim_by_year
+        trimestres['trim_tot_RSI'] = trimestres['trim_cot_RSI'] + trimestres['trim_ass_RSI']
+        return trimestres, wages
     
     def calculate_salref(self, workstate, sali, regime):
         ''' RAM : Calcul du revenu annuel moyen de référence : 

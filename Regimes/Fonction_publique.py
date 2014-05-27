@@ -27,22 +27,22 @@ class FonctionPublique(RegimeBase):
         self.code_sedentaire = 6
         self.code_actif = 5
 
-    def get_trimester(self, workstate, sali, info_ind, to_check):
-        output = dict()
+    def get_trimesters_wages(self, workstate, sali, info_ind, to_check):
+        trimesters = dict()
+        wages = dict()
         trim_valide = self.nb_trim_valide(workstate, table=True)
         trim_by_year_to_RG = self.trim_to_RG(workstate, sali, trim_valide)
         trim_valide.substract(trim_by_year_to_RG, inplace=True)
-        output['trim_by_year_FP'] = trim_valide
-        output['trim_by_year_FP_to_RG'] = trim_by_year_to_RG
-        output['sali_FP_to_RG'] = self.sali_to_RG(workstate, sali, trim_by_year_to_RG)
-        output['trim_cot_FP'] = trim_valide.array.sum(1)
-        output['actif_FP'] = self.nb_trim_valide(workstate, self.code_actif)
-        output['trim_maj_FP'] = self.trim_bonif_CPCM(info_ind, output['trim_cot_FP']) + self.trim_bonif_5eme(output['trim_cot_FP'])
-        output['trim_tot_FP'] = output['trim_cot_FP'] + output['trim_maj_FP']
-        self.trim_actif = output['actif_FP'] 
+        trimesters['trim_by_year_FP'] = trim_valide
+        trimesters['trim_by_year_FP_to_RG'] = trim_by_year_to_RG
+        wages['sali_FP_to_RG'] = self.sali_to_RG(workstate, sali, trim_by_year_to_RG)
+        trimesters['trim_cot_FP'] = trim_valide.array.sum(1)
+        trimesters['trim_maj_FP'] = self.trim_bonif_CPCM(info_ind,trimesters['trim_cot_FP']) + self.trim_bonif_5eme(trimesters['trim_cot_FP'])
+        trimesters['trim_tot_FP'] = trimesters['trim_cot_FP'] + trimesters['trim_maj_FP']
+        self.trim_actif = self.nb_trim_valide(workstate, code=self.code_actif, table=True)
         if to_check :
-            to_check['DA_FP'] = (output['trim_tot']) //4
-        return output
+            to_check['DA_FP'] = (trimesters['trim_tot']) //4
+        return trimesters, wages
         
     def _age_start_surcote(self, workstate):
         P = self.P.public.fp

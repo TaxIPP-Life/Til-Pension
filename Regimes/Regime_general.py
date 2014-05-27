@@ -32,24 +32,24 @@ class RegimeGeneral(RegimeBase):
         self.code_regime = [3,4]
         self.param_name = 'prive.RG'
      
-     
-    def get_trimester(self, workstate, sali, info_ind, to_check=False):
-        output = dict()
+    def get_trimesters_wages(self, workstate, sali, info_ind, to_check=False):
+        trimesters = dict()
+        wages = dict()
         nb_trim_cot = self.nb_trim_cot(workstate, sali)
-        output['trim_cot_RG']  = nb_trim_cot.array.sum(axis=1)
-        output['sal_RG'] = self.sali_for_regime(sali, nb_trim_cot)
+        trimesters['trim_cot_RG']  = nb_trim_cot.array.sum(axis=1)
+        wages['sal_cot_RG'] = self.sali_for_regime(sali, nb_trim_cot)
         nb_trim_ass = self.nb_trim_ass(workstate, nb_trim_cot)
-        output['trim_ass_RG'] = nb_trim_ass.array.sum(axis=1)
+        trimesters['trim_ass_RG'] = nb_trim_ass.array.sum(axis=1)
         sal_for_avpf = self.sal_avpf(workstate,sali)
-        output['sal_avpf_RG'] = sal_for_avpf
+        wages['sal_avpf_RG'] = sal_for_avpf
         nb_trim_avpf = self.nb_trim_avpf(sal_for_avpf)
-        output['trim_maj_RG'] = self.nb_trim_maj(info_ind, nb_trim_avpf)
+        trimesters['trim_maj_RG'] = self.nb_trim_maj(info_ind, nb_trim_avpf)
         
-        output['trim_by_year_RG'] = nb_trim_cot.add(nb_trim_avpf).add(nb_trim_ass)
-        output['trim_tot_RG'] = output['trim_cot_RG'] + output['trim_ass_RG'] + output['trim_maj_RG']
+        trimesters['trim_by_year_RG'] = nb_trim_cot.add(nb_trim_avpf).add(nb_trim_ass)
+        trimesters['trim_tot_RG'] = trimesters['trim_cot_RG'] + trimesters['trim_ass_RG'] + trimesters['trim_maj_RG']
         if to_check is not None:
-            to_check['DA_RG'] = output['trim_tot_RG']/4
-        return output
+            to_check['DA_RG'] = trimesters['trim_tot_RG']/4
+        return trimesters, wages
         
     def _age_start_surcote(self, workstate=None):
         P = reduce(getattr, self.param_name.split('.'), self.P)
