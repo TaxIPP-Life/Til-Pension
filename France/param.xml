@@ -1537,7 +1537,7 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 		  <VALUE valeur="1.43" deb="1947-01-01" fin="1947-12-31"/>
 		  <VALUE valeur="1.0" deb="1930-01-01" fin="1946-12-31"/>
 		</CODE>		
-	  <VALBYTRANCHES description=" Nombre d'années prises en compte pour le SAM" code="nb_sam"  format="integer">
+	  <VALBYTRANCHES description=" Nombre d'années prises en compte pour le SAM" code="nb_years"  format="integer">
  		<VARCONTROL>
 		  <CONTROL valeur="naiss" deb="1994-01-01" fin="2100-12-31" format="date"/>
 	    </VARCONTROL> 
@@ -2611,7 +2611,7 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
  </NODE>
  <NODE description="Retraite des non-salariés" code="indep" >
   	<NODE description="Régime Social des indépendants" code="rsi" >
-  	  <VALBYTRANCHES description=" Nombre d'années prises en compte pour le RAM" code="nb_ram" format="integer">
+  	  <VALBYTRANCHES description=" Nombre d'années prises en compte pour le RAM" code="nb_years" format="integer">
  		<VARCONTROL>
 		  <CONTROL valeur="naiss" deb="1994-01-01" fin="2100-12-31" format="date"/>
 	    </VARCONTROL> 

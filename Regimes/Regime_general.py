@@ -153,8 +153,11 @@ class RegimeGeneral(RegimeBase):
         ''' SAM : Calcul du salaire annuel moyen de référence : 
         notamment application du plafonnement à un PSS'''
         yearsim = self.yearsim
-        P = reduce(getattr, self.param_name.split('.'), self.P)
-        nb_best_years_to_take = P.nb_sam
+        try:
+            P = reduce(getattr, self.param_indep.split('.'), self.P)
+        except:
+            P = reduce(getattr, self.param_name.split('.'), self.P)
+        nb_best_years_to_take = P.nb_years
         first_year_sal = min(workstate.dates) // 100
         plafond = build_long_values(param_long=self.P_longit.common.plaf_ss, first_year=first_year_sal, last_year=yearsim)
         revalo = build_long_values(param_long=self.P_longit.prive.RG.revalo, first_year=first_year_sal, last_year=yearsim)
@@ -162,15 +165,6 @@ class RegimeGeneral(RegimeBase):
         for i in range(1, len(revalo)) :
             revalo[:i] *= revalo[i]
             
-        def _sali_for_salref(sal_RG, sal_avpf, sali_to_RG):
-            ''' construit la matrice des salaires de références '''
-            # TODO: check if annual step in sal_avpf and sal_RG
-            first_ix_avpf = first_year_avpf - first_year_sal
-            sal_RG.array[:,first_ix_avpf:] += sal_avpf.array
-            sal_RG.array += sali_to_RG.array
-            return TimeArray(sal_RG.array.round(2), sal_RG.dates)
-
-        #sal_regime = _sali_for_salref(regime['sal'], regime['sal_avpf'], regime['sali_FP_to'])
         sal_regime = wages['regime']
         sal_regime.translate_frequency(output_frequency='year', method='sum', inplace=True)
         years_sali = (sal_regime.array != 0).sum(1)

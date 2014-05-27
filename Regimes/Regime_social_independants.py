@@ -41,38 +41,6 @@ class RegimeSocialIndependants(RegimeGeneral):
         wages['regime_RSI'] = self.sali_in_regime(sali, workstate)
         return trimesters, wages
     
-    def calculate_salref(self, workstate, sali, regime):
-        ''' RAM : Calcul du revenu annuel moyen de référence : 
-        notamment application du plafonnement à un PSS'''
-        yearsim = self.yearsim
-        P = reduce(getattr, self.param_indep.split('.'), self.P)
-        nb_best_years_to_take = P.nb_ram
-        if compare_destinie == True:
-            P = reduce(getattr, self.param_name.split('.'), self.P)
-            nb_best_years_to_take = P.nb_sam
-        first_year_sal = min(sali.dates) // 100
-        plafond = build_long_values(param_long=self.P_longit.common.plaf_ss, first_year=first_year_sal, last_year=yearsim)
-        revalo = build_long_values(param_long=self.P_longit.prive.RG.revalo, first_year=first_year_sal, last_year=yearsim)
-        
-        for i in range(1, len(revalo)) :
-            revalo[:i] *= revalo[i]
-            
-        sal_regime = sali.copy()
-        sal_regime.array = sal_regime.array*workstate.isin(self.code_regime).array
-        sal_regime.translate_frequency(output_frequency='year', inplace=True,  method='sum')
-        print_multi_info_numpy([workstate, sali, sal_regime], 186, self.index)
-        years_sali = (sal_regime.array != 0).sum(1)
-        nb_best_years_to_take = array(nb_best_years_to_take)
-        nb_best_years_to_take[years_sali < nb_best_years_to_take] = years_sali[years_sali < nb_best_years_to_take]    
-
-        if plafond is not None:
-            assert sal_regime.array.shape[1] == len(plafond)
-            sal_regime.array = minimum(sal_regime.array, plafond) 
-        if revalo is not None:
-            assert sal_regime.array.shape[1] == len(revalo)
-            sal_regime.array = multiply(sal_regime.array,revalo)
-        salref = sal_regime.best_dates_mean(nb_best_years_to_take)
-        return salref.round(2)
 
         
             
