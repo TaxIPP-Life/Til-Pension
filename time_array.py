@@ -130,21 +130,24 @@ class TimeArray(object):
         
     
     def __add__(self, other):
-        assert isinstance(other, TimeArray)
-        assert other.dates == self.dates
-        sum_array = self.array + other.array
-        return TimeArray(sum_array, self.dates)
-        
-        #more permissive :
-        dates = self.dates
-        other_dates = other.dates
-        test_dates = [date for date in other_dates if date in dates]
-        assert test_dates == other_dates
+        initial_dates = self.dates
         array = self.array
-        assert array.shape[0] == other.array.shape[0]
-        list_ix_col = [list(dates).index(date) for date in other_dates]
-        array[:,list_ix_col] += other.array
-        return TimeArray(array, dates)
+        other_dates = other.dates
+        assert array.shape[0] == other.array.shape[0] # Même nombre de lignes
+        other_in_initial = [date for date in other_dates if date in initial_dates] 
+        initial_in_other = [date for date in initial_dates if date in other_dates]
+        assert other_in_initial == other_dates or initial_in_other == initial_dates #les dates de l'une sont un sous ensemble de l'autre
+        if other_in_initial == other_dates:
+            sum_array = array.copy()
+            list_ix_col = [list(initial_dates).index(date) for date in other_dates]
+            sum_array[:,list_ix_col] += other.array
+            dates = initial_dates
+        if initial_in_other == initial_dates:
+            sum_array = other.array.copy()
+            list_ix_col = [list(other_dates).index(date) for date in initial_dates]
+            sum_array[:,list_ix_col] += array
+            dates = other_dates
+        return TimeArray(sum_array, dates)
         
     def substract(self, other_time_array, inplace=False):
         array = self.array.copy()
