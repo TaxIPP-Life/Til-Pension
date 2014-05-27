@@ -47,7 +47,7 @@ class FonctionPublique(RegimeBase):
             to_check['DA_FP'] = (trimesters['cot_FP'].sum() + trimesters['maj_FP'].sum()) //4
         return trimesters, wages
         
-    def _age_start_surcote(self, workstate):
+    def _age_min(self, workstate):
         P = self.P.public.fp
         trim_actif = self.trim_cot_by_year(workstate, self.code_actif).array.sum(1)
         # age_min = age_min_actif pour les fonctionnaires actif en fin de carrières ou carrière mixte ayant une durée de service actif suffisante

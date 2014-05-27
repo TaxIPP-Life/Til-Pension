@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from numpy import maximum, array, nan_to_num, greater, divide, around, zeros
+from numpy import maximum, array, nan_to_num, greater, divide, around, zeros, minimum
 from pandas import Series
 from time_array import TimeArray
 from utils_pension import build_long_values, build_long_baremes
@@ -43,38 +43,48 @@ class Regime(object):
     def _surcote(self, workstate, trimesters, age):
         trim_by_year_tot = trimesters['by_year_tot']
         trim_maj = trimesters['maj_tot']
-        datesim = 100*self.yearsim + 1
-        age_start = self._age_start_surcote(workstate)
-        date_start = self._date_taux_plein(trim_by_year_tot, trim_maj)
-        date_start_surcote = [int(max(datesim - year_surcote*100, 
-                                datesim - month_trim//12*100 - month_trim%12))
-                        for year_surcote, month_trim in zip(date_start, age-age_start)]
+        date_start_surcote = self._date_start_surcote(workstate, trim_by_year_tot, trim_maj, age)
         return self._calculate_surcote(self.yearsim, trimesters, date_start_surcote, age)
     
     def _calculate_surcote(self, yearsim, regime, date_start_surcote, age, trim_by_year_tot):
         #TODO: remove trim_by_year_tot from arguments
         raise NotImplementedError
     
-    def _age_start_surcote(self, workstate):
-        ''' retourne l'age à partir duquel les trimesters peuvent être 
-             comptabilisés pour la surcote
-             Note: ça a l'air simple en général, juste un paramètre mais
-              pour la fonction publique il y a des grosses subtilités...
-        '''
-        raise NotImplementedError
     
-    def _date_taux_plein(self, trim_by_year_tot, trim_maj):
-        ''' Détermine la date individuelle a partir de laquelle il y a surcote 
-        (a atteint l'âge légal de départ en retraite + côtisé le nombre de trimestres cible 
+    def _date_start_surcote(self, workstate, trim_by_year_tot, trim_maj, agem):
+        ''' Détermine la date individuelle a partir de laquelle on atteint la surcote
+        (a atteint l'âge légal de départ en retraite + côtisé le nombre de trimestres cible)
         Rq : pour l'instant on pourrait ne renvoyer que l'année'''
-        
+        datesim = self.yearsim*100 + 1
         P = reduce(getattr, self.param_name.split('.'), self.P)
         N_taux = P.plein.N_taux
+        age_legal = self._age_min(workstate)
+        
         cumul_trim = trim_by_year_tot.array.cumsum(axis=1)
         trim_limit = array((N_taux - nan_to_num(trim_maj)))
-        years_surcote = greater(cumul_trim.T,trim_limit)
-        nb_years_surcote = years_surcote.sum(axis=0)
-        return nb_years_surcote 
+        years_taux_plein_trim = greater(cumul_trim.T,trim_limit)
+        nb_years_taux_plein_trim = years_taux_plein_trim.sum(axis=0)
+        start_surcote = [int(datesim - year_surcote*100)
+                                 if month_trim > 0 else 2100*100 + 1
+                                 for year_surcote, month_trim in zip(nb_years_taux_plein_trim, agem-age_legal)]
+        return start_surcote
+
+    
+    def _date_start_taux_plein(self, workstate, trim_by_year_tot, trim_maj, agem):
+        ''' Détermine la date individuelle a partir de laquelle on atteint le taux plein
+        condition date_surcote, 
+        Rq : pour l'instant on pourrait ne renvoyer que l'année'''
+        datesim = self.yearsim*100 + 1
+        P = reduce(getattr, self.param_name.split('.'), self.P)
+        age_taux_plein = P.decote.age_null
+        
+        # Condition sur l'âge -> automatique si on atteint l'âge du taux plein
+        start_taux_plein_age = [ int(datesim - months//12*100 - months%12)
+                                if months> 0 else 2100*100 + 1
+                                for months in (agem - age_taux_plein) ]
+        # Condition sur les trimestres -> même que celle pour la surcote
+        start_taux_plein_trim = self._date_surcote(workstate, trim_by_year_tot, trim_maj, agem)
+        return minimum(start_taux_plein_age, start_taux_plein_trim)
     
     def sali_in_regime(self, sali, workstate):
         ''' Cette fonction renvoie le TimeArray ne contenant que les salaires validés avec workstate == code_regime'''
@@ -111,7 +121,6 @@ class Regime(object):
     
     def calculate_pension(self, workstate, sali, info_ind, trimesters, wages, to_check=None):
         reg = self.regime
-        print wages.keys()
         taux, surcote = self.calculate_taux(workstate, info_ind, trimesters, to_check)
         cp = self.calculate_coeff_proratisation(info_ind, trimesters)
         salref = self.calculate_salref(workstate, sali, wages)

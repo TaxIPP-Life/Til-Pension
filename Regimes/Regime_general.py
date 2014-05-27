@@ -51,7 +51,7 @@ class RegimeGeneral(RegimeBase):
                                  + trimesters['maj_RG'])/4
         return trimesters, wages
         
-    def _age_start_surcote(self, workstate=None):
+    def _age_min(self, workstate=None):
         P = reduce(getattr, self.param_name.split('.'), self.P)
         return P.age_min
 
@@ -243,7 +243,6 @@ class RegimeGeneral(RegimeBase):
         else:
             trim_maj = 0
         trim_by_year_tot = trimesters['by_year_tot']
-        #trim_maj_tot = trimesters['trim_maj_tot']
         N_taux = P.plein.N_taux
       
         def _trimestre_surcote_0304(trim_by_year_RG, date_start_surcote, P):
@@ -287,7 +286,7 @@ class RegimeGeneral(RegimeBase):
             return maximum(trim_tot - N_taux, 0)*taux_surcote 
         elif yearsim < 2007:
             taux_surcote = P.surcote.taux_07
-            trim_surcote = nb_trim_surcote(trim_by_year_RG, date_start_surcote)
+            trim_surcote = nb_trim_surcote(trim_by_year_RG, maximum(date_start_surcote, 2003*100 + 1))
             return trim_surcote*taux_surcote 
         elif yearsim < 2010:
             surcote_03 = _trimestre_surcote_0304(trim_by_year_RG, date_start_surcote, P.surcote)
