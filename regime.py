@@ -74,7 +74,7 @@ class Regime(object):
         trim_limit = array((N_taux - nan_to_num(trim_maj)))
         years_surcote = greater(cumul_trim.T,trim_limit)
         nb_years_surcote = years_surcote.sum(axis=0)
-        return nb_years_surcote
+        return (- nb_years_surcote + self.yearsim)*100 + 1
        
     def calculate_taux(self, workstate, info_ind, trimestres, to_check=None):
         ''' Détérmination du taux de liquidation à appliquer à la pension 
@@ -120,7 +120,7 @@ class Regime(object):
 
 class RegimeBase(Regime):
 
-    def nb_trim_valide(self, workstate, code=None, table=False): #sali,
+    def trim_cot_by_year(self, workstate, code=None): #sali,
         ''' Cette fonction pertmet de calculer des nombres par trimestres validés dans un régime
         validation au sein du régime = 'workstate' = code
         TODO: gérer la comptabilisation des temps partiels quand variable présente'''
@@ -136,11 +136,7 @@ class RegimeBase(Regime):
         if frequency_init == 'month':
             #from month to trimester
             trim_service.array = divide(trim_service.array,3)
-        self.trim_by_year = trim_service
-        if table == True:
-            return trim_service
-        else:
-            return trim_service.array.sum(1)
+        return trim_service
 
     def revenu_valides(self, workstate, sali, code=None): #sali, 
         ''' Cette fonction pertmet de calculer des nombres par trimestres

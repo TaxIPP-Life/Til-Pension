@@ -30,7 +30,7 @@ class FonctionPublique(RegimeBase):
     def get_trimesters_wages(self, workstate, sali, info_ind, to_check):
         trimesters = dict()
         wages = dict()
-        trim_valide = self.nb_trim_valide(workstate, table=True)
+        trim_valide = self.trim_cot_by_year(workstate)
         trim_by_year_to_RG = self.trim_to_RG(workstate, sali, trim_valide)
         trim_valide.substract(trim_by_year_to_RG, inplace=True)
         trimesters['trim_by_year_FP'] = trim_valide
@@ -39,14 +39,14 @@ class FonctionPublique(RegimeBase):
         trimesters['trim_cot_FP'] = trim_valide.array.sum(1)
         trimesters['trim_maj_FP'] = self.trim_bonif_CPCM(info_ind,trimesters['trim_cot_FP']) + self.trim_bonif_5eme(trimesters['trim_cot_FP'])
         trimesters['trim_tot_FP'] = trimesters['trim_cot_FP'] + trimesters['trim_maj_FP']
-        self.trim_actif = self.nb_trim_valide(workstate, code=self.code_actif, table=True)
+        self.trim_actif = self.trim_cot_by_year(workstate, code=self.code_actif)
         if to_check :
             to_check['DA_FP'] = (trimesters['trim_tot']) //4
         return trimesters, wages
         
     def _age_start_surcote(self, workstate):
         P = self.P.public.fp
-        trim_actif = self.nb_trim_valide(workstate, self.code_actif)
+        trim_actif = self.trim_cot_by_year(workstate, self.code_actif).array.sum(1)
         # age_min = age_min_actif pour les fonctionnaires actif en fin de carrières ou carrière mixte ayant une durée de service actif suffisante
         age_min_s = P.sedentaire.age_min
         age_min_a = P.actif.age_min

@@ -35,14 +35,14 @@ class RegimeGeneral(RegimeBase):
     def get_trimesters_wages(self, workstate, sali, info_ind, to_check=False):
         trimesters = dict()
         wages = dict()
-        nb_trim_cot = self.nb_trim_cot(workstate, sali)
+        nb_trim_cot = self.trim_cot_by_year(workstate, sali)
         trimesters['trim_cot_RG']  = nb_trim_cot.array.sum(axis=1)
         wages['sal_cot_RG'] = self.sali_for_regime(sali, nb_trim_cot)
-        nb_trim_ass = self.nb_trim_ass(workstate, nb_trim_cot)
+        nb_trim_ass = self.trim_ass_by_year(workstate, nb_trim_cot)
         trimesters['trim_ass_RG'] = nb_trim_ass.array.sum(axis=1)
-        sal_for_avpf = self.sal_avpf(workstate,sali)
+        sal_for_avpf = self.sali_avpf(workstate,sali)
         wages['sal_avpf_RG'] = sal_for_avpf
-        nb_trim_avpf = self.nb_trim_avpf(sal_for_avpf)
+        nb_trim_avpf = self.trim_avpf_by_year(sal_for_avpf)
         trimesters['trim_maj_RG'] = self.nb_trim_maj(info_ind, nb_trim_avpf)
         
         trimesters['trim_by_year_RG'] = nb_trim_cot.add(nb_trim_avpf).add(nb_trim_ass)
@@ -55,7 +55,7 @@ class RegimeGeneral(RegimeBase):
         P = reduce(getattr, self.param_name.split('.'), self.P)
         return P.age_min
 
-    def nb_trim_cot(self, workstate, sali, table=False):
+    def trim_cot_by_year(self, workstate, sali, table=False):
         ''' Nombre de trimestres côtisés pour le régime général par année 
         ref : code de la sécurité sociale, article R351-9
         '''
@@ -74,7 +74,7 @@ class RegimeGeneral(RegimeBase):
         sal_by_year = sali.translate_frequency(output_frequency='year')
         return TimeArray((trim_cot_by_year.array> 0)*sal_by_year.array, sal_by_year.dates, name='sal_RG')
     
-    def nb_trim_ass(self, workstate, nb_trim_cot):
+    def trim_ass_by_year(self, workstate, nb_trim_cot):
         ''' 
         Comptabilisation des périodes assimilées à des durées d'assurance
         Pour l"instant juste chômage workstate == 5 (considéré comme indemnisé) 
@@ -88,7 +88,7 @@ class RegimeGeneral(RegimeBase):
             trim_by_year_ass.array = (workstate.isin([code_chomage, code_preretraite])).array*4
         return trim_by_year_ass
     
-    def sal_avpf(self, workstate, sali):
+    def sali_avpf(self, workstate, sali):
         ''' Allocation vieillesse des parents au foyer : salaires de remplacements imputés
         Si certains salaires son déjà attribués à des états d'avpf on les conserve (cf.Destinie) sinon on applique la règle d'imputation'''
         avpf_selection = workstate.isin([code_avpf]).selected_dates(first_year_avpf)
@@ -103,15 +103,15 @@ class RegimeGeneral(RegimeBase):
                 sal_for_avpf.array = multiply(avpf_selection.array, smic_long)    
         return sal_for_avpf
     
-    def nb_trim_avpf(self, sal_for_avpf):
+    def trim_avpf_by_year(self, sal_for_avpf):
         ''' Allocation vieillesse des parents au foyer : nombre de trimestres attribués 
         output: TimeArray donnant le nombre de trimestres par anée
         Le nombre de trimestres validés au titre de l'AVPF se détermine à partir de sal_for_avpf
         de la même manière que trim_cot se déduit de sal_RG. Seule différence : plafonner à 10/an et non à 4'''
         salref = build_salref_bareme(self.P_longit.common, first_year_avpf, self.yearsim)
         sal_avpf = sal_for_avpf.translate_frequency(output_frequency='year', method='sum')
-        trim_avpf_by_year = sal_to_trimcot(sal_avpf, salref)
-        return trim_avpf_by_year
+        trim_avpf = sal_to_trimcot(sal_avpf, salref)
+        return trim_avpf
     
     def nb_trim_maj(self, info_ind, trim_avpf_by_year):
         ''' Trimestres majorants acquis au titre de la MDA, 
