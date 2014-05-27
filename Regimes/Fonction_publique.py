@@ -30,12 +30,17 @@ class FonctionPublique(RegimeBase):
     def get_trimesters_wages(self, workstate, sali, info_ind, to_check):
         trimesters = dict()
         wages = dict()
+        
         trim_valide = self.trim_cot_by_year(workstate)
         trim_by_year_to_RG = self.trim_to_RG(workstate, sali, trim_valide)
         trim_valide.substract(trim_by_year_to_RG, inplace=True)
+        sal_regime = self.sali_in_regime(workstate, sali)
+        sal_to_RG = self.sali_to_RG(workstate, sali, trim_by_year_to_RG)
+
         trimesters['cot_FP'] = trim_valide
-        trimesters['cot_to_RG'] = trim_by_year_to_RG
-        wages['to_RG'] = self.sali_to_RG(workstate, sali, trim_by_year_to_RG)
+        trimesters['cot_from_public_to_RG'] = trim_by_year_to_RG
+        wages['cot_FP'] = sal_regime.substract(sal_to_RG)
+        wages['from_public_to_RG'] = sal_to_RG
         trimesters['maj_FP'] = self.trim_bonif_CPCM(info_ind, trim_valide.sum()) + self.trim_bonif_5eme(trim_valide.sum())
         self.trim_actif = self.trim_cot_by_year(workstate, code=self.code_actif)
         if to_check :
@@ -99,7 +104,7 @@ class FonctionPublique(RegimeBase):
         else:
             output[selected_rows.tolist()] = workstate.array[(selected_rows.tolist(), selected_output.tolist())]
             return output
-
+    
              
     def trim_to_RG(self, workstate, sali, trim_by_year):
         ''' Détermine le nombre de trimestres par année à rapporter au régime général

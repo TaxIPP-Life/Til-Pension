@@ -94,7 +94,7 @@ def count_enf_born(info_child, index):
     nb_born += info['nb_born']
     return nb_born.fillna(0)
 
-def sum_from_dict(dictionnary, key='by_year', plafond=None):
+def sum_from_dict(dictionnary, key='', plafond=None):
     ''' Somme les TimeArray contenus dans un dictionnaire et dont le nom contient la 'key' '''
     timearray_with_key = [trim for name, trim in dictionnary.items() if key in name]
     first = timearray_with_key[0]
