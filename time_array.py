@@ -24,6 +24,13 @@ class TimeArray(object):
         array_selection = in1d(self.array.copy(), code).reshape(self.array.shape)
         return TimeArray(array_selection, self.dates)
         
+    def sum(self, axis=1):
+        ''' Cette fonction renvoie un vecteur (de longueur le nb de ligne de l'array)
+        donnant :
+        - axis = 1 : la somme des colonnes de l'array
+        - axis = 0 : la somme des lignes de l'array '''
+        return self.array.sum(axis=axis)
+    
     def selected_dates(self, first=None, last=None, date_type='year', inplace=False):
         ''' La table d'input dont les colonnes sont des dates est renvoyées amputée 
             des années postérieures à first (first incluse) 
@@ -120,6 +127,24 @@ class TimeArray(object):
             self.array = array
         else:
             return TimeArray(array, dates)
+        
+    
+    def __add__(self, other):
+        assert isinstance(other, TimeArray)
+        assert other.dates == self.dates
+        sum_array = self.array + other.array
+        return TimeArray(sum_array, self.dates)
+        
+        #more permissive :
+        dates = self.dates
+        other_dates = other.dates
+        test_dates = [date for date in other_dates if date in dates]
+        assert test_dates == other_dates
+        array = self.array
+        assert array.shape[0] == other.array.shape[0]
+        list_ix_col = [list(dates).index(date) for date in other_dates]
+        array[:,list_ix_col] += other.array
+        return TimeArray(array, dates)
         
     def substract(self, other_time_array, inplace=False):
         array = self.array.copy()
