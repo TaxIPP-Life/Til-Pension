@@ -24,7 +24,7 @@ class PensionData(object):
         if datesim is None: 
             datesim = max(sali.dates)
         datesim = DateTil(datesim)
-        self.datesim = None
+        self.datesim = datesim
         
     def selected_dates(self, first=None, last=None, date_type='year', inplace=False):
         ''' cf TimeArray '''
