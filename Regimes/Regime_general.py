@@ -225,12 +225,12 @@ class RegimeGeneral(RegimeBase):
         age_annulation = P.decote.age_null
         N_taux =P.plein.N_taux
         if yearsim < 1983:
-            trim_decote = max(0, divide(age_annulation - agem, 3))
+            trim_decote = max(divide(age_annulation - agem, 3), 0)
         else:
-            decote_age = divide(age_annulation - agem, 3)
-            decote_cot = N_taux - trim_tot
+            decote_age = maximum(divide(age_annulation - agem, 3), 0)
+            decote_cot = maximum(N_taux - trim_tot, 0)
             assert len(decote_age) == len(decote_cot)
-            trim_decote = maximum(0, minimum(decote_age, decote_cot))
+            trim_decote = minimum(decote_age, decote_cot)
         return trim_decote*tx_decote
         
     def _calculate_surcote(self, trimesters, date_start_surcote, age):
