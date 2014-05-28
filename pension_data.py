@@ -26,4 +26,13 @@ class PensionData(object):
         datesim = DateTil(datesim)
         self.datesim = None
         
+    def selected_dates(self, first=None, last=None, date_type='year', inplace=False):
+        ''' cf TimeArray '''
+        if inplace:
+            self.workstate.selected_dates(first, last, date_type, inplace=True)
+            self.sali.selected_dates(first, last, date_type, inplace=True)
+        else:
+            wk = self.workstate.selected_dates(first, last, date_type, False)
+            sal = self.sali.selected_dates(first, last, date_type, False)
+            return PensionData(wk, sal, self.info_ind, self.datesim)
         
