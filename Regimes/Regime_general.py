@@ -64,7 +64,7 @@ class RegimeGeneral(RegimeBase):
         wk_selection = workstate.isin(self.code_regime)
         sal_selection = TimeArray(wk_selection.array*sali.array, sali.dates)
         sal_selection.translate_frequency(output_frequency='year', method='sum', inplace=True)
-        salref = build_salref_bareme(self.P_longit.common, first_year_sal, self.datesim.year)
+        salref = build_salref_bareme(self.P_longit.common, first_year_sal, datesim.year)
         trim_cot_by_year = sal_to_trimcot(sal_selection, salref)
         return trim_cot_by_year
     
@@ -96,10 +96,10 @@ class RegimeGeneral(RegimeBase):
         sal_for_avpf.array = sal_for_avpf.array*avpf_selection.array
         if sal_for_avpf.array.all() == 0:
             # TODO: frquency warning, cette manière de calculer les trimestres avpf ne fonctionne qu'avec des tables annuelles
-            avpf = build_long_values(param_long=self.P_longit.common.avpf, first_year=first_year_avpf, last_year=self.datesim.year)
+            avpf = build_long_values(param_long=self.P_longit.common.avpf, first_year=first_year_avpf, last_year=datesim.year)
             sal_for_avpf.array = multiply(avpf_selection.array, 12*avpf)    
             if compare_destinie == True:
-                smic_long = build_long_values(param_long=self.P_longit.common.smic_proj, first_year=first_year_avpf, last_year=self.datesim.year) 
+                smic_long = build_long_values(param_long=self.P_longit.common.smic_proj, first_year=first_year_avpf, last_year=datesim.year) 
                 sal_for_avpf.array = multiply(avpf_selection.array, smic_long)    
         return sal_for_avpf
     
@@ -108,7 +108,7 @@ class RegimeGeneral(RegimeBase):
         output: TimeArray donnant le nombre de trimestres par anée
         Le nombre de trimestres validés au titre de l'AVPF se détermine à partir de sal_for_avpf
         de la même manière que trim_cot se déduit de sal_RG. Seule différence : plafonner à 10/an et non à 4'''
-        salref = build_salref_bareme(self.P_longit.common, first_year_avpf, self.datesim.year)
+        salref = build_salref_bareme(self.P_longit.common, first_year_avpf, datesim.year)
         sal_avpf = sal_for_avpf.translate_frequency(output_frequency='year', method='sum')
         trim_avpf = sal_to_trimcot(sal_avpf, salref)
         return trim_avpf
@@ -117,21 +117,21 @@ class RegimeGeneral(RegimeBase):
         ''' Trimestres majorants acquis au titre de la MDA, 
             de l'assurance pour congé parental ou de l'AVPF '''
         
-        def _trim_mda(info_child, list_id, yearsim):
+        def _trim_mda(info_child, list_id, yearleg):
             #TODO: remove the pandas call
             ''' Majoration pour enfant à charge : nombre de trimestres acquis
             Rq : cette majoration n'est applicable que pour les femmes dans le RG'''
             mda = DataFrame({'mda': zeros(len(list_id))}, index=list_id)
             # TODO: distinguer selon l'âge des enfants après 2003
             # ligne suivante seulement if info_child['age_enf'].min() > 16 :
-            if yearsim < 1972 :
+            if yearleg < 1972 :
                 return mda
-            elif yearsim <1975:
+            elif yearleg <1975:
                 # loi Boulin du 31 décembre 1971 
                 mda.iloc[info_child.index.values, 'mda'] = 8*info_child.values
                 mda.loc[mda['mda'] < 2, 'mda'] = 0
                 return mda.astype(int)
-            elif yearsim <2004:
+            elif yearleg <2004:
                 mda.loc[info_child.index.values, 'mda'] = 8*info_child.values
                 return mda.astype(int)
             else:
@@ -140,9 +140,9 @@ class RegimeGeneral(RegimeBase):
                 return mda['mda'].astype(int)
         child_mother = info_ind.loc[info_ind['sexe'] == 1, 'nb_born']
         list_id = info_ind.index
-        yearsim = self.datesim.year
+        yearleg = self.dateleg.year
         if child_mother is not None:
-            nb_trim_mda = _trim_mda(child_mother, list_id, yearsim)
+            nb_trim_mda = _trim_mda(child_mother, list_id, yearleg)
         else :
             nb_trim_mda = 0
             
@@ -152,7 +152,7 @@ class RegimeGeneral(RegimeBase):
     def calculate_salref(self, workstate, sali, wages):
         ''' SAM : Calcul du salaire annuel moyen de référence : 
         notamment application du plafonnement à un PSS'''
-        yearsim = self.datesim.year
+        yearleg = self.dateleg.year
         try:
             P = reduce(getattr, self.param_indep.split('.'), self.P)
         except:
@@ -184,9 +184,9 @@ class RegimeGeneral(RegimeBase):
         ''' Détermination de la durée d'assurance corrigée introduite par la réforme Boulin
         (majoration quand départ à la retraite après 65 ans) '''
         P = reduce(getattr, self.param_name.split('.'), self.P)
-        year = self.datesim.year
+        yearleg = self.dateleg.year
         age_taux_plein = P.decote.age_null
-        if year < 1983:
+        if yearleg < 1983:
             return trim_RG
         else:
             trim_majo = maximum(divide(agem - age_taux_plein, 3), 0)
@@ -197,20 +197,20 @@ class RegimeGeneral(RegimeBase):
     def calculate_coeff_proratisation(self, info_ind, trimesters):
         ''' Calcul du coefficient de proratisation '''
         P =  reduce(getattr, self.param_name.split('.'), self.P)
-        yearsim = self.datesim.year
+        yearleg = self.dateleg.year
         trim_regime = trimesters['by_year_regime'].sum()
         trim_tot = trimesters['by_year_tot'].sum(1) + trimesters['maj_tot']
         agem = info_ind['agem']
         trim_CP = self.assurance_maj(trim_regime, trim_tot, agem)
         
-        if 1948 <= yearsim and yearsim < 1972: 
+        if 1948 <= yearleg and yearleg < 1972: 
             trim_CP= trim_CP + (120 - trim_CP)/2
         #TODO: voir si on ne met pas cette disposition spécifique de la loi Boulin dans la déclaration des paramètres directement
-        elif yearsim < 1973:
+        elif yearleg < 1973:
             trim_CP = min(trim_CP, 128)
-        elif yearsim < 1974:
+        elif yearleg < 1974:
             trim_CP = min(trim_CP, 136)            
-        elif yearsim < 1975:
+        elif yearleg < 1975:
             trim_CP = min(trim_CP, 144)   
         else:
             trim_CP = minimum(trim_CP, P.N_CP)
@@ -219,12 +219,12 @@ class RegimeGeneral(RegimeBase):
     
     def _decote(self, trim_tot, agem):
         ''' Détermination de la décote à appliquer aux pensions '''
-        yearsim = self.datesim.year
+        yearleg = self.dateleg.year
         P = reduce(getattr, self.param_name.split('.'), self.P)
         tx_decote = P.decote.taux
         age_annulation = P.decote.age_null
         N_taux =P.plein.N_taux
-        if yearsim < 1983:
+        if yearleg < 1983:
             trim_decote = max(divide(age_annulation - agem, 3), 0)
         else:
             decote_age = maximum(divide(age_annulation - agem, 3), 0)
@@ -235,7 +235,7 @@ class RegimeGeneral(RegimeBase):
         
     def _calculate_surcote(self, trimesters, date_start_surcote, age):
         ''' Détermination de la surcote à appliquer aux pensions '''
-        yearsim = self.datesim.year
+        yearleg = self.dateleg.year
         P = reduce(getattr, self.param_name.split('.'), self.P)
         trim_by_year_RG = trimesters['by_year_regime']
         if 'maj' in trimesters.keys() :
@@ -276,15 +276,15 @@ class RegimeGeneral(RegimeBase):
             nb_trim = nb_trim_surcote(trim_selected, date_start_surcote)
             return taux_surcote*nb_trim
             
-        if yearsim < 2004:
+        if yearleg < 2004:
             taux_surcote = P.surcote.taux_07
             trim_tot = self.trim_by_year.sum(axis=1)
             return maximum(trim_tot - N_taux, 0)*taux_surcote 
-        elif yearsim < 2007:
+        elif yearleg < 2007:
             taux_surcote = P.surcote.taux_07
             trim_surcote = nb_trim_surcote(trim_by_year_RG, maximum(date_start_surcote, 100*2003 + 1))
             return trim_surcote*taux_surcote 
-        elif yearsim < 2010:
+        elif yearleg < 2010:
             surcote_03 = _trimestre_surcote_0304(trim_by_year_RG, date_start_surcote, P.surcote)
             surcote_0408 = _trimestre_surcote_0408(trim_by_year_RG, trim_by_year_tot, trim_maj, date_start_surcote, age, P.surcote)
             return surcote_03 + surcote_0408
@@ -299,10 +299,10 @@ class RegimeGeneral(RegimeBase):
         RQ : ASPA et minimum vieillesse sont gérés par OF
         Il est attribué quels que soient les revenus dont dispose le retraité en plus de ses pensions : loyers, revenus du capital, activité professionnelle... 
         + mécanisme de répartition si cotisations à plusieurs régimes'''
-        yearsim = self.datesim.year
+        yearleg = self.dateleg.year
         P = reduce(getattr, self.param_name.split('.'), self.P)
         N_taux = P.plein.N_taux
-        if yearsim < 2004:
+        if yearleg < 2004:
             mico = P.mico.entier 
             # TODO: règle relativement complexe à implémenter de la limite de cumul (voir site CNAV)
             return  maximum(0, mico - pension_RG)*minimum(1, divide(trim_cot, P.N_CP))

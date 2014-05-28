@@ -76,7 +76,6 @@ class ARRCO(RegimeComplementaires):
         cadre_selection = (workstate.array == self.code_cadre)
         noncadre_selection = (workstate.array == self.code_noncadre)
         sali = sali.array
-        yearsim = self.datesim.year
         plaf_ss = self.P_longit.common.plaf_ss
         pss = build_long_values(plaf_ss, first_year=first_year_sal, last_year=yearsim) 
         plaf_sali = minimum(sali, nb_pss*pss)
@@ -105,12 +104,12 @@ class ARRCO(RegimeComplementaires):
         points_born = ((nb_points_98 + nb_points9911)*taux_born11  + nb_points12_*taux_born)*(nb_born >= 3)
         
         # Comparaison de la situation la plus avantageuse
-        yearsim = self.datesim.year 
+        yearleg = self.dateleg.year 
         val_point = P.val_point
         majo_born = val_point*points_born
         majo_pac = val_point*points_pac
-        yearnaiss = yearsim - divide(agem,12)
-        if yearsim >= 2013:
+        yearnaiss = yearsim - divide(agem,12) #TODO: chech with anaiss in info_ind
+        if yearleg >= 2013:
             plafond = P.maj_enf.plaf_pac
             majo_pac = minimum(majo_pac[(yearnaiss <= 1951)], plafond)
         return maximum(majo_born, majo_pac)

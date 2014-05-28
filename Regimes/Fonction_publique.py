@@ -158,7 +158,7 @@ class FonctionPublique(RegimeBase):
 
     def _decote(self, trim_tot, agem):
         ''' Détermination de la décote à appliquer aux pensions '''
-        yearsim = self.datesim.year
+        yearsim = self.dateleg.year
         if yearsim < 2006:
             return agem*0
         else:
@@ -178,7 +178,7 @@ class FonctionPublique(RegimeBase):
         
     def _calculate_surcote(self, trimesters, date_start_surcote, age):
         ''' Détermination de la surcote à appliquer aux pensions '''
-        yearsim = self.datesim.year
+        yearsim = self.dateleg.year
         if yearsim < 2004:
             return age*0
         else:

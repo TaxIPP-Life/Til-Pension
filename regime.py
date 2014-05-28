@@ -24,7 +24,7 @@ class Regime(object):
         self.time_step = None
         self.data_type = None
         self.first_year = None
-        self.datesim = None
+        self.dateleg = None
         self.index = None
         
         self.P = None
@@ -38,9 +38,9 @@ class Regime(object):
         for key, val in kwargs.iteritems():
             if hasattr(self, key):
                 setattr(self, key, val)
-        if 'datesim' in kwargs.keys():
-            date = DateTil(kwargs['datesim'])
-            setattr(self, 'datesim', date)
+        if 'dateleg' in kwargs.keys():
+            date = DateTil(kwargs['dateleg'])
+            self.dateleg = date
 
     def _decote(self):
         raise NotImplementedError
@@ -214,7 +214,7 @@ class RegimeComplementaires(Regime):
  
     def coefficient_age(self, agem, trim):
         ''' TODO: add surcote  pour avant 1955 '''
-        yearsim = self.datesim.year
+        yearleg = self.dateleg.year
         P = reduce(getattr, self.param_name.split('.'), self.P)
         coef_mino = P.coef_mino
         age_annulation_decote = self.P.prive.RG.decote.age_null
@@ -224,13 +224,13 @@ class RegimeComplementaires(Regime):
         coeff_maj = Series(zeros(len(agem)), index=agem.index)
         for nb_annees, coef_mino in coef_mino._tranches:
             coeff_min += (diff_age == nb_annees)*coef_mino
-        if yearsim <= 1955:
+        if yearleg <= 1955:
             maj_age = maximum(divide(agem - age_annulation_decote, 12), 0)
             coeff_maj = maj_age*0.05
             return coeff_min + coeff_maj
-        elif yearsim < 1983:
+        elif yearleg < 1983:
             return coeff_min
-        elif yearsim >= 1983:
+        elif yearleg >= 1983:
             # A partir de cette date, la minoration ne s'applique que si la durée de cotisation au régime général est inférieure à celle requise pour le taux plein
             return  coeff_min*(N_taux > trim) + (N_taux <= trim)        
     
