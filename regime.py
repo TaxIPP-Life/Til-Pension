@@ -123,7 +123,12 @@ class Regime(object):
 #         self.sal_regime = sali.array*_isin(self.workstate.array,self.code_regime)
         raise NotImplementedError
     
-    def calculate_pension(self, workstate, sali, info_ind, trimesters, wages, to_check=None):
+    def calculate_pension(self, data, trimesters, wages, to_check=None):
+        
+        workstate = data.workstate
+        sali = data.sali
+        info_ind = data.info_ind
+        
         reg = self.regime
         taux, surcote = self.calculate_taux(workstate, info_ind, trimesters, to_check)
         cp = self.calculate_coeff_proratisation(info_ind, trimesters)
@@ -237,7 +242,11 @@ class RegimeComplementaires(Regime):
     def majoration_enf(self):     
         raise NotImplementedError
     
-    def calculate_pension(self, workstate, sali, info_ind, trim_base, to_check=None):
+    def calculate_pension(self, data, trim_base, to_check=None):
+        workstate = data.workstate
+        sali = data.sali
+        info_ind = data.info_ind
+        
         reg = self.regime
         P = reduce(getattr, self.param_name.split('.'), self.P)
         val_arrco = P.val_point 
