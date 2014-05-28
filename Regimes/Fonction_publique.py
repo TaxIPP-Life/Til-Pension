@@ -36,9 +36,9 @@ class FonctionPublique(RegimeBase):
         info_ind = data.info_ind
                 
         trim_valide = self.trim_cot_by_year(workstate)
-        trim_to_RG = self.trim_to_RG(workstate, sali, trim_valide)
+        trim_to_RG = self.trim_to_RG(data, trim_valide)
         sal_regime = self.sali_in_regime(workstate, sali)
-        sal_to_RG = self.sali_to_RG(workstate, sali, trim_to_RG)
+        sal_to_RG = self.sali_to_RG(data, trim_to_RG)
         trimesters['cot_FP'] = trim_valide.substract(trim_to_RG)
         trimesters['cot_from_public_to_RG'] = trim_to_RG
         wages['cot_FP'] = sal_regime.substract(sal_to_RG)
@@ -67,11 +67,13 @@ class FonctionPublique(RegimeBase):
         age_max = actif*age_max_a + sedentaire*age_max_s
         return age_max
 
-    def _traitement(self, workstate, sali, option='workstate'):
+    def _traitement(self, data, option='workstate'):
         ''' Détermine le workstate lors de la dernière cotisation au régime FP pour lui associer sa catégorie 
         output (option=workstate): 0 = non-fonctionnaire, 6 = fonc. sédentaire, 5 = fonc.actif (cf, construction de age_max)
         output (option=sali) : 0 si non-fonctionnaire, dernier salaire annuel sinon'''
-        workstate = workstate.copy()
+        
+        workstate = data.workstate.copy()
+        sali = data.sali
         wk_selection = workstate.isin(self.code_regime).array*workstate.array
 
         len_dates = wk_selection.shape[1]
@@ -107,27 +109,29 @@ class FonctionPublique(RegimeBase):
             return output
     
              
-    def trim_to_RG(self, workstate, sali, trim_by_year):
+    def trim_to_RG(self, data, trim_by_year):
         ''' Détermine le nombre de trimestres par année à rapporter au régime général
         output : trim_by_year_FP_to_RG '''
         P = reduce(getattr, self.param_name.split('.'), self.P)
         # N_min donné en mois
         trim_cot = trim_by_year.array.sum(1)
-        last_fp = self._traitement(workstate, sali)
+        last_fp = self._traitement(data)
         to_RG_actif = (trim_cot*3 < P.actif.N_min)*(last_fp == self.code_actif)
         to_RG_sedentaire = (trim_cot*3 < P.sedentaire.N_min)*(last_fp == self.code_sedentaire)
         to_RG = (to_RG_actif + to_RG_sedentaire)
         workstate_array = transpose(trim_by_year.array.T*to_RG.T)
         return TimeArray(workstate_array, trim_by_year.dates)
 
-    def sali_to_RG(self, workstate, sali, trim_by_year):
+    def sali_to_RG(self, data, trim_by_year):
         ''' renvoie la table des salaires (même time_step que sali) qui basculent du RG à la FP 
         output: sali_FP_to_RG
         TODO: Gérer les redondances avec la fonction précédente'''
+        workstate = data.workstate
+        sali = data.sali
         P = reduce(getattr, self.param_name.split('.'), self.P)
         # N_min donné en mois
         trim_cot = trim_by_year.array.sum(1)
-        last_fp = self._traitement(workstate, sali)
+        last_fp = self._traitement(data)
         to_RG_actif = (trim_cot*3 < P.actif.N_min)*(last_fp == self.code_actif)*(trim_cot>0)
         to_RG_sedentaire = (trim_cot*3 < P.sedentaire.N_min)*(last_fp == self.code_sedentaire)*(trim_cot>0)
         to_RG = (to_RG_actif + to_RG_sedentaire)
@@ -162,7 +166,7 @@ class FonctionPublique(RegimeBase):
 
     def _decote(self, trim_tot, agem):
         ''' Détermination de la décote à appliquer aux pensions '''
-        yearsim = self.dateleg.year
+        yearsim = self.dateleg.year #TODO: chack
         if yearsim < 2006:
             return agem*0
         else:
@@ -191,8 +195,8 @@ class FonctionPublique(RegimeBase):
             nb_trim = nb_trim_surcote(trimesters['by_year_regime'], date_start_surcote)
             return taux_surcote*nb_trim
 
-    def calculate_salref(self, workstate, sali, regime):
-        return self._traitement(workstate, sali, option='sali')
+    def calculate_salref(self, data, regime):
+        return self._traitement(data, option='sali')
     
     def plafond_pension(self, pension_brute, salref, cp, surcote):
         return pension_brute

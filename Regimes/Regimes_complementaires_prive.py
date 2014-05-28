@@ -24,11 +24,12 @@ class AGIRC(RegimeComplementaires):
     def sali_for_regime(self, workstate, sali):
         return sali.array*(workstate.isin(self.code_regime).array)
         
-    def majoration_enf(self, workstate, sali, info_ind, nb_points, coeff_age):
+    def majoration_enf(self, data, nb_points, coeff_age):
         ''' Application de la majoration pour enfants à charge. Deux types de majorations peuvent s'appliquer :
         ' pour enfant à charge au moment du départ en retraite
         - pour enfant nés et élevés en cours de carrière (majoration sur la totalité des droits acquis)
         C'est la plus avantageuse qui s'applique.'''
+        info_ind = data.info_ind
         P = reduce(getattr, self.param_name.split('.'), self.P)
         agem = info_ind['agem']
         # Calcul des points pour enfants à charge
@@ -40,8 +41,8 @@ class AGIRC(RegimeComplementaires):
         taux_born = P.maj_enf.born
         taux_born11 = P.maj_enf.born11
         nb_born = info_ind['nb_born']
-        nb_points_11 = coeff_age*self.nombre_points(workstate, sali, last_year=2011)
-        nb_points12_ = coeff_age*self.nombre_points(workstate, sali, first_year=2012) 
+        nb_points_11 = coeff_age*self.nombre_points(data, last_year=2011)
+        nb_points12_ = coeff_age*self.nombre_points(data, first_year=2012) 
         points_born_11 = nb_points_11*(nb_born)*taux_born11
         points_born12_ = nb_points12_*taux_born
         points_born = (points_born_11 + points_born12_)*(nb_born >= 3)
@@ -69,24 +70,28 @@ class ARRCO(RegimeComplementaires):
         self.code_cadre = 4
         
         
-    def sali_for_regime(self, workstate, sali):
+    def sali_for_regime(self, data):
         '''plafonne le salaire des cadres à 1 pss pour qu'il ne pait que la prmeière tranche '''
+        workstate = data.workstate
+        sali = data.sali
         first_year_sal = min(workstate.dates) // 100
         nb_pss=1
         cadre_selection = (workstate.array == self.code_cadre)
         noncadre_selection = (workstate.array == self.code_noncadre)
         sali = sali.array
         plaf_ss = self.P_longit.common.plaf_ss
-        pss = build_long_values(plaf_ss, first_year=first_year_sal, last_year=yearsim) 
+        pss = build_long_values(plaf_ss, first_year=first_year_sal, last_year=data.datesim.year) 
         plaf_sali = minimum(sali, nb_pss*pss)
         return sali*noncadre_selection + plaf_sali*cadre_selection
         
-    def majoration_enf(self, workstate, sali, info_ind, nb_points, coeff_age):
+    def majoration_enf(self, data, nb_points, coeff_age):
         ''' Application de la majoration pour enfants à charge. Deux types de majorations peuvent s'appliquer :
         - pour enfant à charge au moment du départ en retraite
         - pour enfant nés et élevés en cours de carrière (majoration sur la totalité des droits acquis)
         C'est la plus avantageuse qui s'applique.
         Rq : coeff age n'intervient pas effectivement dans cette fonction'''
+        info_ind = data.info_ind
+        
         P = reduce(getattr, self.param_name.split('.'), self.P)
         agem = info_ind['agem']
         # Calcul des points pour enfants à charge
@@ -98,9 +103,9 @@ class ARRCO(RegimeComplementaires):
         taux_born11 = P.maj_enf.born11
         taux_born = P.maj_enf.born
         nb_born = info_ind['nb_born']
-        nb_points_98 = self.nombre_points(workstate, sali, last_year=1998)
-        nb_points9911 = self.nombre_points(workstate, sali, first_year=1999, last_year=2011) 
-        nb_points12_ = self.nombre_points(workstate, sali, first_year=2012) 
+        nb_points_98 = self.nombre_points(data, last_year=1998)
+        nb_points9911 = self.nombre_points(data, first_year=1999, last_year=2011) 
+        nb_points12_ = self.nombre_points(data, first_year=2012) 
         points_born = ((nb_points_98 + nb_points9911)*taux_born11  + nb_points12_*taux_born)*(nb_born >= 3)
         
         # Comparaison de la situation la plus avantageuse
@@ -108,7 +113,7 @@ class ARRCO(RegimeComplementaires):
         val_point = P.val_point
         majo_born = val_point*points_born
         majo_pac = val_point*points_pac
-        yearnaiss = yearsim - divide(agem,12) #TODO: chech with anaiss in info_ind
+        yearnaiss = self.dateleg.year - divide(agem,12) #TODO: chech with anaiss in info_ind
         if yearleg >= 2013:
             plafond = P.maj_enf.plaf_pac
             majo_pac = minimum(majo_pac[(yearnaiss <= 1951)], plafond)

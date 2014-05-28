@@ -185,14 +185,17 @@ class RegimeBase(Regime):
 
 class RegimeComplementaires(Regime):
         
-    def sali_for_regime(self, workstate, sali):
+    def sali_for_regime(self, data):
         raise NotImplementedError
     
-    def nombre_points(self, workstate, sali, first_year=first_year_sal, last_year=None):
+    def nombre_points(self, data, first_year=first_year_sal, last_year=None):
         ''' Détermine le nombre de point à liquidation de la pension dans les régimes complémentaires (pour l'instant Ok pour ARRCO/AGIRC)
         Pour calculer ces points, il faut diviser la cotisation annuelle ouvrant des droits par le salaire de référence de l'année concernée 
         et multiplier par le taux d'acquisition des points'''
-        yearsim = self.datesim.year
+        workstate = data.workstate
+        sali = data.sali
+        
+        yearsim = data.datesim.year
         last_year_sali = yearsim - 1
         sali_plaf = self.sali_for_regime(workstate, sali)
         if last_year == None:
@@ -250,9 +253,9 @@ class RegimeComplementaires(Regime):
         reg = self.regime
         P = reduce(getattr, self.param_name.split('.'), self.P)
         val_arrco = P.val_point 
-        nb_points = self.nombre_points(workstate, sali)
+        nb_points = self.nombre_points(data)
         coeff_age = self.coefficient_age(info_ind['agem'], trim_base)
-        maj_enf = self.majoration_enf(workstate, sali, info_ind, nb_points, coeff_age)
+        maj_enf = self.majoration_enf(data, nb_points, coeff_age)
         
         if to_check is not None:
             to_check['nb_points_' + reg] = nb_points
