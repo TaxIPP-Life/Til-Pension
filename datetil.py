@@ -4,7 +4,11 @@ from datetime import date
 class DateTil(object):
     
     def __init__(self, datesim):
-        if isinstance(datesim, date):
+        if isinstance(date, DateTil):
+            self.datetime = date.liam
+            self.year = date.year
+            self.liam = date.liam
+        elif isinstance(datesim, date):
             self.datetime = datesim
             self.year = datesim.year
             self.liam = 100*datesim.year + datesim.month
