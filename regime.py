@@ -61,7 +61,8 @@ class Regime(object):
         ''' Détermine la date individuelle a partir de laquelle on atteint la surcote
         (a atteint l'âge légal de départ en retraite + côtisé le nombre de trimestres cible)
         Rq : pour l'instant on pourrait ne renvoyer que l'année'''
-        datesim = self.datesim.liam
+        #TODO: do something better with datesim
+        datesim = self.dateleg.liam
         P = reduce(getattr, self.param_name.split('.'), self.P)
         N_taux = P.plein.N_taux
         cumul_trim = trim_by_year_tot.array.cumsum(axis=1)
@@ -78,7 +79,7 @@ class Regime(object):
         ''' Détermine la date individuelle a partir de laquelle on atteint le taux plein
         condition date_surcote ou si atteint l'âge du taux plein
         Rq : pour l'instant on pourrait ne renvoyer que l'année'''
-        datesim = self.datesim.liam
+        datesim = self.dateleg.liam
         P = reduce(getattr, self.param_name.split('.'), self.P)
         age_taux_plein = P.decote.age_null
         
