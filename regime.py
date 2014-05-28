@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+from datetime import date
 from numpy import maximum, array, nan_to_num, greater, divide, around, zeros, minimum
 from pandas import Series
 from time_array import TimeArray
@@ -7,6 +7,30 @@ from utils_pension import build_long_values, build_long_baremes
 first_year_sal = 1949
 compare_destinie = True 
 
+class DateTil(object):
+    def __init__(self, datesim):
+        self.liam = None
+        self.datetime = None
+        self.year = None
+        self.set_attributes(datesim)
+        
+    def set_attributes(self, datesim):
+        if isinstance(datesim, date):
+            self.datetime = datesim
+            self.year = datesim.year
+            self.liam = 100*datesim.year + datesim.month
+        elif len(str(datesim)) == 4:
+            self.year = datesim
+            self.datetime = date(datesim, 1,1)
+            self.liam = 100*datesim + 1
+        elif len(str(datesim)) == 6:
+            self.liam = datesim
+            self.year = datesim//100
+            self.datetime = date(datesim // 100, datesim % 100, 1)
+        else:
+            raise('Format de la date invalide')
+            
+        
 class Regime(object):
     """
     A Simulation class tailored to compute pensions (deal with survey data )
@@ -22,7 +46,7 @@ class Regime(object):
         self.time_step = None
         self.data_type = None
         self.first_year = None
-        self.yearsim = None
+        self.datesim = None
         self.index = None
         
         self.P = None
@@ -36,7 +60,10 @@ class Regime(object):
         for key, val in kwargs.iteritems():
             if hasattr(self, key):
                 setattr(self, key, val)
-                
+        if 'datesim' in kwargs.keys():
+            date = DateTil(kwargs['datesim'])
+            setattr(self, 'datesim', date)
+
     def _decote(self):
         raise NotImplementedError
 
@@ -56,7 +83,7 @@ class Regime(object):
         ''' Détermine la date individuelle a partir de laquelle on atteint la surcote
         (a atteint l'âge légal de départ en retraite + côtisé le nombre de trimestres cible)
         Rq : pour l'instant on pourrait ne renvoyer que l'année'''
-        datesim = self.yearsim*100 + 1
+        datesim = self.datesim.liam
         P = reduce(getattr, self.param_name.split('.'), self.P)
         N_taux = P.plein.N_taux
         cumul_trim = trim_by_year_tot.array.cumsum(axis=1)
@@ -73,7 +100,7 @@ class Regime(object):
         ''' Détermine la date individuelle a partir de laquelle on atteint le taux plein
         condition date_surcote ou si atteint l'âge du taux plein
         Rq : pour l'instant on pourrait ne renvoyer que l'année'''
-        datesim = self.yearsim*100 + 1
+        datesim = self.datesim.liam
         P = reduce(getattr, self.param_name.split('.'), self.P)
         age_taux_plein = P.decote.age_null
         
@@ -145,7 +172,6 @@ class RegimeBase(Regime):
         frequency_init = trim_service.frequency
         trim_service.name = 'trim_cot'
         trim_service.translate_frequency(output_frequency='year', method='sum', inplace=True)
-        print frequency_init
         if frequency_init == 'year':
             #from year to trimester
             trim_service.array = trim_service.array*4
@@ -183,7 +209,7 @@ class RegimeComplementaires(Regime):
         ''' Détermine le nombre de point à liquidation de la pension dans les régimes complémentaires (pour l'instant Ok pour ARRCO/AGIRC)
         Pour calculer ces points, il faut diviser la cotisation annuelle ouvrant des droits par le salaire de référence de l'année concernée 
         et multiplier par le taux d'acquisition des points'''
-        yearsim = self.yearsim
+        yearsim = self.datesim.year
         last_year_sali = yearsim - 1
         sali_plaf = self.sali_for_regime(workstate, sali)
         if last_year == None:
@@ -210,6 +236,7 @@ class RegimeComplementaires(Regime):
  
     def coefficient_age(self, agem, trim):
         ''' TODO: add surcote  pour avant 1955 '''
+        yearsim = self.datesim.year
         P = reduce(getattr, self.param_name.split('.'), self.P)
         coef_mino = P.coef_mino
         age_annulation_decote = self.P.prive.RG.decote.age_null
@@ -219,13 +246,13 @@ class RegimeComplementaires(Regime):
         coeff_maj = Series(zeros(len(agem)), index=agem.index)
         for nb_annees, coef_mino in coef_mino._tranches:
             coeff_min += (diff_age == nb_annees)*coef_mino
-        if self.yearsim <= 1955:
+        if yearsim <= 1955:
             maj_age = maximum(divide(agem - age_annulation_decote, 12), 0)
             coeff_maj = maj_age*0.05
             return coeff_min + coeff_maj
-        elif  self.yearsim < 1983:
+        elif yearsim < 1983:
             return coeff_min
-        elif self.yearsim >= 1983:
+        elif yearsim >= 1983:
             # A partir de cette date, la minoration ne s'applique que si la durée de cotisation au régime général est inférieure à celle requise pour le taux plein
             return  coeff_min*(N_taux > trim) + (N_taux <= trim)        
     

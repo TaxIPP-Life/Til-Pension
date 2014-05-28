@@ -19,7 +19,7 @@ code_chomage = 2
 code_preretraite = 9
 #first_year_sal = 1949
 first_year_avpf = 1972
-id_test = 186
+
 
 def date_(year, month, day):
     return datetime.date(year, month, day)
@@ -64,7 +64,7 @@ class RegimeGeneral(RegimeBase):
         wk_selection = workstate.isin(self.code_regime)
         sal_selection = TimeArray(wk_selection.array*sali.array, sali.dates)
         sal_selection.translate_frequency(output_frequency='year', method='sum', inplace=True)
-        salref = build_salref_bareme(self.P_longit.common, first_year_sal, self.yearsim)
+        salref = build_salref_bareme(self.P_longit.common, first_year_sal, self.datesim.year)
         trim_cot_by_year = sal_to_trimcot(sal_selection, salref)
         return trim_cot_by_year
     
@@ -96,10 +96,10 @@ class RegimeGeneral(RegimeBase):
         sal_for_avpf.array = sal_for_avpf.array*avpf_selection.array
         if sal_for_avpf.array.all() == 0:
             # TODO: frquency warning, cette manière de calculer les trimestres avpf ne fonctionne qu'avec des tables annuelles
-            avpf = build_long_values(param_long=self.P_longit.common.avpf, first_year=first_year_avpf, last_year=self.yearsim)
+            avpf = build_long_values(param_long=self.P_longit.common.avpf, first_year=first_year_avpf, last_year=self.datesim.year)
             sal_for_avpf.array = multiply(avpf_selection.array, 12*avpf)    
             if compare_destinie == True:
-                smic_long = build_long_values(param_long=self.P_longit.common.smic_proj, first_year=first_year_avpf, last_year=self.yearsim) 
+                smic_long = build_long_values(param_long=self.P_longit.common.smic_proj, first_year=first_year_avpf, last_year=self.datesim.year) 
                 sal_for_avpf.array = multiply(avpf_selection.array, smic_long)    
         return sal_for_avpf
     
@@ -108,7 +108,7 @@ class RegimeGeneral(RegimeBase):
         output: TimeArray donnant le nombre de trimestres par anée
         Le nombre de trimestres validés au titre de l'AVPF se détermine à partir de sal_for_avpf
         de la même manière que trim_cot se déduit de sal_RG. Seule différence : plafonner à 10/an et non à 4'''
-        salref = build_salref_bareme(self.P_longit.common, first_year_avpf, self.yearsim)
+        salref = build_salref_bareme(self.P_longit.common, first_year_avpf, self.datesim.year)
         sal_avpf = sal_for_avpf.translate_frequency(output_frequency='year', method='sum')
         trim_avpf = sal_to_trimcot(sal_avpf, salref)
         return trim_avpf
@@ -140,7 +140,7 @@ class RegimeGeneral(RegimeBase):
                 return mda['mda'].astype(int)
         child_mother = info_ind.loc[info_ind['sexe'] == 1, 'nb_born']
         list_id = info_ind.index
-        yearsim = self.yearsim
+        yearsim = self.datesim.year
         if child_mother is not None:
             nb_trim_mda = _trim_mda(child_mother, list_id, yearsim)
         else :
@@ -152,7 +152,7 @@ class RegimeGeneral(RegimeBase):
     def calculate_salref(self, workstate, sali, wages):
         ''' SAM : Calcul du salaire annuel moyen de référence : 
         notamment application du plafonnement à un PSS'''
-        yearsim = self.yearsim
+        yearsim = self.datesim.year
         try:
             P = reduce(getattr, self.param_indep.split('.'), self.P)
         except:
@@ -184,7 +184,7 @@ class RegimeGeneral(RegimeBase):
         ''' Détermination de la durée d'assurance corrigée introduite par la réforme Boulin
         (majoration quand départ à la retraite après 65 ans) '''
         P = reduce(getattr, self.param_name.split('.'), self.P)
-        year = self.yearsim
+        year = self.datesim.year
         age_taux_plein = P.decote.age_null
         if year < 1983:
             return trim_RG
@@ -197,7 +197,7 @@ class RegimeGeneral(RegimeBase):
     def calculate_coeff_proratisation(self, info_ind, trimesters):
         ''' Calcul du coefficient de proratisation '''
         P =  reduce(getattr, self.param_name.split('.'), self.P)
-        yearsim = self.yearsim
+        yearsim = self.datesim.year
         trim_regime = trimesters['by_year_regime'].sum()
         trim_tot = trimesters['by_year_tot'].sum(1) + trimesters['maj_tot']
         agem = info_ind['agem']
@@ -219,7 +219,7 @@ class RegimeGeneral(RegimeBase):
     
     def _decote(self, trim_tot, agem):
         ''' Détermination de la décote à appliquer aux pensions '''
-        yearsim = self.yearsim
+        yearsim = self.datesim.year
         P = reduce(getattr, self.param_name.split('.'), self.P)
         tx_decote = P.decote.taux
         age_annulation = P.decote.age_null
@@ -235,7 +235,7 @@ class RegimeGeneral(RegimeBase):
         
     def _calculate_surcote(self, trimesters, date_start_surcote, age):
         ''' Détermination de la surcote à appliquer aux pensions '''
-        yearsim = self.yearsim
+        yearsim = self.datesim.year
         P = reduce(getattr, self.param_name.split('.'), self.P)
         trim_by_year_RG = trimesters['by_year_regime']
         if 'maj' in trimesters.keys() :
@@ -299,7 +299,7 @@ class RegimeGeneral(RegimeBase):
         RQ : ASPA et minimum vieillesse sont gérés par OF
         Il est attribué quels que soient les revenus dont dispose le retraité en plus de ses pensions : loyers, revenus du capital, activité professionnelle... 
         + mécanisme de répartition si cotisations à plusieurs régimes'''
-        yearsim = self.yearsim
+        yearsim = self.datesim.year
         P = reduce(getattr, self.param_name.split('.'), self.P)
         N_taux = P.plein.N_taux
         if yearsim < 2004:
