@@ -43,36 +43,35 @@ class Regime(object):
     def _surcote(self, workstate, trimesters, age):
         trim_by_year_tot = trimesters['by_year_tot']
         trim_maj = trimesters['maj_tot']
-        date_start_surcote = self._date_start_surcote(workstate, trim_by_year_tot, trim_maj, age)
-        return self._calculate_surcote(self.yearsim, trimesters, date_start_surcote, age)
+        age_start_surcote = self._age_min_retirement(workstate)
+        date_start_surcote = self._date_start_surcote(trim_by_year_tot, trim_maj, age, age_start_surcote)
+        return self._calculate_surcote(trimesters, date_start_surcote, age)
     
-    def _calculate_surcote(self, yearsim, regime, date_start_surcote, age, trim_by_year_tot):
+    def _calculate_surcote(self, trimesters, date_start_surcote, age):
         #TODO: remove trim_by_year_tot from arguments
         raise NotImplementedError
     
     
-    def _date_start_surcote(self, workstate, trim_by_year_tot, trim_maj, agem):
+    def _date_start_surcote(self, trim_by_year_tot, trim_maj, agem, age_start_surcote):
         ''' Détermine la date individuelle a partir de laquelle on atteint la surcote
         (a atteint l'âge légal de départ en retraite + côtisé le nombre de trimestres cible)
         Rq : pour l'instant on pourrait ne renvoyer que l'année'''
         datesim = self.yearsim*100 + 1
         P = reduce(getattr, self.param_name.split('.'), self.P)
         N_taux = P.plein.N_taux
-        age_legal = self._age_min(workstate)
-        
         cumul_trim = trim_by_year_tot.array.cumsum(axis=1)
         trim_limit = array((N_taux - nan_to_num(trim_maj)))
-        years_taux_plein_trim = greater(cumul_trim.T,trim_limit)
-        nb_years_taux_plein_trim = years_taux_plein_trim.sum(axis=0)
+        years_surcote_trim = greater(cumul_trim.T,trim_limit)
+        nb_years_surcote_trim = years_surcote_trim.sum(axis=0)
         start_surcote = [int(datesim - year_surcote*100)
-                                 if month_trim > 0 else 2100*100 + 1
-                                 for year_surcote, month_trim in zip(nb_years_taux_plein_trim, agem-age_legal)]
+                            if month_trim > 0 else 2100*100 + 1
+                            for year_surcote, month_trim in zip(nb_years_surcote_trim, agem - age_start_surcote)]
         return start_surcote
 
     
-    def _date_start_taux_plein(self, workstate, trim_by_year_tot, trim_maj, agem):
+    def _date_start_taux_plein(self, trim_by_year_tot, trim_maj, agem):
         ''' Détermine la date individuelle a partir de laquelle on atteint le taux plein
-        condition date_surcote, 
+        condition date_surcote ou si atteint l'âge du taux plein
         Rq : pour l'instant on pourrait ne renvoyer que l'année'''
         datesim = self.yearsim*100 + 1
         P = reduce(getattr, self.param_name.split('.'), self.P)
@@ -83,7 +82,7 @@ class Regime(object):
                                 if months> 0 else 2100*100 + 1
                                 for months in (agem - age_taux_plein) ]
         # Condition sur les trimestres -> même que celle pour la surcote
-        start_taux_plein_trim = self._date_surcote(workstate, trim_by_year_tot, trim_maj, agem)
+        start_taux_plein_trim = self._date_start_surcote(trim_by_year_tot, trim_maj, agem)
         return minimum(start_taux_plein_age, start_taux_plein_trim)
     
     def sali_in_regime(self, sali, workstate):
@@ -144,7 +143,9 @@ class RegimeBase(Regime):
             code = self.code_regime
         trim_service = workstate.isin(code)
         frequency_init = trim_service.frequency
+        trim_service.name = 'trim_cot'
         trim_service.translate_frequency(output_frequency='year', method='sum', inplace=True)
+        print frequency_init
         if frequency_init == 'year':
             #from year to trimester
             trim_service.array = trim_service.array*4
