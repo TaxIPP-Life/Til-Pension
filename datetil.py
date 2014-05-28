@@ -2,13 +2,8 @@
 from datetime import date
 
 class DateTil(object):
+    
     def __init__(self, datesim):
-        self.liam = None
-        self.datetime = None
-        self.year = None
-        self.set_attributes(datesim)
-        
-    def set_attributes(self, datesim):
         if isinstance(datesim, date):
             self.datetime = datesim
             self.year = datesim.year
