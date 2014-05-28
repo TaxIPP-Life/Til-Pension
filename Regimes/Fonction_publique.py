@@ -10,11 +10,11 @@ from pandas import Series
 
 from regime import RegimeBase, compare_destinie
 from pension_functions import nb_trim_surcote
+from utils_pension import print_multi_info_numpy, _info_numpy
 from time_array import TimeArray
 
 code_avpf = 8
 code_chomage = 5
-
 
 class FonctionPublique(RegimeBase):
     
@@ -32,22 +32,19 @@ class FonctionPublique(RegimeBase):
         wages = dict()
         
         trim_valide = self.trim_cot_by_year(workstate)
-        trim_by_year_to_RG = self.trim_to_RG(workstate, sali, trim_valide)
-        trim_valide.substract(trim_by_year_to_RG, inplace=True)
+        trim_to_RG = self.trim_to_RG(workstate, sali, trim_valide)
         sal_regime = self.sali_in_regime(workstate, sali)
-        sal_to_RG = self.sali_to_RG(workstate, sali, trim_by_year_to_RG)
-
-        trimesters['cot_FP'] = trim_valide
-        trimesters['cot_from_public_to_RG'] = trim_by_year_to_RG
+        sal_to_RG = self.sali_to_RG(workstate, sali, trim_to_RG)
+        trimesters['cot_FP'] = trim_valide.substract(trim_to_RG)
+        trimesters['cot_from_public_to_RG'] = trim_to_RG
         wages['cot_FP'] = sal_regime.substract(sal_to_RG)
         wages['from_public_to_RG'] = sal_to_RG
         trimesters['maj_FP'] = self.trim_bonif_CPCM(info_ind, trim_valide.sum()) + self.trim_bonif_5eme(trim_valide.sum())
-        self.trim_actif = self.trim_cot_by_year(workstate, code=self.code_actif)
         if to_check :
-            to_check['DA_FP'] = (trimesters['cot_FP'].sum() + trimesters['maj_FP'].sum()) //4
+            to_check['DA_FP'] = (trimesters['cot_FP'].sum()) // 4 #+ trimesters['maj_FP']) //4
         return trimesters, wages
         
-    def _age_min(self, workstate):
+    def _age_min_retirement(self, workstate):
         P = self.P.public.fp
         trim_actif = self.trim_cot_by_year(workstate, self.code_actif).array.sum(1)
         # age_min = age_min_actif pour les fonctionnaires actif en fin de carrières ou carrière mixte ayant une durée de service actif suffisante
@@ -179,14 +176,15 @@ class FonctionPublique(RegimeBase):
             trim_decote = maximum(0, minimum(trim_decote_age, trim_decote_cot))
         return trim_decote*tx_decote
         
-    def _calculate_surcote(self, yearsim, regime, date_start_surcote, age, trim_by_year_tot=None):
+    def _calculate_surcote(self, trimesters, date_start_surcote, age):
         ''' Détermination de la surcote à appliquer aux pensions '''
+        yearsim = self.yearsim
         if yearsim < 2004:
             return age*0
         else:
             P = reduce(getattr, self.param_name.split('.'), self.P)
             taux_surcote = P.surcote.taux
-            nb_trim = nb_trim_surcote(regime['by_year_regime'], date_start_surcote)
+            nb_trim = nb_trim_surcote(trimesters['by_year_regime'], date_start_surcote)
             return taux_surcote*nb_trim
 
     def calculate_salref(self, workstate, sali, regime):
