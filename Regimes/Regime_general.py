@@ -159,16 +159,16 @@ class RegimeGeneral(RegimeBase):
         nb_trim_avpf = trim_avpf_by_year.array.sum(1)
         return array(nb_trim_mda + nb_trim_avpf)
     
-    def calculate_salref(self, workstate, sali, wages):
+    def calculate_salref(self, data, wages):
         ''' SAM : Calcul du salaire annuel moyen de référence : 
         notamment application du plafonnement à un PSS'''
-        yearleg = self.dateleg.year
         try:
             P = reduce(getattr, self.param_indep.split('.'), self.P)
         except:
             P = reduce(getattr, self.param_name.split('.'), self.P)
         nb_best_years_to_take = P.nb_years
-        first_year_sal = min(workstate.dates) // 100
+        first_year_sal = min(data.workstate.dates) // 100
+        yearsim = data.datesim.year
         plafond = build_long_values(param_long=self.P_longit.common.plaf_ss, first_year=first_year_sal, last_year=yearsim)
         revalo = build_long_values(param_long=self.P_longit.prive.RG.revalo, first_year=first_year_sal, last_year=yearsim)
      

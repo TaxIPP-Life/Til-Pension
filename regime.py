@@ -96,12 +96,14 @@ class Regime(object):
         wk_selection = workstate.isin(self.code_regime).array
         return TimeArray(wk_selection*sali.array, sali.dates)
     
-    def calculate_taux(self, workstate, info_ind, trimesters, to_check=None):
+    def calculate_taux(self, data, trimesters, to_check=None):
         ''' Détérmination du taux de liquidation à appliquer à la pension 
             La formule générale est taux pondéré par (1+surcote-decote)
             _surcote and _decote are called
             _date_start_surcote is a general method helping surcote
             '''
+        workstate = data.workstate
+        info_ind = data.info_ind
         P = reduce(getattr, self.param_name.split('.'), self.P)
         trim_by_year_tot = trimesters['by_year_tot']
         trim_tot = trim_by_year_tot.array.sum(1)
@@ -126,14 +128,11 @@ class Regime(object):
     
     def calculate_pension(self, data, trimesters, wages, to_check=None):
         
-        workstate = data.workstate
-        sali = data.sali
         info_ind = data.info_ind
-        
         reg = self.regime
-        taux, surcote = self.calculate_taux(workstate, info_ind, trimesters, to_check)
+        taux, surcote = self.calculate_taux(data, trimesters, to_check)
         cp = self.calculate_coeff_proratisation(info_ind, trimesters)
-        salref = self.calculate_salref(workstate, sali, wages)
+        salref = self.calculate_salref(data, wages)
         pension_brute = cp*salref*taux
         pension = self.plafond_pension(pension_brute, salref, cp, surcote)
         if to_check is not None:
