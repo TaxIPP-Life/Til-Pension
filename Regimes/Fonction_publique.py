@@ -27,10 +27,14 @@ class FonctionPublique(RegimeBase):
         self.code_sedentaire = 6
         self.code_actif = 5
 
-    def get_trimesters_wages(self, workstate, sali, info_ind, to_check):
+    def get_trimesters_wages(self, data, to_check):
         trimesters = dict()
         wages = dict()
         
+        workstate = data.workstate
+        sali = data.sali
+        info_ind = data.info_ind
+                
         trim_valide = self.trim_cot_by_year(workstate)
         trim_to_RG = self.trim_to_RG(workstate, sali, trim_valide)
         sal_regime = self.sali_in_regime(workstate, sali)

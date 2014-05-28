@@ -28,9 +28,13 @@ class RegimeSocialIndependants(RegimeGeneral):
         self.code_regime = [7]
         self.param_indep = 'indep.rsi'
 
-    def get_trimesters_wages(self, workstate, sali, info_ind, to_check=False):
+    def get_trimesters_wages(self, data, to_check=False):
         trimesters = dict()
         wages = dict()
+        
+        workstate = data.workstate
+        sali = data.sali
+        
         work = workstate.selected_dates(first=first_year_indep)
         sal = sali.selected_dates(first=first_year_indep)
         nb_trim_cot = self.trim_cot_by_year(work, sal)

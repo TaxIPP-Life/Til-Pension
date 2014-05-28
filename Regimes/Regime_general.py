@@ -32,9 +32,14 @@ class RegimeGeneral(RegimeBase):
         self.code_regime = [3,4]
         self.param_name = 'prive.RG'
      
-    def get_trimesters_wages(self, workstate, sali, info_ind, to_check=False):
+    def get_trimesters_wages(self, data, to_check=False):
         trimesters = dict()
         wages = dict()
+        
+        workstate = data.workstate
+        sali = data.sali
+        info_ind = data.info_ind
+        
         sal_for_avpf = self.sali_avpf(workstate,sali)
         trim_cot = self.trim_cot_by_year(workstate, sali)
         trim_ass = self.trim_ass_by_year(workstate, trim_cot)
