@@ -40,10 +40,18 @@ class RegimeGeneral(RegimeBase):
         sali = data.sali
         info_ind = data.info_ind
         
-        sal_for_avpf = self.sali_avpf(workstate,sali)
-        trim_cot = self.trim_cot_by_year(workstate, sali)
+        trim_cot = self.trim_cot_by_year(data)
         trim_ass = self.trim_ass_by_year(workstate, trim_cot)
-        trim_avpf = self.trim_avpf_by_year(sal_for_avpf)
+        
+        sal_for_avpf = self.sali_avpf(data)
+#         def trim_avpf_by_year(self, sal_for_avpf):
+#         ''' Allocation vieillesse des parents au foyer : nombre de trimestres attribués 
+#         output: TimeArray donnant le nombre de trimestres par année
+#         Le nombre de trimestres validés au titre de l'AVPF se détermine à partir de sal_for_avpf
+#         de la même manière que trim_cot se déduit de sal_RG. Seule différence : plafonner à 10/an et non à 4'''
+        salref = build_salref_bareme(self.P_longit.common, first_year_avpf, data.datesim.year)
+        sal_avpf = sal_for_avpf.translate_frequency(output_frequency='year', method='sum')
+        trim_avpf = sal_to_trimcot(sal_avpf, salref)       
         
         trimesters['cot_RG']  = trim_cot
         wages['cot_RG'] = self.sali_for_regime(sali, trim_cot)
@@ -60,16 +68,20 @@ class RegimeGeneral(RegimeBase):
         P = reduce(getattr, self.param_name.split('.'), self.P)
         return P.age_min
 
-    def trim_cot_by_year(self, workstate, sali, table=False):
+    def trim_cot_by_year(self, data, table=False):
         ''' Nombre de trimestres côtisés pour le régime général par année 
         ref : code de la sécurité sociale, article R351-9
         '''
         # Selection des salaires à prendre en compte dans le décompte (mois où il y a eu côtisation au régime)
+        
+        workstate = data.workstate
+        sali = data.sali
+        
         first_year_sal = min(workstate.dates) // 100
         wk_selection = workstate.isin(self.code_regime)
         sal_selection = TimeArray(wk_selection.array*sali.array, sali.dates)
         sal_selection.translate_frequency(output_frequency='year', method='sum', inplace=True)
-        salref = build_salref_bareme(self.P_longit.common, first_year_sal, datesim.year)
+        salref = build_salref_bareme(self.P_longit.common, first_year_sal, data.datesim.year)
         trim_cot_by_year = sal_to_trimcot(sal_selection, salref)
         return trim_cot_by_year
     
@@ -93,31 +105,24 @@ class RegimeGeneral(RegimeBase):
             trim_by_year_ass.array = (workstate.isin([code_chomage, code_preretraite])).array*4
         return trim_by_year_ass
     
-    def sali_avpf(self, workstate, sali):
+    def sali_avpf(self, data):
         ''' Allocation vieillesse des parents au foyer : salaires de remplacements imputés
         Si certains salaires son déjà attribués à des états d'avpf on les conserve (cf.Destinie) sinon on applique la règle d'imputation'''
+        workstate = data.workstate
+        sali = data.sali
+        
         avpf_selection = workstate.isin([code_avpf]).selected_dates(first_year_avpf)
         sal_for_avpf = sali.selected_dates(first_year_avpf)
         sal_for_avpf.array = sal_for_avpf.array*avpf_selection.array
         if sal_for_avpf.array.all() == 0:
             # TODO: frquency warning, cette manière de calculer les trimestres avpf ne fonctionne qu'avec des tables annuelles
-            avpf = build_long_values(param_long=self.P_longit.common.avpf, first_year=first_year_avpf, last_year=datesim.year)
+            avpf = build_long_values(param_long=self.P_longit.common.avpf, first_year=first_year_avpf, last_year=data.datesim.year)
             sal_for_avpf.array = multiply(avpf_selection.array, 12*avpf)    
             if compare_destinie == True:
-                smic_long = build_long_values(param_long=self.P_longit.common.smic_proj, first_year=first_year_avpf, last_year=datesim.year) 
+                smic_long = build_long_values(param_long=self.P_longit.common.smic_proj, first_year=first_year_avpf, last_year=data.datesim.year) 
                 sal_for_avpf.array = multiply(avpf_selection.array, smic_long)    
         return sal_for_avpf
-    
-    def trim_avpf_by_year(self, sal_for_avpf):
-        ''' Allocation vieillesse des parents au foyer : nombre de trimestres attribués 
-        output: TimeArray donnant le nombre de trimestres par anée
-        Le nombre de trimestres validés au titre de l'AVPF se détermine à partir de sal_for_avpf
-        de la même manière que trim_cot se déduit de sal_RG. Seule différence : plafonner à 10/an et non à 4'''
-        salref = build_salref_bareme(self.P_longit.common, first_year_avpf, datesim.year)
-        sal_avpf = sal_for_avpf.translate_frequency(output_frequency='year', method='sum')
-        trim_avpf = sal_to_trimcot(sal_avpf, salref)
-        return trim_avpf
-    
+        
     def nb_trim_maj(self, info_ind, trim_avpf_by_year):
         ''' Trimestres majorants acquis au titre de la MDA, 
             de l'assurance pour congé parental ou de l'AVPF '''
