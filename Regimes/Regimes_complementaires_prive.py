@@ -21,7 +21,9 @@ class AGIRC(RegimeComplementaires):
         self.param_RG = 'prive.RG'
         self.code_cadre = 4
         
-    def sali_for_regime(self, workstate, sali):
+    def sali_for_regime(self, data):
+        workstate = data.workstate
+        sali = data.sali
         return sali.array*(workstate.isin(self.code_regime).array)
         
     def majoration_enf(self, data, nb_points, coeff_age):
