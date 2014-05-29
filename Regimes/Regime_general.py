@@ -56,11 +56,11 @@ class RegimeGeneral(RegimeBase):
         trimesters['avpf_RG']  = trim_avpf    
         wages['avpf_RG'] = sal_for_avpf
         
-        trimesters['maj_RG'] = self.nb_trim_maj(info_ind)
+        trimesters['maj_DA_RG'] = self.trim_mda(info_ind)
 
         if to_check is not None:
             to_check['DA_RG'] = ((trimesters['cot_RG'] + trimesters['ass_RG'] + trimesters['avpf_RG']).sum(1) 
-                                 + trimesters['maj_RG'])/4
+                                 + trimesters['maj_DA_RG'])/4
         return trimesters, wages
         
     def _age_min_retirement(self, workstate=None):
@@ -113,32 +113,24 @@ class RegimeGeneral(RegimeBase):
                 sal_for_avpf.array = multiply(avpf_selection.array, smic_long)    
         return sal_for_avpf
         
-    def nb_trim_maj(self, info_ind):
-        ''' Trimestres majorants, cf http://vosdroits.service-public.fr/particuliers/F19643.xhtml
-            pour l'instant uniquement la MDA 
-             - Note: ces trimestres ne sont pas associés à une année, on 
-              renvoit donc un vecteur'''
         
-        def _trim_mda(info_ind): 
-            ''' Majoration pour enfant à charge : nombre de trimestres acquis '''
-            # Rq : cette majoration n'est applicable que pour les femmes dans le RG
-            child_mother = info_ind.loc[info_ind['sexe'] == 1, 'nb_born']
-            if child_mother is not None:
-                yearleg = self.dateleg.year
-                #TODO: remove pandas
-                mda = Series(0, index=info_ind.index)
-                # TODO: distinguer selon l'âge des enfants après 2003
-                # ligne suivante seulement if child_mother['age_enf'].min() > 16 :
-                P_mda = self.P.prive.RG.mda
-                mda[child_mother.index.values] = P_mda.trim_per_child*child_mother.values
-                cond_enf_min = child_mother.values >= P_mda.nb_enf_min
-                mda.loc[~cond_enf_min] = 0
-                #TODO:  Réforme de 2003 : min(1 trimestre à la naissance + 1 à chaque anniv, 8)
-            return array(mda)
-        
-        return _trim_mda(info_ind)
-    
-    
+    def trim_mda(self, info_ind): 
+        ''' Majoration pour enfant à charge : nombre de trimestres acquis '''
+        # Rq : cette majoration n'est applicable que pour les femmes dans le RG
+        child_mother = info_ind.loc[info_ind['sexe'] == 1, 'nb_born']
+        if child_mother is not None:
+            yearleg = self.dateleg.year
+            #TODO: remove pandas
+            mda = Series(0, index=info_ind.index)
+            # TODO: distinguer selon l'âge des enfants après 2003
+            # ligne suivante seulement if child_mother['age_enf'].min() > 16 :
+            P_mda = self.P.prive.RG.mda
+            mda[child_mother.index.values] = P_mda.trim_per_child*child_mother.values
+            cond_enf_min = child_mother.values >= P_mda.nb_enf_min
+            mda.loc[~cond_enf_min] = 0
+            #TODO:  Réforme de 2003 : min(1 trimestre à la naissance + 1 à chaque anniv, 8)
+        return array(mda)
+
     def calculate_salref(self, data, wages):
         ''' SAM : Calcul du salaire annuel moyen de référence : 
         notamment application du plafonnement à un PSS'''

@@ -27,8 +27,6 @@ class FonctionPublique(RegimeBase):
         self.code_sedentaire = 6
         self.code_actif = 5
 
-        self.maj = ['bonif_CPCM_FP', 'bonif_5eme_FP']
-
     def get_trimesters_wages(self, data, to_check):
         trimesters = dict()
         wages = dict()
@@ -45,8 +43,8 @@ class FonctionPublique(RegimeBase):
         trimesters['cot_from_public_to_RG'] = trim_to_RG
         wages['cot_FP'] = sal_regime.substract(sal_to_RG)
         wages['from_public_to_RG'] = sal_to_RG
-        trimesters['bonif_CPCM_FP'] = self.bonif_CPCM(info_ind, trim_valide.sum())
-        trimesters['bonif_5eme_FP'] = self.trim_bonif_5eme(info_ind, trim_valide.sum())
+        trimesters['maj_CPCM_FP'] = self.nb_trim_bonif_CPCM(info_ind, trim_valide.sum())
+        trimesters['maj_5eme_FP'] = self.nb_trim_bonif_5eme(trim_valide.sum())
         if to_check :
             to_check['DA_FP'] = (trimesters['cot_FP'].sum()) // 4 #+ trimesters['maj_FP']) //4
         
@@ -142,14 +140,14 @@ class FonctionPublique(RegimeBase):
         sali_array = transpose((workstate.isin(self.code_regime).array*sali.array).T*to_RG.T)
         return TimeArray(sali_array, sali.dates)
         
-    def trim_bonif_CPCM(self, info_ind, trim_cot):
+    def nb_trim_bonif_CPCM(self, info_ind, trim_cot):
         # TODO: autres bonifs : déportés politiques, campagnes militaires, services aériens, dépaysement 
         info_child = info_ind.loc[info_ind['sexe'] == 1, 'nb_born'] #Majoration attribuée aux mères uniquement
         bonif_enf = Series(0, index = info_ind.index)
         bonif_enf[info_child.index.values] = 4*info_child.values
         return array(bonif_enf*(trim_cot>0)) #+...
 
-    def trim_bonif_5eme(self, trim_cot):
+    def nb_trim_bonif_5eme(self, trim_cot):
         # TODO: Add bonification au cinquième pour les superactifs (policiers, surveillants pénitentiaires, contrôleurs aériens... à identifier grâce à workstate)
         super_actif = 0 # condition superactif à définir
         taux_5eme = 0.2
@@ -163,12 +161,12 @@ class FonctionPublique(RegimeBase):
         
         N_CP = P.plein.N_taux
         trim_regime = trimesters['by_year_regime'].sum(1)
-        trim_bonif_5eme = trimesters['bonif_5eme_FP']
+        trim_bonif_5eme = trimesters['maj_5eme']
         CP_5eme = minimum(divide(trim_regime + trim_bonif_5eme, N_CP), 1)
         
         taux = P.plein.taux
         taux_bonif = P.taux_bonif
-        trim_bonif_CPCM = trimesters['bonif_CPCM_FP']
+        trim_bonif_CPCM = trimesters['maj_CPCM']
         CP_CPCM = minimum(divide(maximum(trim_regime, N_CP) + trim_bonif_CPCM, N_CP), divide(taux_bonif, taux))
         
         return maximum(CP_5eme, CP_CPCM)

@@ -107,7 +107,7 @@ def sum_from_dict(dictionnary, key='', plafond=None):
     
 def trim_maj_all(trimestres):
     ''' Détermine la somme des trimestres majorés des différents régimes '''
-    trimestres_maj = [trimestres[key] for key in trimestres.keys() if str(key)[0:8] == 'trim_maj']
+    trimestres_maj = [trimestres[key] for key in trimestres.keys() if str(key)[0:8] == 'maj']
     trim_maj_tot = sum(trimestres_maj)
     return trim_maj_tot
 
