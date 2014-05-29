@@ -27,6 +27,8 @@ class FonctionPublique(RegimeBase):
         self.code_sedentaire = 6
         self.code_actif = 5
 
+        self.maj = ['bonif_CPCM_FP', 'bonif_5eme_FP']
+
     def get_trimesters_wages(self, data, to_check):
         trimesters = dict()
         wages = dict()
@@ -43,9 +45,11 @@ class FonctionPublique(RegimeBase):
         trimesters['cot_from_public_to_RG'] = trim_to_RG
         wages['cot_FP'] = sal_regime.substract(sal_to_RG)
         wages['from_public_to_RG'] = sal_to_RG
-        trimesters['maj_FP'] = self.trim_bonif_CPCM(info_ind, trim_valide.sum()) + self.trim_bonif_5eme(trim_valide.sum())
+        trimesters['bonif_CPCM_FP'] = self.bonif_CPCM(info_ind, trim_valide.sum())
+        trimesters['bonif_5eme_FP'] = self.trim_bonif_5eme(info_ind, trim_valide.sum())
         if to_check :
             to_check['DA_FP'] = (trimesters['cot_FP'].sum()) // 4 #+ trimesters['maj_FP']) //4
+        
         return trimesters, wages
         
     def _age_min_retirement(self, workstate):
@@ -144,41 +148,45 @@ class FonctionPublique(RegimeBase):
         bonif_enf = Series(0, index = info_ind.index)
         bonif_enf[info_child.index.values] = 4*info_child.values
         return array(bonif_enf*(trim_cot>0)) #+...
-    
+
     def trim_bonif_5eme(self, trim_cot):
         # TODO: Add bonification au cinquième pour les superactifs (policiers, surveillants pénitentiaires, contrôleurs aériens... à identifier grâce à workstate)
         super_actif = 0 # condition superactif à définir
         taux_5eme = 0.2
         bonif_5eme = minimum(trim_cot*taux_5eme, 5*4)
         return array(bonif_5eme*super_actif)
-    
+        
     def calculate_coeff_proratisation(self, info_ind, trimesters):
+        ''' on a le choix entre deux bonifications, 
+                chacune plafonnée à sa façon '''
         P = self.P.public.fp
+        
+        N_CP = P.plein.N_taux
+        trim_regime = trimesters['by_year_regime'].sum(1)
+        trim_bonif_5eme = trimesters['bonif_5eme_FP']
+        CP_5eme = minimum(divide(trim_regime + trim_bonif_5eme, N_CP), 1)
+        
         taux = P.plein.taux
         taux_bonif = P.taux_bonif
-        N_CP = P.plein.N_taux
-        trim_regime = trimesters['by_year_regime'].sum(1) +  trimesters['maj']
-        trim_bonif_5eme = self.trim_bonif_5eme(trim_regime)
-        CP_5eme = minimum(divide(trim_regime + trim_bonif_5eme, N_CP), 1)
-        trim_bonif_CPCM = self.trim_bonif_CPCM(info_ind, trim_regime)
+        trim_bonif_CPCM = trimesters['bonif_CPCM_FP']
         CP_CPCM = minimum(divide(maximum(trim_regime, N_CP) + trim_bonif_CPCM, N_CP), divide(taux_bonif, taux))
+        
         return maximum(CP_5eme, CP_CPCM)
 
-    def _decote(self, trim_tot, agem):
+    def decote(self, data, trimesters):
         ''' Détermination de la décote à appliquer aux pensions '''
-        yearsim = self.dateleg.year #TODO: chack
-        if yearsim < 2006:
-            return agem*0
+        yearleg = self.dateleg.year
+        
+        if yearleg < 2006:
+            return zeros(data.info_ind.shape[0])
         else:
             P = reduce(getattr, self.param_name.split('.'), self.P)
-            try:
-                tx_decote = P.decote.taux
-                age_annulation = P.decote.age_null
-            except:
-                import pdb
-                pdb.set_trace()
+            tx_decote = P.decote.taux
+            age_annulation = P.decote.age_null
             N_taux = P.plein.N_taux
+            agem = data.info_ind['agem']
             trim_decote_age = divide(age_annulation - agem, 3)
+            trim_tot = trimesters['by_year_tot'].sum(1)
             trim_decote_cot = N_taux - trim_tot
             assert len(trim_decote_age) == len(trim_decote_cot)
             trim_decote = maximum(0, minimum(trim_decote_age, trim_decote_cot))
