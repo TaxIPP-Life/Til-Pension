@@ -49,8 +49,7 @@ class RegimeGeneral(RegimeBase):
         
         sal_for_avpf = self.sali_avpf(data) # Allocation vieillesse des parents au foyer : nombre de trimestres attribués 
         salref = build_salref_bareme(self.P_longit.common, first_year_avpf, data.datesim.year)
-        sal_avpf = sal_for_avpf.translate_frequency(output_frequency='year', method='sum')
-        trim_avpf = sal_to_trimcot(sal_avpf, salref, plafond=4)
+        trim_avpf = sal_to_trimcot(sal_for_avpf, salref, plafond=4)
         trimesters['avpf_RG']  = trim_avpf    
         wages['avpf_RG'] = sal_for_avpf
         
@@ -77,7 +76,6 @@ class RegimeGeneral(RegimeBase):
         first_year_sal = min(workstate.dates) // 100
         wk_selection = workstate.isin(self.code_regime)
         sal_selection = TimeArray(wk_selection.array*sali.array, sali.dates)
-        sal_selection.translate_frequency(output_frequency='year', method='sum', inplace=True)
         salref = build_salref_bareme(self.P_longit.common, first_year_sal, data.datesim.year)
         trim_cot_by_year = sal_to_trimcot(sal_selection, salref, plafond=4)
         return trim_cot_by_year
