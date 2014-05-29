@@ -246,6 +246,7 @@ class RegimeGeneral(RegimeBase):
             trim_selected = trim_by_year_RG.selected_dates(first=2004, last=2009)
             #agemin = agem.copy()
             age_start_surcote = 65*12 
+            
             date_start_surcote_65 = self._date_start_surcote(trim_by_year_tot, trim_maj, age, age_start_surcote)
 
             nb_trim_65 = nb_trim_surcote(trim_selected, date_start_surcote_65)

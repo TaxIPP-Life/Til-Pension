@@ -154,5 +154,42 @@ class TimeArray(object):
         if inplace == True:
             self.array = array
         else:
-            return TimeArray(array, self.dates)  
+            return TimeArray(array, self.dates)
+        
+    def idx_last_time_in(self, in_what):
+        ''' Return les coordonnées de la dernière fois que l'individu a été dans l'état in_what '''       
+        selection = self.isin(in_what).array
+        
+        nrows = selection.shape[0]
+        output = zeros(nrows)
+        for date in reversed(range(len(self.dates))):
+            cond = selection[:,date] != 0
+            cond = cond & (output == 0)
+            output[cond] = date
             
+#             # some ideas to optimize the calculation
+#         output = selection.argmax(axis=1) 
+#         obvious_case1 = (selection.max(axis=1) == 0) | (selection.max(axis=1) == min(self.code_regime)) #on a directement la valeur 
+                                                                                                            # et avec argmac l'indice
+#         obvious_case2 = selection[:,-1] != 0 # on sait que c'est le dernier
+#         output[obvious_case2] = len_dates - 1 #-1 because it's the index of last column
+
+#         not_yet_selected = (~obvious_case1) & (~obvious_case2)
+#         output[not_yet_selected] = -1 # si on réduit, on va peut-être plus vite
+#         subset = selection[not_yet_selected,:-1] #we know from obvious case2 condition that there are zero on last column
+#         for date in reversed(range(len_dates-1)):
+#             cond = subset[:,date] != 0
+#             output[not_yet_selected[cond]] = date     
+
+        selected_output = output[output != 0]
+        selected_rows = array(range(nrows))[output != 0]
+        return selected_rows.tolist(), selected_output.tolist()
+    
+    def last_time_in(self, in_what):
+        ''' Return les coordonnées de la dernière fois que l'individu a été dans l'état in_what '''       
+        last_fp_idx = self.idx_last_time_in(in_what)
+        last_fp = zeros(self.array.shape[0])
+        last_fp[last_fp_idx[0]] = self.array[last_fp_idx]
+        return last_fp
+       
+               

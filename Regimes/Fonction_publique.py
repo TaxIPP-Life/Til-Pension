@@ -36,9 +36,8 @@ class FonctionPublique(RegimeBase):
         info_ind = data.info_ind
                 
         trim_valide = self.trim_cot_by_year(workstate)
-        trim_to_RG = self.trim_to_RG(data, trim_valide)
         sal_regime = self.sali_in_regime(workstate, sali)
-        sal_to_RG = self.sali_to_RG(data, trim_to_RG)
+        trim_to_RG, sal_to_RG = self.select_to_RG(data, trim_valide, sal_regime)
         trimesters['cot_FP'] = trim_valide.substract(trim_to_RG)
         trimesters['cot_from_public_to_RG'] = trim_to_RG
         wages['cot_FP'] = sal_regime.substract(sal_to_RG)
@@ -61,85 +60,29 @@ class FonctionPublique(RegimeBase):
     
     def _build_age_max(self, workstate, sali):
         P = self.P.public.fp
-        last_fp = self._traitement(workstate, sali)
+        last_fp = data.workstate.last_time_in(self.code_regime)
         actif = (last_fp == self.code_actif)
-        sedentaire = (1 - actif)*(last_fp != 0)
+        sedentaire = (last_fp == self.code_sedentaire)
         age_max_s = P.sedentaire.age_max
         age_max_a = P.actif.age_max
         age_max = actif*age_max_a + sedentaire*age_max_s
         return age_max
-
-    def _traitement(self, data, option='workstate'):
-        ''' Détermine le workstate lors de la dernière cotisation au régime FP pour lui associer sa catégorie 
-        output (option=workstate): 0 = non-fonctionnaire, 6 = fonc. sédentaire, 5 = fonc.actif (cf, construction de age_max)
-        output (option=sali) : 0 si non-fonctionnaire, dernier salaire annuel sinon'''
-        
-        workstate = data.workstate.copy()
-        sali = data.sali
-        wk_selection = workstate.isin(self.code_regime).array*workstate.array
-
-        len_dates = wk_selection.shape[1]
-        nrows = wk_selection.shape[0]
-        output = zeros(nrows)
-        for date in reversed(range(len_dates)):
-            cond = wk_selection[:,date] != 0
-            cond = cond & (output == 0)
-            output[cond] = date
-            
-#             # some ideas to faster the calculation
-#         len_dates = wk_selection.shape[1]
-#         output = wk_selection.argmax(axis=1) 
-#         obvious_case1 = (wk_selection.max(axis=1) == 0) | (wk_selection.max(axis=1) == min(self.code_regime)) #on a directement la valeur 
-                                                                                                            # et avec argmac l'indice
-#         obvious_case2 = wk_selection[:,-1] != 0 # on sait que c'est le dernier
-#         output[obvious_case2] = len_dates - 1 #-1 because it's the index of last column
-#         
-#         not_yet_selected = (~obvious_case1) & (~obvious_case2)
-#         output[not_yet_selected] = -1 # si on réduit, on va peut-être plus vite
-#         subset = wk_selection[not_yet_selected,:-1] #we know from obvious case2 condition that there are zero on last column
-#         for date in reversed(range(len_dates-1)):
-#             cond = subset[:,date] != 0
-#             output[not_yet_selected[cond]] = date
-        selected_output = output[output != 0]
-        selected_rows = array(range(nrows))[output != 0]
-        workstate.array[(selected_rows.tolist(), selected_output.tolist())]
-        if option == 'sali':
-            output[selected_rows.tolist()] = sali.array[(selected_rows.tolist(), selected_output.tolist())]
-            return output
-        else:
-            output[selected_rows.tolist()] = workstate.array[(selected_rows.tolist(), selected_output.tolist())]
-            return output
     
              
-    def trim_to_RG(self, data, trim_by_year):
+    def select_to_RG(self, data, trim_by_year, sal_by_year):
         ''' Détermine le nombre de trimestres par année à rapporter au régime général
         output : trim_by_year_FP_to_RG '''
         P = reduce(getattr, self.param_name.split('.'), self.P)
         # N_min donné en mois
+        workstate = data.workstate
         trim_cot = trim_by_year.sum(1)
-        last_fp = self._traitement(data)
+        last_fp = data.workstate.last_time_in(self.code_regime)
         to_RG_actif = (3*trim_cot < P.actif.N_min)*(last_fp == self.code_actif)
         to_RG_sedentaire = (3*trim_cot < P.sedentaire.N_min)*(last_fp == self.code_sedentaire)
         to_RG = (to_RG_actif + to_RG_sedentaire)
-        workstate_array = transpose(trim_by_year.array.T*to_RG.T)
-        return TimeArray(workstate_array, trim_by_year.dates)
-
-    def sali_to_RG(self, data, trim_by_year):
-        ''' renvoie la table des salaires (même time_step que sali) qui basculent du RG à la FP 
-        output: sali_FP_to_RG
-        TODO: Gérer les redondances avec la fonction précédente'''
-        workstate = data.workstate
-        sali = data.sali
-        P = reduce(getattr, self.param_name.split('.'), self.P)
-        # N_min donné en mois
-        trim_cot = trim_by_year.sum(1)
-        last_fp = self._traitement(data)
-        to_RG_actif = (3*trim_cot < P.actif.N_min)*(last_fp == self.code_actif)*(trim_cot>0)
-        to_RG_sedentaire = (3*trim_cot < P.sedentaire.N_min)*(last_fp == self.code_sedentaire)*(trim_cot>0)
-        to_RG = (to_RG_actif + to_RG_sedentaire)
-        sali_array = transpose((workstate.isin(self.code_regime).array*sali.array).T*to_RG.T)
-        return TimeArray(sali_array, sali.dates)
-        
+        trim_by_year.array[~to_RG,:] = 0
+        sal_by_year.array[~to_RG,:] = 0
+        return trim_by_year, sal_by_year
     def nb_trim_bonif_CPCM(self, info_ind, trim_cot):
         # TODO: autres bonifs : déportés politiques, campagnes militaires, services aériens, dépaysement 
         info_child = info_ind.loc[info_ind['sexe'] == 1, 'nb_born'] #Majoration attribuée aux mères uniquement
@@ -202,7 +145,10 @@ class FonctionPublique(RegimeBase):
             return taux_surcote*nb_trim
 
     def calculate_salref(self, data, regime):
-        return self._traitement(data, option='sali')
+        last_fp_idx = data.workstate.idx_last_time_in(self.code_regime)
+        last_fp = zeros(data.sali.array.shape[0])
+        last_fp[last_fp_idx[0]] = data.sali.array[last_fp_idx]
+        return last_fp
     
     def plafond_pension(self, pension_brute, salref, cp, surcote):
         return pension_brute
