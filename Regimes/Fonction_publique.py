@@ -114,10 +114,10 @@ class FonctionPublique(RegimeBase):
         output : trim_by_year_FP_to_RG '''
         P = reduce(getattr, self.param_name.split('.'), self.P)
         # N_min donné en mois
-        trim_cot = trim_by_year.array.sum(1)
+        trim_cot = trim_by_year.sum(1)
         last_fp = self._traitement(data)
-        to_RG_actif = (trim_cot*3 < P.actif.N_min)*(last_fp == self.code_actif)
-        to_RG_sedentaire = (trim_cot*3 < P.sedentaire.N_min)*(last_fp == self.code_sedentaire)
+        to_RG_actif = (3*trim_cot < P.actif.N_min)*(last_fp == self.code_actif)
+        to_RG_sedentaire = (3*trim_cot < P.sedentaire.N_min)*(last_fp == self.code_sedentaire)
         to_RG = (to_RG_actif + to_RG_sedentaire)
         workstate_array = transpose(trim_by_year.array.T*to_RG.T)
         return TimeArray(workstate_array, trim_by_year.dates)
@@ -130,10 +130,10 @@ class FonctionPublique(RegimeBase):
         sali = data.sali
         P = reduce(getattr, self.param_name.split('.'), self.P)
         # N_min donné en mois
-        trim_cot = trim_by_year.array.sum(1)
+        trim_cot = trim_by_year.sum(1)
         last_fp = self._traitement(data)
-        to_RG_actif = (trim_cot*3 < P.actif.N_min)*(last_fp == self.code_actif)*(trim_cot>0)
-        to_RG_sedentaire = (trim_cot*3 < P.sedentaire.N_min)*(last_fp == self.code_sedentaire)*(trim_cot>0)
+        to_RG_actif = (3*trim_cot < P.actif.N_min)*(last_fp == self.code_actif)*(trim_cot>0)
+        to_RG_sedentaire = (3*trim_cot < P.sedentaire.N_min)*(last_fp == self.code_sedentaire)*(trim_cot>0)
         to_RG = (to_RG_actif + to_RG_sedentaire)
         sali_array = transpose((workstate.isin(self.code_regime).array*sali.array).T*to_RG.T)
         return TimeArray(sali_array, sali.dates)

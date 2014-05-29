@@ -44,7 +44,7 @@ class RegimeGeneral(RegimeBase):
         trimesters['cot_RG']  = trim_cot
         
         sal_by_year = sali.translate_frequency(output_frequency='year', method='sum')
-        wages['cot_RG'] = TimeArray((trim_cot.array> 0)*sal_by_year.array, sal_by_year.dates, name='sal_RG')
+        wages['cot_RG'] = TimeArray((trim_cot.array > 0)*sal_by_year.array, sal_by_year.dates, name='sal_RG')
         
         trim_ass = self.trim_ass_by_year(workstate, trim_cot)
         trimesters['ass_RG'] = trim_ass
