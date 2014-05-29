@@ -134,9 +134,9 @@ class RegimeGeneral(RegimeBase):
     def calculate_salref(self, data, wages):
         ''' SAM : Calcul du salaire annuel moyen de référence : 
         notamment application du plafonnement à un PSS'''
-        try:
+        if self.regime == 'RSI':
             P = reduce(getattr, self.param_indep.split('.'), self.P)
-        except:
+        else:
             P = reduce(getattr, self.param_name.split('.'), self.P)
         nb_best_years_to_take = P.nb_years
         first_year_sal = min(data.workstate.dates) // 100

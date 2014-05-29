@@ -26,6 +26,7 @@ class RegimeSocialIndependants(RegimeGeneral):
         RegimeGeneral.__init__(self)
         self.regime = 'RSI'
         self.code_regime = [7]
+        self.param_name = 'prive.RG'
         self.param_indep = 'indep.rsi'
 
     def get_trimesters_wages(self, data, to_check=False):
