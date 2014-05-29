@@ -42,7 +42,9 @@ class RegimeGeneral(RegimeBase):
         
         trim_cot = self.trim_cot_by_year(data)
         trimesters['cot_RG']  = trim_cot
-        wages['cot_RG'] = self.sali_for_regime(sali, trim_cot)
+        
+        sal_by_year = sali.translate_frequency(output_frequency='year', method='sum')
+        wages['cot_RG'] = TimeArray((trim_cot.array> 0)*sal_by_year.array, sal_by_year.dates, name='sal_RG')
         
         trim_ass = self.trim_ass_by_year(workstate, trim_cot)
         trimesters['ass_RG'] = trim_ass
@@ -69,22 +71,14 @@ class RegimeGeneral(RegimeBase):
         ref : code de la sécurité sociale, article R351-9
         '''
         # Selection des salaires à prendre en compte dans le décompte (mois où il y a eu côtisation au régime)
-        
         workstate = data.workstate
         sali = data.sali
-        
         first_year_sal = min(workstate.dates) // 100
         wk_selection = workstate.isin(self.code_regime)
         sal_selection = TimeArray(wk_selection.array*sali.array, sali.dates)
         salref = build_salref_bareme(self.P_longit.common, first_year_sal, data.datesim.year)
         trim_cot_by_year = sal_to_trimcot(sal_selection, salref, plafond=4)
         return trim_cot_by_year
-    
-    def sali_for_regime(self, sali, trim_cot_by_year):
-        ''' Cette fonction renvoie le TimeArray ne contenant que les salaires annuelles 
-        pour lesquels au moins un trimestre a été validé au RG '''
-        sal_by_year = sali.translate_frequency(output_frequency='year')
-        return TimeArray((trim_cot_by_year.array> 0)*sal_by_year.array, sal_by_year.dates, name='sal_RG')
     
     def trim_ass_by_year(self, workstate, nb_trim_cot):
         ''' 
@@ -95,8 +89,7 @@ class RegimeGeneral(RegimeBase):
         '''
         trim_by_year_chom = unemployment_trimesters(workstate, code_regime=self.code_regime)
         trim_by_year_ass = trim_by_year_chom #+...
-        
-        if compare_destinie == True:
+        if compare_destinie:
             trim_by_year_ass.array = (workstate.isin([code_chomage, code_preretraite])).array*4
         return trim_by_year_ass
     
@@ -126,7 +119,6 @@ class RegimeGeneral(RegimeBase):
         
         def _trim_mda(info_ind): 
             ''' Majoration pour enfant à charge : nombre de trimestres acquis '''
-            
             # Rq : cette majoration n'est applicable que pour les femmes dans le RG
             child_mother = info_ind.loc[info_ind['sexe'] == 1, 'nb_born']
             if child_mother is not None:
@@ -143,6 +135,7 @@ class RegimeGeneral(RegimeBase):
             return array(mda)
         
         return _trim_mda(info_ind)
+    
     
     def calculate_salref(self, data, wages):
         ''' SAM : Calcul du salaire annuel moyen de référence : 
@@ -174,7 +167,7 @@ class RegimeGeneral(RegimeBase):
             sal_regime.array = multiply(sal_regime.array,revalo)
         salref = sal_regime.best_dates_mean(nb_best_years_to_take)
         return salref.round(2)
-    
+
     def assurance_maj(self, trim_RG, trim_tot, agem):
         ''' Détermination de la durée d'assurance corrigée introduite par la réforme Boulin
         (majoration quand départ à la retraite après 65 ans) '''
