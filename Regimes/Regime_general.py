@@ -207,17 +207,19 @@ class RegimeGeneral(RegimeBase):
         CP = minimum(1, divide(trim_CP, P.N_CP))
         return CP
     
-    def _decote(self, trim_tot, agem):
+    def decote(self, data, trimesters):
         ''' Détermination de la décote à appliquer aux pensions '''
         yearleg = self.dateleg.year
         P = reduce(getattr, self.param_name.split('.'), self.P)
         tx_decote = P.decote.taux
         age_annulation = P.decote.age_null
-        N_taux =P.plein.N_taux
+        N_taux = P.plein.N_taux
+        agem = data.info_ind['agem']
         if yearleg < 1983:
             trim_decote = max(divide(age_annulation - agem, 3), 0)
         else:
             decote_age = maximum(divide(age_annulation - agem, 3), 0)
+            trim_tot = trimesters['by_year_tot'].sum(1)
             decote_cot = maximum(N_taux - trim_tot, 0)
             assert len(decote_age) == len(decote_cot)
             trim_decote = minimum(decote_age, decote_cot)
