@@ -50,8 +50,8 @@ def unemployment_trimesters(timearray, code_regime=None):
     table = table.isin(code_regime + [chomage]) 
     unemp_trim = select_unemployment(table.array, code_regime)
     if timearray.frequency == 'month':
-        trim_unemp = TimeArray(divide(unemp_trim,3), timearray.dates)
-        trim_by_year_unemp = trim_unemp.translate_frequency('year', method='sum')
+        month_by_year_unemp = unemp_trim.translate_frequency('year', method='sum')
+        trim_unemp = TimeArray(divide(month_by_year_unemp, 3), timearray.dates)
         return trim_by_year_unemp   
     else:
         assert timearray.frequency == 'year'
