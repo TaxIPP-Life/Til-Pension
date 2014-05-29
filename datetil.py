@@ -5,7 +5,7 @@ class DateTil(object):
     
     def __init__(self, date):
         if isinstance(date, DateTil):
-            self.datetime = date.liam
+            self.datetime = date.datetime
             self.year = date.year
             self.liam = date.liam
         elif isinstance(date, classic_date):
