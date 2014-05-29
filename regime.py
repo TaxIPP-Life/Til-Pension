@@ -64,8 +64,10 @@ class Regime(object):
         #TODO: do something better with datesim
         datesim = self.dateleg.liam
         P = reduce(getattr, self.param_name.split('.'), self.P)
-        N_taux = P.plein.N_taux
+        N_taux = array(P.plein.N_taux)
         cumul_trim = trim_by_year_tot.array.cumsum(axis=1)
+        import pdb
+        pdb.set_trace()
         trim_limit = array((N_taux - nan_to_num(trim_maj)))
         years_surcote_trim = greater(cumul_trim.T,trim_limit)
         nb_years_surcote_trim = years_surcote_trim.sum(axis=0)
