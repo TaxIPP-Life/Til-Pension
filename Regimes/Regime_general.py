@@ -8,7 +8,7 @@ os.sys.path.insert(0,parentdir)
 from time_array import TimeArray
 
 from numpy import maximum, minimum, array, divide, zeros, multiply
-from pandas import DataFrame
+from pandas import Series
 
 from regime import RegimeBase, compare_destinie
 from utils_pension import build_long_values, build_salref_bareme, _info_numpy, print_multi_info_numpy
@@ -57,7 +57,7 @@ class RegimeGeneral(RegimeBase):
         trimesters['maj_RG'] = self.nb_trim_maj(info_ind)
 
         if to_check is not None:
-            to_check['DA_RG'] = ((trimesters['cot_RG'] + trimesters['ass_RG'] + trimesters['avpf']).array.sum(1) 
+            to_check['DA_RG'] = ((trimesters['cot_RG'] + trimesters['ass_RG'] + trimesters['avpf_RG']).sum(1) 
                                  + trimesters['maj_RG'])/4
         return trimesters, wages
         
@@ -132,18 +132,17 @@ class RegimeGeneral(RegimeBase):
             # Rq : cette majoration n'est applicable que pour les femmes dans le RG
             child_mother = info_ind.loc[info_ind['sexe'] == 1, 'nb_born']
             if child_mother is not None:
-                list_id = info_ind.index
                 yearleg = self.dateleg.year
                 #TODO: remove pandas
-                mda = DataFrame({'mda': zeros(len(list_id))}, index=list_id)
+                mda = Series(0, index=info_ind.index)
                 # TODO: distinguer selon l'âge des enfants après 2003
                 # ligne suivante seulement if child_mother['age_enf'].min() > 16 :
                 P_mda = self.P.prive.RG.mda
-                mda.iloc[child_mother.index.values, 'mda'] = P_mda.trim_per_child*child_mother.values
+                mda[child_mother.index.values] = P_mda.trim_per_child*child_mother.values
                 cond_enf_min = child_mother.values >= P_mda.nb_enf_min
-                mda.loc[~cond_enf, 'mda'] = 0
+                mda.loc[~cond_enf_min] = 0
                 #TODO:  Réforme de 2003 : min(1 trimestre à la naissance + 1 à chaque anniv, 8)
-            return array(nb_trim_mda)
+            return array(mda)
         
         return _trim_mda(info_ind)
     
