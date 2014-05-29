@@ -41,26 +41,23 @@ class RegimeGeneral(RegimeBase):
         info_ind = data.info_ind
         
         trim_cot = self.trim_cot_by_year(data)
-        trim_ass = self.trim_ass_by_year(workstate, trim_cot)
-        
-        sal_for_avpf = self.sali_avpf(data)
-#         def trim_avpf_by_year(self, sal_for_avpf):
-#         ''' Allocation vieillesse des parents au foyer : nombre de trimestres attribués 
-#         output: TimeArray donnant le nombre de trimestres par année
-#         Le nombre de trimestres validés au titre de l'AVPF se détermine à partir de sal_for_avpf
-#         de la même manière que trim_cot se déduit de sal_RG. Seule différence : plafonner à 10/an et non à 4'''
-        salref = build_salref_bareme(self.P_longit.common, first_year_avpf, data.datesim.year)
-        sal_avpf = sal_for_avpf.translate_frequency(output_frequency='year', method='sum')
-        trim_avpf = sal_to_trimcot(sal_avpf, salref)       
-        
         trimesters['cot_RG']  = trim_cot
         wages['cot_RG'] = self.sali_for_regime(sali, trim_cot)
+        
+        trim_ass = self.trim_ass_by_year(workstate, trim_cot)
         trimesters['ass_RG'] = trim_ass
+        
+        sal_for_avpf = self.sali_avpf(data) # Allocation vieillesse des parents au foyer : nombre de trimestres attribués 
+        salref = build_salref_bareme(self.P_longit.common, first_year_avpf, data.datesim.year)
+        sal_avpf = sal_for_avpf.translate_frequency(output_frequency='year', method='sum')
+        trim_avpf = sal_to_trimcot(sal_avpf, salref)
+        trimesters['avpf_RG']  = trim_avpf    
         wages['avpf_RG'] = sal_for_avpf
-        trimesters['maj_RG'] = self.nb_trim_maj(info_ind, trim_avpf)
+        
+        trimesters['maj_RG'] = self.nb_trim_maj(info_ind)
 
         if to_check is not None:
-            to_check['DA_RG'] = ((trimesters['cot_RG'] + trimesters['ass_RG']).array.sum(1) 
+            to_check['DA_RG'] = ((trimesters['cot_RG'] + trimesters['ass_RG'] + trimesters['avpf']).array.sum(1) 
                                  + trimesters['maj_RG'])/4
         return trimesters, wages
         
@@ -123,41 +120,42 @@ class RegimeGeneral(RegimeBase):
                 sal_for_avpf.array = multiply(avpf_selection.array, smic_long)    
         return sal_for_avpf
         
-    def nb_trim_maj(self, info_ind, trim_avpf_by_year):
-        ''' Trimestres majorants acquis au titre de la MDA, 
-            de l'assurance pour congé parental ou de l'AVPF '''
+    def nb_trim_maj(self, info_ind):
+        ''' Trimestres majorants, pour l'instant uniquement la MDA 
+             - Note: ces trimestres ne sont pas associés à une année, on 
+              renvoit donc un vecteur'''
         
-        def _trim_mda(info_child, list_id, yearleg):
-            #TODO: remove the pandas call
+        def _trim_mda(info_ind): 
             ''' Majoration pour enfant à charge : nombre de trimestres acquis
-            Rq : cette majoration n'est applicable que pour les femmes dans le RG'''
-            mda = DataFrame({'mda': zeros(len(list_id))}, index=list_id)
-            # TODO: distinguer selon l'âge des enfants après 2003
-            # ligne suivante seulement if info_child['age_enf'].min() > 16 :
-            if yearleg < 1972 :
-                return mda
-            elif yearleg <1975:
-                # loi Boulin du 31 décembre 1971 
-                mda.iloc[info_child.index.values, 'mda'] = 8*info_child.values
-                mda.loc[mda['mda'] < 2, 'mda'] = 0
-                return mda.astype(int)
-            elif yearleg <2004:
-                mda.loc[info_child.index.values, 'mda'] = 8*info_child.values
-                return mda.astype(int)
-            else:
-                # Réforme de 2003 : min(1 trimestre à la naissance + 1 à chaque anniv, 8)
-                mda.loc[info_child.index.values, 'mda'] = 8*info_child.values
-                return mda['mda'].astype(int)
-        child_mother = info_ind.loc[info_ind['sexe'] == 1, 'nb_born']
-        list_id = info_ind.index
-        yearleg = self.dateleg.year
-        if child_mother is not None:
-            nb_trim_mda = _trim_mda(child_mother, list_id, yearleg)
-        else :
-            nb_trim_mda = 0
+            Rq : cette majoration n'est applicable que pour les femmes dans le RG '''
             
-        nb_trim_avpf = trim_avpf_by_year.array.sum(1)
-        return array(nb_trim_mda + nb_trim_avpf)
+            child_mother = info_ind.loc[info_ind['sexe'] == 1, 'nb_born']
+            if child_mother is not None:
+                list_id = info_ind.index
+                yearleg = self.dateleg.year
+                #TODO: remove pandas
+                mda = DataFrame({'mda': zeros(len(list_id))}, index=list_id)
+                # TODO: distinguer selon l'âge des enfants après 2003
+                # ligne suivante seulement if info_child['age_enf'].min() > 16 :
+                if yearleg < 1972 :
+                    return mda
+                elif yearleg <1975:
+                    # loi Boulin du 31 décembre 1971 
+                    mda.iloc[info_child.index.values, 'mda'] = 8*info_child.values
+                    mda.loc[mda['mda'] < 2, 'mda'] = 0
+                    return mda.astype(int)
+                elif yearleg <2004:
+                    mda.loc[info_child.index.values, 'mda'] = 8*info_child.values
+                    return mda.astype(int)
+                else:
+                    # Réforme de 2003 : min(1 trimestre à la naissance + 1 à chaque anniv, 8)
+                    mda.loc[info_child.index.values, 'mda'] = 8*info_child.values
+                    return mda['mda'].astype(int)
+            else :
+                nb_trim_mda = 0
+            return array(nb_trim_mda)
+        
+        return _trim_mda(info_ind)
     
     def calculate_salref(self, data, wages):
         ''' SAM : Calcul du salaire annuel moyen de référence : 
