@@ -26,6 +26,9 @@ class PensionData(object):
         datesim = DateTil(datesim)
         self.datesim = datesim
         
+        if 'date_liquidation' not in info_ind.columns:
+            self.info_ind['date_liquidation'] = datesim.datetime
+        
     def selected_dates(self, first=None, last=None, date_type='year', inplace=False):
         ''' cf TimeArray '''
         if inplace:

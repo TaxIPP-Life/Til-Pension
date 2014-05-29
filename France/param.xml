@@ -2958,7 +2958,7 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
    		</CODE>
  		<VALBYTRANCHES description="Age d'annulation de la décote (différence de trimestres par rapport à la limite d'âge), par date de liquidation" code="age_null_val" format="integer">
 		    <VARCONTROL>
-			  <CONTROL valeur="naiss" deb="2006-01-01" fin="2100-12-31" format="integer"/> # True value : 01/01/2003
+			  <CONTROL valeur="date_liquidation" deb="2006-01-01" fin="2100-12-31" format="integer"/>
 		    </VARCONTROL> 
 		    <TRANCHE code ="tranche1">
 		      <SEUIL>
