@@ -121,7 +121,8 @@ class RegimeGeneral(RegimeBase):
         return sal_for_avpf
         
     def nb_trim_maj(self, info_ind):
-        ''' Trimestres majorants, pour l'instant uniquement la MDA 
+        ''' Trimestres majorants, cf http://vosdroits.service-public.fr/particuliers/F19643.xhtml
+            pour l'instant uniquement la MDA 
              - Note: ces trimestres ne sont pas associés à une année, on 
               renvoit donc un vecteur'''
         
