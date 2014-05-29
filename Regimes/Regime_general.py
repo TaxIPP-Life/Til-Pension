@@ -48,8 +48,9 @@ class RegimeGeneral(RegimeBase):
         
         trim_ass = self.trim_ass_by_year(workstate, trim_cot)
         trimesters['ass_RG'] = trim_ass
-        
         sal_for_avpf = self.sali_avpf(data) # Allocation vieillesse des parents au foyer : nombre de trimestres attribués 
+        
+        
         salref = build_salref_bareme(self.P_longit.common, first_year_avpf, data.datesim.year)
         trim_avpf = sal_to_trimcot(sal_for_avpf, salref, plafond=4)
         trimesters['avpf_RG']  = trim_avpf    
@@ -94,18 +95,19 @@ class RegimeGeneral(RegimeBase):
         return trim_by_year_ass
     
     def sali_avpf(self, data):
-        ''' Allocation vieillesse des parents au foyer : salaires de remplacements imputés
-        Si certains salaires son déjà attribués à des états d'avpf on les conserve (cf.Destinie) sinon on applique la règle d'imputation'''
+        ''' Allocation vieillesse des parents au foyer : 
+             - selectionne les revenus correspondant au periode d'AVPF
+             - imputes des salaires de remplacements (quand non présents)
+        '''
         workstate = data.workstate
         sali = data.sali
-        
         avpf_selection = workstate.isin([code_avpf]).selected_dates(first_year_avpf)
         sal_for_avpf = sali.selected_dates(first_year_avpf)
         sal_for_avpf.array = sal_for_avpf.array*avpf_selection.array
         if sal_for_avpf.array.all() == 0:
             # TODO: frquency warning, cette manière de calculer les trimestres avpf ne fonctionne qu'avec des tables annuelles
             avpf = build_long_values(param_long=self.P_longit.common.avpf, first_year=first_year_avpf, last_year=data.datesim.year)
-            sal_for_avpf.array = multiply(avpf_selection.array, 12*avpf)    
+            sal_for_avpf.array = multiply(avpf_selection.array, 12*avpf)
             if compare_destinie == True:
                 smic_long = build_long_values(param_long=self.P_longit.common.smic_proj, first_year=first_year_avpf, last_year=data.datesim.year) 
                 sal_for_avpf.array = multiply(avpf_selection.array, smic_long)    
