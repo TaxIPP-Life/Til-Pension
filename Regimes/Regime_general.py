@@ -127,9 +127,9 @@ class RegimeGeneral(RegimeBase):
               renvoit donc un vecteur'''
         
         def _trim_mda(info_ind): 
-            ''' Majoration pour enfant à charge : nombre de trimestres acquis
-            Rq : cette majoration n'est applicable que pour les femmes dans le RG '''
+            ''' Majoration pour enfant à charge : nombre de trimestres acquis '''
             
+            # Rq : cette majoration n'est applicable que pour les femmes dans le RG
             child_mother = info_ind.loc[info_ind['sexe'] == 1, 'nb_born']
             if child_mother is not None:
                 list_id = info_ind.index
@@ -137,23 +137,12 @@ class RegimeGeneral(RegimeBase):
                 #TODO: remove pandas
                 mda = DataFrame({'mda': zeros(len(list_id))}, index=list_id)
                 # TODO: distinguer selon l'âge des enfants après 2003
-                # ligne suivante seulement if info_child['age_enf'].min() > 16 :
-                if yearleg < 1972 :
-                    return mda
-                elif yearleg <1975:
-                    # loi Boulin du 31 décembre 1971 
-                    mda.iloc[info_child.index.values, 'mda'] = 8*info_child.values
-                    mda.loc[mda['mda'] < 2, 'mda'] = 0
-                    return mda.astype(int)
-                elif yearleg <2004:
-                    mda.loc[info_child.index.values, 'mda'] = 8*info_child.values
-                    return mda.astype(int)
-                else:
-                    # Réforme de 2003 : min(1 trimestre à la naissance + 1 à chaque anniv, 8)
-                    mda.loc[info_child.index.values, 'mda'] = 8*info_child.values
-                    return mda['mda'].astype(int)
-            else :
-                nb_trim_mda = 0
+                # ligne suivante seulement if child_mother['age_enf'].min() > 16 :
+                P_mda = self.P.prive.RG.mda
+                mda.iloc[child_mother.index.values, 'mda'] = P_mda.trim_per_child*child_mother.values
+                cond_enf_min = child_mother.values >= P_mda.nb_enf_min
+                mda.loc[~cond_enf, 'mda'] = 0
+                #TODO:  Réforme de 2003 : min(1 trimestre à la naissance + 1 à chaque anniv, 8)
             return array(nb_trim_mda)
         
         return _trim_mda(info_ind)
