@@ -95,10 +95,10 @@ class Regime(object):
         start_taux_plein_trim = self._date_start_surcote(trim_by_year_tot, trim_maj, agem)
         return minimum(start_taux_plein_age, start_taux_plein_trim)
     
-    def sali_in_regime(self, sali, workstate):
-        ''' Cette fonction renvoie le TimeArray ne contenant que les salaires validés avec workstate == code_regime'''
-        wk_selection = workstate.isin(self.code_regime).array
-        return TimeArray(wk_selection*sali.array, sali.dates, 'sal_regime')
+#     def sali_in_regime(self, sali, workstate):
+#         ''' Cette fonction renvoie le TimeArray ne contenant que les salaires validés avec workstate == code_regime'''
+#         wk_selection = workstate.isin(self.code_regime).array
+#         return TimeArray(wk_selection*sali.array, sali.dates, 'sal_regime')
     
     def calculate_taux(self, decote, surcote):
         ''' Détérmination du taux de liquidation à appliquer à la pension 
@@ -144,25 +144,6 @@ class Regime(object):
 
 
 class RegimeBase(Regime):
-
-    def trim_cot_by_year(self, workstate, code=None): #sali,
-        ''' Cette fonction pertmet de calculer des nombres par trimesters validés dans un régime
-        validation au sein du régime = 'workstate' = code
-        TODO: gérer la comptabilisation des temps partiels quand variable présente'''
-        assert isinstance(workstate, TimeArray)
-        if code is None:
-            code = self.code_regime
-        trim_service = workstate.isin(code)
-        frequency_init = trim_service.frequency
-        trim_service.name = 'trim_cot'
-        trim_service.translate_frequency(output_frequency='year', method='sum', inplace=True)
-        if frequency_init == 'year':
-            #from year to trimester
-            trim_service.array = trim_service.array*4
-        if frequency_init == 'month':
-            #from month to trimester
-            trim_service.array = divide(trim_service.array,3)
-        return trim_service
 
     def revenu_valides(self, workstate, sali, code=None): #sali, 
         ''' Cette fonction pertmet de calculer des nombres par trimesters

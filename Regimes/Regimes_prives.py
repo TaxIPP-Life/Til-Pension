@@ -13,7 +13,7 @@ from pandas import Series
 from regime import compare_destinie
 from regime_prive import RegimePrive
 from utils_pension import build_long_values, build_salref_bareme
-from pension_functions import nb_trim_surcote, unemployment_trimesters, sal_to_trimcot
+from trimesters_functions import trim_ass_by_year, sali_avpf, sal_to_trimcot, trim_cot_by_year_prive, sali_in_regime, trim_mda
 
 code_avpf = 8
 code_chomage = 2
@@ -39,63 +39,28 @@ class RegimeGeneral(RegimePrive):
         sali = data.sali
         info_ind = data.info_ind
         
-        trim_cot = self.trim_cot_by_year(data)
+        trim_cot = trim_cot_by_year_prive(data, self.code_regime, self.P_longit)
         trimesters['cot']  = trim_cot
         
         sal_by_year = sali.translate_frequency(output_frequency='year', method='sum')
         wages['cot'] = TimeArray((trim_cot.array > 0)*sal_by_year.array, sal_by_year.dates, name='sal_RG')
         
-        trim_ass = self.trim_ass_by_year(workstate, trim_cot)
+        trim_ass = trim_ass_by_year(workstate, trim_cot, self.code_regime, compare_destinie)
         trimesters['ass'] = trim_ass
-        sal_for_avpf = self.sali_avpf(data) # Allocation vieillesse des parents au foyer : nombre de trimestres attribués 
+        sal_for_avpf = sali_avpf(data, code_avpf, self.P_longit, compare_destinie) # Allocation vieillesse des parents au foyer : nombre de trimestres attribués 
         
         salref = build_salref_bareme(self.P_longit.common, first_year_avpf, data.datesim.year)
         trim_avpf = sal_to_trimcot(sal_for_avpf, salref, plafond=4)
         trimesters['avpf']  = trim_avpf    
         wages['avpf'] = sal_for_avpf
         
-        trim_maj['DA'] = self.trim_mda(info_ind)
+        trim_maj['DA'] = trim_mda(info_ind, self.P, self.dateleg.year)
 
         if to_check is not None:
             to_check['DA_RG'] = ((trimesters['cot'] + trimesters['ass'] + trimesters['avpf']).sum(1) 
                                  + trim_maj['DA'])/4
         output = {'trimesters': trimesters, 'wages': wages, 'maj': trim_maj}
         return output, to_other
-
-    def trim_cot_by_year(self, data, table=False):
-        ''' Nombre de trimestres côtisés pour le régime général par année 
-        ref : code de la sécurité sociale, article R351-9
-        '''
-        # Selection des salaires à prendre en compte dans le décompte (mois où il y a eu côtisation au régime)
-        workstate = data.workstate
-        sali = data.sali
-        first_year_sal = min(workstate.dates) // 100
-        wk_selection = workstate.isin(self.code_regime)
-        sal_selection = TimeArray(wk_selection.array*sali.array, sali.dates)
-        salref = build_salref_bareme(self.P_longit.common, first_year_sal, data.datesim.year)
-        trim_cot_by_year = sal_to_trimcot(sal_selection, salref, plafond=4)
-        return trim_cot_by_year
-    
-    def sali_avpf(self, data):
-        ''' Allocation vieillesse des parents au foyer : 
-             - selectionne les revenus correspondant au periode d'AVPF
-             - imputes des salaires de remplacements (quand non présents)
-        '''
-        workstate = data.workstate
-        sali = data.sali
-        avpf_selection = workstate.isin([code_avpf]).selected_dates(first_year_avpf)
-        sal_for_avpf = sali.selected_dates(first_year_avpf)
-        sal_for_avpf.array = sal_for_avpf.array*avpf_selection.array
-        if sal_for_avpf.array.all() == 0:
-            # TODO: frquency warning, cette manière de calculer les trimestres avpf ne fonctionne qu'avec des tables annuelles
-            avpf = build_long_values(param_long=self.P_longit.common.avpf, first_year=first_year_avpf, last_year=data.datesim.year)
-            sal_for_avpf.array = multiply(avpf_selection.array, 12*avpf)
-            if compare_destinie == True:
-                smic_long = build_long_values(param_long=self.P_longit.common.smic_proj, first_year=first_year_avpf, last_year=data.datesim.year) 
-                sal_for_avpf.array = multiply(avpf_selection.array, smic_long)    
-        return sal_for_avpf
-        
-    
 
 class RegimeSocialIndependants(RegimePrive):
     
@@ -115,12 +80,12 @@ class RegimeSocialIndependants(RegimePrive):
         sali = data.sali
         
         reduce_data = data.selected_dates(first=first_year_indep)
-        nb_trim_cot = self.trim_cot_by_year(reduce_data.workstate)
+        nb_trim_cot = trim_cot_by_year_prive(reduce_data, self.code_regime, self.P_longit)
         trimesters['cot']  = nb_trim_cot
-        nb_trim_ass = self.trim_ass_by_year(reduce_data.workstate, nb_trim_cot)
+        nb_trim_ass = trim_ass_by_year(reduce_data.workstate, nb_trim_cot, self.code_regime, compare_destinie)
         trimesters['ass'] = nb_trim_ass
-        wages['regime'] = self.sali_in_regime(sali, workstate)
-        trim_maj['DA'] = 0*self.trim_mda(data.info_ind)
+        wages['regime'] = sali_in_regime(sali, workstate, self.code_regime)
+        trim_maj['DA'] = 0*trim_mda(data.info_ind, self.P, self.dateleg.year)
         if to_check is not None:
                 to_check['DA_RSI'] = (trimesters['cot'].sum(1) + trim_maj['DA'])//4
         output = {'trimesters': trimesters, 'wages': wages, 'maj': trim_maj}

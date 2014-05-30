@@ -34,19 +34,6 @@ class RegimePrive(RegimeBase):
     def _age_min_retirement(self, workstate=None):
         P = reduce(getattr, self.param_name.split('.'), self.P)
         return P.age_min
-
-    def trim_ass_by_year(self, workstate, nb_trim_cot):
-        ''' 
-        Comptabilisation des périodes assimilées à des durées d'assurance
-        Pour l"instant juste chômage workstate == 5 (considéré comme indemnisé) 
-        qui succède directement à une période de côtisation au RG workstate == [3,4]
-        TODO: ne pas comptabiliser le chômage de début de carrière
-        '''
-        trim_by_year_chom = unemployment_trimesters(workstate, code_regime=self.code_regime)
-        trim_by_year_ass = trim_by_year_chom #+...
-        if compare_destinie:
-            trim_by_year_ass.array = (workstate.isin([code_chomage, code_preretraite])).array*4
-        return trim_by_year_ass
     
     def calculate_salref(self, data, wages):
         ''' SAM : Calcul du salaire annuel moyen de référence : 
@@ -75,23 +62,6 @@ class RegimePrive(RegimeBase):
             sal_regime.array = multiply(sal_regime.array,revalo)
         salref = sal_regime.best_dates_mean(nb_best_years_to_take)
         return salref.round(2)
-    
-    def trim_mda(self, info_ind): 
-        ''' Majoration pour enfant à charge : nombre de trimestres acquis '''
-        # Rq : cette majoration n'est applicable que pour les femmes dans le RG
-        child_mother = info_ind.loc[info_ind['sexe'] == 1, 'nb_born']
-        if child_mother is not None:
-            yearleg = self.dateleg.year
-            #TODO: remove pandas
-            mda = Series(0, index=info_ind.index)
-            # TODO: distinguer selon l'âge des enfants après 2003
-            # ligne suivante seulement if child_mother['age_enf'].min() > 16 :
-            P_mda = self.P.prive.RG.mda
-            mda[child_mother.index.values] = P_mda.trim_per_child*child_mother.values
-            cond_enf_min = child_mother.values >= P_mda.nb_enf_min
-            mda.loc[~cond_enf_min] = 0
-            #TODO:  Réforme de 2003 : min(1 trimestre à la naissance + 1 à chaque anniv, 8)
-        return array(mda)
     
     def assurance_maj(self, trim_RG, trim_tot, agem):
         ''' Détermination de la durée d'assurance corrigée introduite par la réforme Boulin
