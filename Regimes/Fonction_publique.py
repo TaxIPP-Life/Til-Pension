@@ -42,11 +42,11 @@ class FonctionPublique(RegimeBase):
         trim_to_RG, sal_to_RG = self.select_to_RG(data, trim_valide, sal_regime)
         trimesters['cot'] = trim_valide.substract(trim_to_RG)
         wages['cot'] = sal_regime.substract(sal_to_RG)
-        trim_maj['CPCM'] = self.nb_trim_bonif_CPCM(info_ind, trim_valide.sum())
+        trim_maj['DA'] = self.nb_trim_mda(info_ind, trim_valide.sum())
         trim_maj['5eme'] = self.nb_trim_bonif_5eme(trim_valide.sum())
         to_other['RegimeGeneral'] = {'trimesters': {'cot_FP' : trim_to_RG}, 'wages': {'sal_FP' : sal_to_RG}}
         if to_check :
-            to_check['DA_FP'] = (trimesters['cot'].sum() + trimesters['maj_FP'] ) //4
+            to_check['DA_FP'] = (trimesters['cot'].sum() + trim_maj['DA'] + trim_maj['5eme']) //4
         output = {'trimesters': trimesters, 'wages': wages, 'maj': trim_maj}
         return output, to_other
         
@@ -84,7 +84,7 @@ class FonctionPublique(RegimeBase):
         trim_by_year.array[~to_RG,:] = 0
         sal_by_year.array[~to_RG,:] = 0
         return trim_by_year, sal_by_year
-    def nb_trim_bonif_CPCM(self, info_ind, trim_cot):
+    def nb_trim_mda(self, info_ind, trim_cot):
         # TODO: autres bonifs : déportés politiques, campagnes militaires, services aériens, dépaysement 
         info_child = info_ind.loc[info_ind['sexe'] == 1, 'nb_born'] #Majoration attribuée aux mères uniquement
         bonif_enf = Series(0, index = info_ind.index)
@@ -111,7 +111,7 @@ class FonctionPublique(RegimeBase):
         
         taux = P.plein.taux
         taux_bonif = P.taux_bonif
-        trim_bonif_CPCM = trim_maj['CPCM']
+        trim_bonif_CPCM = trim_maj['DA'] # CPCM
         CP_CPCM = minimum(divide(maximum(trim_regime, N_CP) + trim_bonif_CPCM, N_CP), divide(taux_bonif, taux))
         
         return maximum(CP_5eme, CP_CPCM)
