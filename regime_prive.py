@@ -24,63 +24,17 @@ first_year_avpf = 1972
 def date_(year, month, day):
     return datetime.date(year, month, day)
 
-class RegimeGeneral(RegimeBase):
+class RegimePrive(RegimeBase):
     
     def __init__(self):
         RegimeBase.__init__(self)
-        self.regime = 'RG'
-        self.code_regime = [3,4]
-        self.param_name = 'prive.RG'
-     
-    def get_trimesters_wages(self, data, to_check=False):
-        trimesters = dict()
-        wages = dict()
-        
-        workstate = data.workstate
-        sali = data.sali
-        info_ind = data.info_ind
-        
-        trim_cot = self.trim_cot_by_year(data)
-        trimesters['cot_RG']  = trim_cot
-        
-        sal_by_year = sali.translate_frequency(output_frequency='year', method='sum')
-        wages['cot_RG'] = TimeArray((trim_cot.array > 0)*sal_by_year.array, sal_by_year.dates, name='sal_RG')
-        
-        trim_ass = self.trim_ass_by_year(workstate, trim_cot)
-        trimesters['ass_RG'] = trim_ass
-        sal_for_avpf = self.sali_avpf(data) # Allocation vieillesse des parents au foyer : nombre de trimestres attribués 
-        
-        
-        salref = build_salref_bareme(self.P_longit.common, first_year_avpf, data.datesim.year)
-        trim_avpf = sal_to_trimcot(sal_for_avpf, salref, plafond=4)
-        trimesters['avpf_RG']  = trim_avpf    
-        wages['avpf_RG'] = sal_for_avpf
-        
-        trimesters['maj_DA_RG'] = self.trim_mda(info_ind)
+        self.param_name = 'prive.RG' #TODO: move P.prive.RG used in the subclass RegimePrive in P.prive
+        self.param_name_bis = None
 
-        if to_check is not None:
-            to_check['DA_RG'] = ((trimesters['cot_RG'] + trimesters['ass_RG'] + trimesters['avpf_RG']).sum(1) 
-                                 + trimesters['maj_DA_RG'])/4
-        return trimesters, wages
-        
     def _age_min_retirement(self, workstate=None):
         P = reduce(getattr, self.param_name.split('.'), self.P)
         return P.age_min
 
-    def trim_cot_by_year(self, data, table=False):
-        ''' Nombre de trimestres côtisés pour le régime général par année 
-        ref : code de la sécurité sociale, article R351-9
-        '''
-        # Selection des salaires à prendre en compte dans le décompte (mois où il y a eu côtisation au régime)
-        workstate = data.workstate
-        sali = data.sali
-        first_year_sal = min(workstate.dates) // 100
-        wk_selection = workstate.isin(self.code_regime)
-        sal_selection = TimeArray(wk_selection.array*sali.array, sali.dates)
-        salref = build_salref_bareme(self.P_longit.common, first_year_sal, data.datesim.year)
-        trim_cot_by_year = sal_to_trimcot(sal_selection, salref, plafond=4)
-        return trim_cot_by_year
-    
     def trim_ass_by_year(self, workstate, nb_trim_cot):
         ''' 
         Comptabilisation des périodes assimilées à des durées d'assurance
@@ -94,50 +48,10 @@ class RegimeGeneral(RegimeBase):
             trim_by_year_ass.array = (workstate.isin([code_chomage, code_preretraite])).array*4
         return trim_by_year_ass
     
-    def sali_avpf(self, data):
-        ''' Allocation vieillesse des parents au foyer : 
-             - selectionne les revenus correspondant au periode d'AVPF
-             - imputes des salaires de remplacements (quand non présents)
-        '''
-        workstate = data.workstate
-        sali = data.sali
-        avpf_selection = workstate.isin([code_avpf]).selected_dates(first_year_avpf)
-        sal_for_avpf = sali.selected_dates(first_year_avpf)
-        sal_for_avpf.array = sal_for_avpf.array*avpf_selection.array
-        if sal_for_avpf.array.all() == 0:
-            # TODO: frquency warning, cette manière de calculer les trimestres avpf ne fonctionne qu'avec des tables annuelles
-            avpf = build_long_values(param_long=self.P_longit.common.avpf, first_year=first_year_avpf, last_year=data.datesim.year)
-            sal_for_avpf.array = multiply(avpf_selection.array, 12*avpf)
-            if compare_destinie == True:
-                smic_long = build_long_values(param_long=self.P_longit.common.smic_proj, first_year=first_year_avpf, last_year=data.datesim.year) 
-                sal_for_avpf.array = multiply(avpf_selection.array, smic_long)    
-        return sal_for_avpf
-        
-        
-    def trim_mda(self, info_ind): 
-        ''' Majoration pour enfant à charge : nombre de trimestres acquis '''
-        # Rq : cette majoration n'est applicable que pour les femmes dans le RG
-        child_mother = info_ind.loc[info_ind['sexe'] == 1, 'nb_born']
-        if child_mother is not None:
-            yearleg = self.dateleg.year
-            #TODO: remove pandas
-            mda = Series(0, index=info_ind.index)
-            # TODO: distinguer selon l'âge des enfants après 2003
-            # ligne suivante seulement if child_mother['age_enf'].min() > 16 :
-            P_mda = self.P.prive.RG.mda
-            mda[child_mother.index.values] = P_mda.trim_per_child*child_mother.values
-            cond_enf_min = child_mother.values >= P_mda.nb_enf_min
-            mda.loc[~cond_enf_min] = 0
-            #TODO:  Réforme de 2003 : min(1 trimestre à la naissance + 1 à chaque anniv, 8)
-        return array(mda)
-
     def calculate_salref(self, data, wages):
         ''' SAM : Calcul du salaire annuel moyen de référence : 
         notamment application du plafonnement à un PSS'''
-        if self.regime == 'RSI':
-            P = reduce(getattr, self.param_indep.split('.'), self.P)
-        else:
-            P = reduce(getattr, self.param_name.split('.'), self.P)
+        P = reduce(getattr, self.param_name_bis.split('.'), self.P)
         nb_best_years_to_take = P.nb_years
         first_year_sal = min(data.workstate.dates) // 100
         yearsim = data.datesim.year
