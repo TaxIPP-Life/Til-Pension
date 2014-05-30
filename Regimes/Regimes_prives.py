@@ -93,23 +93,7 @@ class RegimeGeneral(RegimePrive):
                 sal_for_avpf.array = multiply(avpf_selection.array, smic_long)    
         return sal_for_avpf
         
-        
-    def trim_mda(self, info_ind): 
-        ''' Majoration pour enfant à charge : nombre de trimestres acquis '''
-        # Rq : cette majoration n'est applicable que pour les femmes dans le RG
-        child_mother = info_ind.loc[info_ind['sexe'] == 1, 'nb_born']
-        if child_mother is not None:
-            yearleg = self.dateleg.year
-            #TODO: remove pandas
-            mda = Series(0, index=info_ind.index)
-            # TODO: distinguer selon l'âge des enfants après 2003
-            # ligne suivante seulement if child_mother['age_enf'].min() > 16 :
-            P_mda = self.P.prive.RG.mda
-            mda[child_mother.index.values] = P_mda.trim_per_child*child_mother.values
-            cond_enf_min = child_mother.values >= P_mda.nb_enf_min
-            mda.loc[~cond_enf_min] = 0
-            #TODO:  Réforme de 2003 : min(1 trimestre à la naissance + 1 à chaque anniv, 8)
-        return array(mda)
+    
 
 class RegimeSocialIndependants(RegimePrive):
     
@@ -132,4 +116,7 @@ class RegimeSocialIndependants(RegimePrive):
         nb_trim_ass = self.trim_ass_by_year(reduce_data.workstate, nb_trim_cot)
         trimesters['ass_RSI'] = nb_trim_ass
         wages['regime_RSI'] = self.sali_in_regime(sali, workstate)
+        trimesters['maj_DA_RSI'] = 0*self.trim_mda(data.info_ind)
+        if to_check is not None:
+                to_check['DA_RSI'] = (trimesters['cot_RSI'].sum(1) + trimesters['maj_DA_RSI'])//4
         return trimesters, wages            

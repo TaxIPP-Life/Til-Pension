@@ -75,7 +75,24 @@ class RegimePrive(RegimeBase):
             sal_regime.array = multiply(sal_regime.array,revalo)
         salref = sal_regime.best_dates_mean(nb_best_years_to_take)
         return salref.round(2)
-
+    
+    def trim_mda(self, info_ind): 
+        ''' Majoration pour enfant à charge : nombre de trimestres acquis '''
+        # Rq : cette majoration n'est applicable que pour les femmes dans le RG
+        child_mother = info_ind.loc[info_ind['sexe'] == 1, 'nb_born']
+        if child_mother is not None:
+            yearleg = self.dateleg.year
+            #TODO: remove pandas
+            mda = Series(0, index=info_ind.index)
+            # TODO: distinguer selon l'âge des enfants après 2003
+            # ligne suivante seulement if child_mother['age_enf'].min() > 16 :
+            P_mda = self.P.prive.RG.mda
+            mda[child_mother.index.values] = P_mda.trim_per_child*child_mother.values
+            cond_enf_min = child_mother.values >= P_mda.nb_enf_min
+            mda.loc[~cond_enf_min] = 0
+            #TODO:  Réforme de 2003 : min(1 trimestre à la naissance + 1 à chaque anniv, 8)
+        return array(mda)
+    
     def assurance_maj(self, trim_RG, trim_tot, agem):
         ''' Détermination de la durée d'assurance corrigée introduite par la réforme Boulin
         (majoration quand départ à la retraite après 65 ans) '''
@@ -94,11 +111,13 @@ class RegimePrive(RegimeBase):
         ''' Calcul du coefficient de proratisation '''
         P =  reduce(getattr, self.param_name.split('.'), self.P)
         yearleg = self.dateleg.year
-        trim_regime = trimesters['by_year_regime'].sum()
+        trim_regime = trimesters['by_year_regime'].sum(1) + trimesters['maj_DA']
         trim_tot = trimesters['by_year_tot'].sum(1) + trimesters['maj_tot']
         agem = info_ind['agem']
-        trim_CP = self.assurance_maj(trim_regime, trim_tot, agem)
-        
+        if compare_destinie:
+            trim_CP = trim_regime 
+        else:
+            trim_CP = self.assurance_maj(trim_regime, trim_tot, agem)
         if 1948 <= yearleg and yearleg < 1972: 
             trim_CP= trim_CP + (120 - trim_CP)/2
         #TODO: voir si on ne met pas cette disposition spécifique de la loi Boulin dans la déclaration des paramètres directement
