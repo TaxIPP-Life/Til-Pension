@@ -107,12 +107,12 @@ class RegimePrive(RegimeBase):
             trim_corr = trim_RG*(1 + P.tx_maj*trim_majo*elig_majo)
             return trim_corr
         
-    def calculate_coeff_proratisation(self, info_ind, trimesters, trim_maj):
+    def calculate_coeff_proratisation(self, info_ind, trim_wage_regime, trim_wage_all):
         ''' Calcul du coefficient de proratisation '''
         P =  reduce(getattr, self.param_name.split('.'), self.P)
         yearleg = self.dateleg.year
-        trim_regime = trimesters['regime'].sum(1) + trim_maj['DA']
-        trim_tot = trimesters['tot'].sum(1) + trim_maj['tot']
+        trim_regime = trim_wage_regime['trimesters']['regime'].sum(1) + trim_wage_regime['maj']['DA']
+        trim_tot = trim_wage_all['trimesters']['tot'].sum(1) + trim_wage_all['maj']['tot']
         agem = info_ind['agem']
         if compare_destinie:
             trim_CP = trim_regime 
@@ -132,9 +132,11 @@ class RegimePrive(RegimeBase):
         CP = minimum(1, divide(trim_CP, P.N_CP))
         return CP
     
-    def decote(self, data, trimesters, trim_maj):
+    def decote(self, data, trim_wage_all):
         ''' Détermination de la décote à appliquer aux pensions '''
         yearleg = self.dateleg.year
+        trimesters = trim_wage_all['trimesters']
+        trim_maj = trim_wage_all['maj']
         P = reduce(getattr, self.param_name.split('.'), self.P)
         tx_decote = P.decote.taux
         age_annulation = P.decote.age_null
@@ -150,16 +152,16 @@ class RegimePrive(RegimeBase):
             trim_decote = minimum(decote_age, decote_cot)
         return trim_decote*tx_decote
         
-    def _calculate_surcote(self, trimesters, date_start_surcote, age):
+    def _calculate_surcote(self, trim_wage_regime, trim_wage_all, date_start_surcote, age):
         ''' Détermination de la surcote à appliquer aux pensions '''
         yearleg = self.dateleg.year
         P = reduce(getattr, self.param_name.split('.'), self.P)
-        trim_by_year_RG = trimesters['regime']
-        if 'maj' in trimesters.keys() :
-            trim_maj = trimesters['maj']
+        trim_by_year_RG = trim_wage_regime['trimesters']['regime']
+        if 'maj' in trim_wage_regime.keys() :
+            trim_maj = trim_wage_regime['maj']
         else:
             trim_maj = 0
-        trim_by_year_tot = trimesters['tot']
+        trim_by_year_tot = trim_wage_all['trimesters']['tot']
         N_taux = P.plein.N_taux
       
         def _trimestre_surcote_0304(trim_by_year_RG, date_start_surcote, P):

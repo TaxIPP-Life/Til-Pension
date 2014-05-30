@@ -46,7 +46,7 @@ class FonctionPublique(RegimeBase):
         trim_maj['5eme'] = self.nb_trim_bonif_5eme(trim_valide.sum())
         to_other['RegimeGeneral'] = {'trimesters': {'cot_FP' : trim_to_RG}, 'wages': {'sal_FP' : sal_to_RG}}
         if to_check :
-            to_check['DA_FP'] = (trimesters['cot'].sum()) // 4 #+ trimesters['maj_FP']) //4
+            to_check['DA_FP'] = (trimesters['cot'].sum() + trimesters['maj_FP'] ) //4
         output = {'trimesters': trimesters, 'wages': wages, 'maj': trim_maj}
         return output, to_other
         
@@ -98,11 +98,12 @@ class FonctionPublique(RegimeBase):
         bonif_5eme = minimum(trim_cot*taux_5eme, 5*4)
         return array(bonif_5eme*super_actif)
         
-    def calculate_coeff_proratisation(self, info_ind, trimesters, trim_maj):
+    def calculate_coeff_proratisation(self, info_ind, trim_wage_regime, trim_wage_all):
         ''' on a le choix entre deux bonifications, 
                 chacune plafonnée à sa façon '''
         P = self.P.public.fp
-        
+        trimesters = trim_wage_regime['trimesters']
+        trim_maj = trim_wage_regime['maj']
         N_CP = P.plein.N_taux
         trim_regime = trimesters['regime'].sum(1)
         trim_bonif_5eme = trim_maj['5eme']
@@ -115,8 +116,10 @@ class FonctionPublique(RegimeBase):
         
         return maximum(CP_5eme, CP_CPCM)
 
-    def decote(self, data, trimesters, trim_maj):
+    def decote(self, data, trim_wage_all):
         ''' Détermination de la décote à appliquer aux pensions '''
+        trimesters = trim_wage_all['trimesters']
+        trim_maj = trim_wage_all['maj']
         yearleg = self.dateleg.year
         if yearleg < 2006:
             return zeros(data.info_ind.shape[0])
@@ -133,9 +136,10 @@ class FonctionPublique(RegimeBase):
             trim_decote = maximum(0, minimum(trim_decote_age, trim_decote_cot))
         return trim_decote*tx_decote
         
-    def _calculate_surcote(self, trimesters, date_start_surcote, age):
+    def _calculate_surcote(self, trim_wage_regime, trim_wage_all, date_start_surcote, age):
         ''' Détermination de la surcote à appliquer aux pensions '''
         yearsim = self.dateleg.year
+        trimesters = trim_wage_regime['trimesters']
         if yearsim < 2004:
             return age*0
         else:

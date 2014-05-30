@@ -45,14 +45,16 @@ class Regime(object):
     def decote(self):
         raise NotImplementedError
 
-    def surcote(self, data, trimesters, trim_maj):
+    def surcote(self, data, trim_wage_regime, trim_wage_all):
+        trimesters = trim_wage_all['trimesters']
+        trim_maj = trim_wage_all['maj']
         workstate = data.workstate
         agem = data.info_ind['agem']
         trim_by_year_tot = trimesters['tot']
         trim_maj = trim_maj['tot']
         age_start_surcote = self._age_min_retirement(workstate)
         date_start_surcote = self._date_start_surcote(trim_by_year_tot, trim_maj, agem, age_start_surcote)
-        return self._calculate_surcote(trimesters, date_start_surcote, agem)
+        return self._calculate_surcote(trim_wage_regime, trim_wage_all, date_start_surcote, agem)
     
     def _calculate_surcote(self, trimesters, date_start_surcote, age):
         #TODO: remove trim_by_year_tot from arguments
@@ -96,7 +98,7 @@ class Regime(object):
     def sali_in_regime(self, sali, workstate):
         ''' Cette fonction renvoie le TimeArray ne contenant que les salaires validés avec workstate == code_regime'''
         wk_selection = workstate.isin(self.code_regime).array
-        return TimeArray(wk_selection*sali.array, sali.dates)
+        return TimeArray(wk_selection*sali.array, sali.dates, 'sal_regime')
     
     def calculate_taux(self, decote, surcote):
         ''' Détérmination du taux de liquidation à appliquer à la pension 
@@ -114,17 +116,18 @@ class Regime(object):
 #         self.sal_regime = sali.array*_isin(self.workstate.array,self.code_regime)
         raise NotImplementedError
     
-    def calculate_pension(self, data, trimesters, wages, trim_maj, to_check=None):
+    def calculate_pension(self, data, trim_wage_regime, trim_wage_all, to_check=None):
         info_ind = data.info_ind
         reg = self.regime
-        decote = self.decote(data, trimesters, trim_maj)
-        surcote = self.surcote(data, trimesters, trim_maj)        
+        decote = self.decote(data, trim_wage_all)
+        surcote = self.surcote(data, trim_wage_regime, trim_wage_all)        
         taux = self.calculate_taux(decote, surcote)
-        cp = self.calculate_coeff_proratisation(info_ind, trimesters, trim_maj)
-        salref = self.calculate_salref(data, wages)
+        cp = self.calculate_coeff_proratisation(info_ind, trim_wage_regime, trim_wage_all)
+        salref = self.calculate_salref(data, trim_wage_regime['wages'])
         pension_brute = cp*salref*taux
         pension = self.plafond_pension(pension_brute, salref, cp, surcote)
         if to_check is not None:
+            trimesters = trim_wage_regime['trimesters']
             trim_regime = trimesters['regime'].sum()
             to_check['decote_' + self.regime] = decote*(trim_regime > 0)
             to_check['surcote_' + self.regime] = surcote*(trim_regime > 0)
