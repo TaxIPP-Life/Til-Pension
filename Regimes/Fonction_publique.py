@@ -11,7 +11,7 @@ from pandas import Series
 from regime import RegimeBase, compare_destinie
 from pension_functions import nb_trim_surcote
 from utils_pension import print_multi_info_numpy, _info_numpy
-from trimesters_functions import trim_cot_by_year_FP, sali_in_regime, nb_trim_bonif_CPCM, nb_trim_bonif_5eme
+from trimesters_functions import trim_cot_by_year_FP, sali_in_regime, nb_trim_bonif_5eme, nb_trim_mda
 from time_array import TimeArray
 
 code_avpf = 8
@@ -43,8 +43,8 @@ class FonctionPublique(RegimeBase):
         trim_to_RG, sal_to_RG = self.select_to_RG(data, trim_valide, sal_regime)
         trimesters['cot'] = trim_valide.substract(trim_to_RG)
         wages['cot'] = sal_regime.substract(sal_to_RG)
-        trim_maj['DA'] = self.nb_trim_mda(info_ind, trim_valide.sum())
-        trim_maj['5eme'] = self.nb_trim_bonif_5eme(trim_valide.sum())
+        trim_maj['DA'] = nb_trim_mda(info_ind, trim_valide.sum())
+        trim_maj['5eme'] = nb_trim_bonif_5eme(trim_valide.sum())
         to_other['RegimeGeneral'] = {'trimesters': {'cot_FP' : trim_to_RG}, 'wages': {'sal_FP' : sal_to_RG}}
         if to_check :
             to_check['DA_FP'] = (trimesters['cot'].sum() + trim_maj['DA'] + trim_maj['5eme']) //4
@@ -84,20 +84,7 @@ class FonctionPublique(RegimeBase):
         to_RG = (to_RG_actif + to_RG_sedentaire)
         trim_by_year.array[~to_RG,:] = 0
         sal_by_year.array[~to_RG,:] = 0
-        return trim_by_year, sal_by_year
-    def nb_trim_mda(self, info_ind, trim_cot):
-        # TODO: autres bonifs : déportés politiques, campagnes militaires, services aériens, dépaysement 
-        info_child = info_ind.loc[info_ind['sexe'] == 1, 'nb_born'] #Majoration attribuée aux mères uniquement
-        bonif_enf = Series(0, index = info_ind.index)
-        bonif_enf[info_child.index.values] = 4*info_child.values
-        return array(bonif_enf*(trim_cot>0)) #+...
-
-    def nb_trim_bonif_5eme(self, trim_cot):
-        # TODO: Add bonification au cinquième pour les superactifs (policiers, surveillants pénitentiaires, contrôleurs aériens... à identifier grâce à workstate)
-        super_actif = 0 # condition superactif à définir
-        taux_5eme = 0.2
-        bonif_5eme = minimum(trim_cot*taux_5eme, 5*4)
-        return array(bonif_5eme*super_actif)
+        return trim_by_year, sal_by_year
         
     def calculate_coeff_proratisation(self, info_ind, trim_wage_regime, trim_wage_all):
         ''' on a le choix entre deux bonifications, 

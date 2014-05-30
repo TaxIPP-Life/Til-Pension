@@ -93,6 +93,13 @@ def nb_trim_bonif_5eme(trim_cot):
     bonif_5eme = minimum(trim_cot*taux_5eme, 5*4)
     return array(bonif_5eme*super_actif)
 
+def nb_trim_mda(info_ind, trim_cot):
+    # TODO: autres bonifs : déportés politiques, campagnes militaires, services aériens, dépaysement 
+    info_child = info_ind.loc[info_ind['sexe'] == 1, 'nb_born'] #Majoration attribuée aux mères uniquement
+    bonif_enf = Series(0, index = info_ind.index)
+    bonif_enf[info_child.index.values] = 4*info_child.values
+    return array(bonif_enf*(trim_cot>0)) #+...
+
 def trim_cot_by_year_prive(data, code, P_longit, table=False):
     ''' FP Nombre de trimestres côtisés pour le régime général par année 
     ref : code de la sécurité sociale, article R351-9
