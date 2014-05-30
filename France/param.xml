@@ -1679,7 +1679,6 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
   	        <VALUE valeur="1900-01-01" deb="1945-01-01" fin="2100-12-31"/>
 		  </SEUIL>
 		  <VALEUR>
-		    <VALUE valeur="120" deb="1946-01-01" fin="1971-12-31"/>
 		    <VALUE valeur="150" deb="1946-01-01" fin="2100-12-31"/>
 		  </VALEUR>
 		</TRANCHE>

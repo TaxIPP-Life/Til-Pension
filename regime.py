@@ -131,6 +131,12 @@ class Regime(object):
             to_check['CP_' + reg] = cp
             to_check['taux_' + reg] = taux*(trim_regime>0)
             to_check['salref_' + reg] = salref
+            P = reduce(getattr, self.param_name.split('.'), self.P)
+            to_check['N_taux_' + reg] = P.plein.N_taux // 4
+            try:
+                to_check['N_CP_' + reg] = P.N_CP // 4
+            except:
+                print "Pas de CP"
         return pension
 
 

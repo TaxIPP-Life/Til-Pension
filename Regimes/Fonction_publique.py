@@ -46,7 +46,6 @@ class FonctionPublique(RegimeBase):
         trimesters['maj_5eme_FP'] = self.nb_trim_bonif_5eme(trim_valide.sum())
         if to_check :
             to_check['DA_FP'] = (trimesters['cot_FP'].sum()) // 4 #+ trimesters['maj_FP']) //4
-        
         return trimesters, wages
         
     def _age_min_retirement(self, workstate):
@@ -58,7 +57,7 @@ class FonctionPublique(RegimeBase):
         age_min = age_min_a*(trim_actif >= P.actif.N_min) + age_min_s*(trim_actif < P.actif.N_min)
         return age_min
     
-    def _build_age_max(self, workstate, sali):
+    def _build_age_max(self, data):
         P = self.P.public.fp
         last_fp = data.workstate.last_time_in(self.code_regime)
         actif = (last_fp == self.code_actif)
@@ -117,7 +116,6 @@ class FonctionPublique(RegimeBase):
     def decote(self, data, trimesters):
         ''' Détermination de la décote à appliquer aux pensions '''
         yearleg = self.dateleg.year
-        
         if yearleg < 2006:
             return zeros(data.info_ind.shape[0])
         else:
