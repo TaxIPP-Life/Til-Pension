@@ -48,7 +48,7 @@ class Regime(object):
     def surcote(self, data, trimesters, trim_maj):
         workstate = data.workstate
         agem = data.info_ind['agem']
-        trim_by_year_tot = trimesters['by_year_tot']
+        trim_by_year_tot = trimesters['tot']
         trim_maj = trim_maj['tot']
         age_start_surcote = self._age_min_retirement(workstate)
         date_start_surcote = self._date_start_surcote(trim_by_year_tot, trim_maj, agem, age_start_surcote)
@@ -125,7 +125,7 @@ class Regime(object):
         pension_brute = cp*salref*taux
         pension = self.plafond_pension(pension_brute, salref, cp, surcote)
         if to_check is not None:
-            trim_regime = trimesters['by_year_regime'].sum()
+            trim_regime = trimesters['regime'].sum()
             to_check['decote_' + self.regime] = decote*(trim_regime > 0)
             to_check['surcote_' + self.regime] = surcote*(trim_regime > 0)
             to_check['CP_' + reg] = cp
@@ -136,7 +136,7 @@ class Regime(object):
             try:
                 to_check['N_CP_' + reg] = P.N_CP // 4
             except:
-                print "Pas de CP"
+                pass
         return pension
 
 

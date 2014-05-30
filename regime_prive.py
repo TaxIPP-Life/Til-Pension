@@ -111,8 +111,8 @@ class RegimePrive(RegimeBase):
         ''' Calcul du coefficient de proratisation '''
         P =  reduce(getattr, self.param_name.split('.'), self.P)
         yearleg = self.dateleg.year
-        trim_regime = trimesters['by_year_regime'].sum(1) + trim_maj['DA']
-        trim_tot = trimesters['by_year_tot'].sum(1) + trim_maj['tot']
+        trim_regime = trimesters['regime'].sum(1) + trim_maj['DA']
+        trim_tot = trimesters['tot'].sum(1) + trim_maj['tot']
         agem = info_ind['agem']
         if compare_destinie:
             trim_CP = trim_regime 
@@ -144,7 +144,7 @@ class RegimePrive(RegimeBase):
             trim_decote = max(divide(age_annulation - agem, 3), 0)
         else:
             decote_age = maximum(divide(age_annulation - agem, 3), 0)
-            trim_tot = trimesters['by_year_tot'].sum(1) + trim_maj['tot']
+            trim_tot = trimesters['tot'].sum(1) + trim_maj['tot']
             decote_cot = maximum(N_taux - trim_tot, 0)
             assert len(decote_age) == len(decote_cot)
             trim_decote = minimum(decote_age, decote_cot)
@@ -154,12 +154,12 @@ class RegimePrive(RegimeBase):
         ''' Détermination de la surcote à appliquer aux pensions '''
         yearleg = self.dateleg.year
         P = reduce(getattr, self.param_name.split('.'), self.P)
-        trim_by_year_RG = trimesters['by_year_regime']
+        trim_by_year_RG = trimesters['regime']
         if 'maj' in trimesters.keys() :
             trim_maj = trimesters['maj']
         else:
             trim_maj = 0
-        trim_by_year_tot = trimesters['by_year_tot']
+        trim_by_year_tot = trimesters['tot']
         N_taux = P.plein.N_taux
       
         def _trimestre_surcote_0304(trim_by_year_RG, date_start_surcote, P):

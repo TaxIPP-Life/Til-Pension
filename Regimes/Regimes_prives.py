@@ -33,32 +33,34 @@ class RegimeGeneral(RegimePrive):
         trimesters = dict()
         wages = dict()
         trim_maj = dict()
+        to_other = dict()
         
         workstate = data.workstate
         sali = data.sali
         info_ind = data.info_ind
         
         trim_cot = self.trim_cot_by_year(data)
-        trimesters['cot_RG']  = trim_cot
+        trimesters['cot']  = trim_cot
         
         sal_by_year = sali.translate_frequency(output_frequency='year', method='sum')
-        wages['cot_RG'] = TimeArray((trim_cot.array > 0)*sal_by_year.array, sal_by_year.dates, name='sal_RG')
+        wages['cot'] = TimeArray((trim_cot.array > 0)*sal_by_year.array, sal_by_year.dates, name='sal_RG')
         
         trim_ass = self.trim_ass_by_year(workstate, trim_cot)
-        trimesters['ass_RG'] = trim_ass
+        trimesters['ass'] = trim_ass
         sal_for_avpf = self.sali_avpf(data) # Allocation vieillesse des parents au foyer : nombre de trimestres attribués 
         
         salref = build_salref_bareme(self.P_longit.common, first_year_avpf, data.datesim.year)
         trim_avpf = sal_to_trimcot(sal_for_avpf, salref, plafond=4)
-        trimesters['avpf_RG']  = trim_avpf    
-        wages['avpf_RG'] = sal_for_avpf
+        trimesters['avpf']  = trim_avpf    
+        wages['avpf'] = sal_for_avpf
         
-        trim_maj['DA_RG'] = self.trim_mda(info_ind)
+        trim_maj['DA'] = self.trim_mda(info_ind)
 
         if to_check is not None:
-            to_check['DA_RG'] = ((trimesters['cot_RG'] + trimesters['ass_RG'] + trimesters['avpf_RG']).sum(1) 
-                                 + trim_maj['DA_RG'])/4
-        return trimesters, wages, trim_maj
+            to_check['DA_RG'] = ((trimesters['cot'] + trimesters['ass'] + trimesters['avpf']).sum(1) 
+                                 + trim_maj['DA'])/4
+        output = {'trimesters': trimesters, 'wages': wages, 'maj': trim_maj}
+        return output, to_other
 
     def trim_cot_by_year(self, data, table=False):
         ''' Nombre de trimestres côtisés pour le régime général par année 
@@ -107,16 +109,19 @@ class RegimeSocialIndependants(RegimePrive):
         trimesters = dict()
         wages = dict()
         trim_maj = dict()
+        to_other = dict()
+        
         workstate = data.workstate
         sali = data.sali
         
         reduce_data = data.selected_dates(first=first_year_indep)
         nb_trim_cot = self.trim_cot_by_year(reduce_data.workstate)
-        trimesters['cot_RSI']  = nb_trim_cot
+        trimesters['cot']  = nb_trim_cot
         nb_trim_ass = self.trim_ass_by_year(reduce_data.workstate, nb_trim_cot)
-        trimesters['ass_RSI'] = nb_trim_ass
-        wages['regime_RSI'] = self.sali_in_regime(sali, workstate)
-        trim_maj['DA_RSI'] = 0*self.trim_mda(data.info_ind)
+        trimesters['ass'] = nb_trim_ass
+        wages['regime'] = self.sali_in_regime(sali, workstate)
+        trim_maj['DA'] = 0*self.trim_mda(data.info_ind)
         if to_check is not None:
-                to_check['DA_RSI'] = (trimesters['cot_RSI'].sum(1) + trim_maj['DA_RSI'])//4
-        return trimesters, wages, trim_maj         
+                to_check['DA_RSI'] = (trimesters['cot'].sum(1) + trim_maj['DA'])//4
+        output = {'trimesters': trimesters, 'wages': wages, 'maj': trim_maj}
+        return output, to_other
