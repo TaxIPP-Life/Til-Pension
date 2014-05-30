@@ -32,6 +32,7 @@ class RegimeGeneral(RegimePrive):
     def get_trimesters_wages(self, data, to_check=False):
         trimesters = dict()
         wages = dict()
+        trim_maj = dict()
         
         workstate = data.workstate
         sali = data.sali
@@ -47,18 +48,17 @@ class RegimeGeneral(RegimePrive):
         trimesters['ass_RG'] = trim_ass
         sal_for_avpf = self.sali_avpf(data) # Allocation vieillesse des parents au foyer : nombre de trimestres attribués 
         
-        
         salref = build_salref_bareme(self.P_longit.common, first_year_avpf, data.datesim.year)
         trim_avpf = sal_to_trimcot(sal_for_avpf, salref, plafond=4)
         trimesters['avpf_RG']  = trim_avpf    
         wages['avpf_RG'] = sal_for_avpf
         
-        trimesters['maj_DA_RG'] = self.trim_mda(info_ind)
+        trim_maj['DA_RG'] = self.trim_mda(info_ind)
 
         if to_check is not None:
             to_check['DA_RG'] = ((trimesters['cot_RG'] + trimesters['ass_RG'] + trimesters['avpf_RG']).sum(1) 
-                                 + trimesters['maj_DA_RG'])/4
-        return trimesters, wages
+                                 + trim_maj['DA_RG'])/4
+        return trimesters, wages, trim_maj
 
     def trim_cot_by_year(self, data, table=False):
         ''' Nombre de trimestres côtisés pour le régime général par année 
@@ -106,7 +106,7 @@ class RegimeSocialIndependants(RegimePrive):
     def get_trimesters_wages(self, data, to_check=False):
         trimesters = dict()
         wages = dict()
-        
+        trim_maj = dict()
         workstate = data.workstate
         sali = data.sali
         
@@ -116,7 +116,7 @@ class RegimeSocialIndependants(RegimePrive):
         nb_trim_ass = self.trim_ass_by_year(reduce_data.workstate, nb_trim_cot)
         trimesters['ass_RSI'] = nb_trim_ass
         wages['regime_RSI'] = self.sali_in_regime(sali, workstate)
-        trimesters['maj_DA_RSI'] = 0*self.trim_mda(data.info_ind)
+        trim_maj['DA_RSI'] = 0*self.trim_mda(data.info_ind)
         if to_check is not None:
-                to_check['DA_RSI'] = (trimesters['cot_RSI'].sum(1) + trimesters['maj_DA_RSI'])//4
-        return trimesters, wages            
+                to_check['DA_RSI'] = (trimesters['cot_RSI'].sum(1) + trim_maj['DA_RSI'])//4
+        return trimesters, wages, trim_maj         

@@ -45,11 +45,11 @@ class Regime(object):
     def decote(self):
         raise NotImplementedError
 
-    def surcote(self, data, trimesters):
+    def surcote(self, data, trimesters, trim_maj):
         workstate = data.workstate
         agem = data.info_ind['agem']
         trim_by_year_tot = trimesters['by_year_tot']
-        trim_maj = trimesters['maj_tot']
+        trim_maj = trim_maj['tot']
         age_start_surcote = self._age_min_retirement(workstate)
         date_start_surcote = self._date_start_surcote(trim_by_year_tot, trim_maj, agem, age_start_surcote)
         return self._calculate_surcote(trimesters, date_start_surcote, agem)
@@ -114,13 +114,13 @@ class Regime(object):
 #         self.sal_regime = sali.array*_isin(self.workstate.array,self.code_regime)
         raise NotImplementedError
     
-    def calculate_pension(self, data, trimesters, wages, to_check=None):
+    def calculate_pension(self, data, trimesters, wages, trim_maj, to_check=None):
         info_ind = data.info_ind
         reg = self.regime
-        decote = self.decote(data, trimesters)
-        surcote = self.surcote(data, trimesters)        
+        decote = self.decote(data, trimesters, trim_maj)
+        surcote = self.surcote(data, trimesters, trim_maj)        
         taux = self.calculate_taux(decote, surcote)
-        cp = self.calculate_coeff_proratisation(info_ind, trimesters)
+        cp = self.calculate_coeff_proratisation(info_ind, trimesters, trim_maj)
         salref = self.calculate_salref(data, wages)
         pension_brute = cp*salref*taux
         pension = self.plafond_pension(pension_brute, salref, cp, surcote)
