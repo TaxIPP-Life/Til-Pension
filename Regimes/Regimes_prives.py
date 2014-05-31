@@ -13,7 +13,7 @@ from pandas import Series
 from regime import compare_destinie
 from regime_prive import RegimePrive
 from utils_pension import build_long_values, build_salref_bareme
-from trimesters_functions import trim_ass_by_year, sali_avpf, sal_to_trimcot, trim_cot_by_year_prive, sali_in_regime, trim_mda
+from trimesters_functions import trim_ass_by_year, sali_avpf, trim_cot_by_year_prive, sali_in_regime, trim_mda
 
 code_avpf = 8
 code_chomage = 2
@@ -48,10 +48,9 @@ class RegimeGeneral(RegimePrive):
         
         trim_ass = trim_ass_by_year(workstate, trim_cot, self.code_regime, compare_destinie)
         trimesters['ass'] = trim_ass
-        sal_for_avpf = sali_avpf(data, code_avpf, self.P_longit, compare_destinie) # Allocation vieillesse des parents au foyer : nombre de trimestres attribués 
-        
-        salref = build_salref_bareme(self.P_longit.common, first_year_avpf, data.datesim.year)
-        trim_avpf = sal_to_trimcot(sal_for_avpf, salref, plafond=4)
+#         salref = build_salref_bareme(self.P_longit.common, first_year_avpf, data.datesim.year)
+        # Allocation vieillesse des parents au foyer : nombre de trimestres attribués 
+        sal_for_avpf, trim_avpf = sali_avpf(data, code_avpf, self.P_longit, compare_destinie)
         trimesters['avpf']  = trim_avpf    
         wages['avpf'] = sal_for_avpf
         
@@ -81,7 +80,7 @@ class RegimeSocialIndependants(RegimePrive):
         sali = data.sali
         
         reduce_data = data.selected_dates(first=first_year_indep)
-        salref = build_salref_bareme(self.P_longit.common, data.initial_date.year, data.datesim.year)
+        salref = build_salref_bareme(self.P_longit.common, first_year_indep, data.datesim.year)
         nb_trim_cot = trim_cot_by_year_prive(reduce_data, self.code_regime, salref)
         trimesters['cot']  = nb_trim_cot
         nb_trim_ass = trim_ass_by_year(reduce_data.workstate, nb_trim_cot, self.code_regime, compare_destinie)

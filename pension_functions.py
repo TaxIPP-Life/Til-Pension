@@ -110,14 +110,3 @@ def trim_maj_all(trimestres):
     trimestres_maj = [trimestres[key] for key in trimestres.keys() if str(key)[0:8] == 'maj']
     trim_maj_tot = sum(trimestres_maj)
     return trim_maj_tot
-
-def sal_to_trimcot(sal, salref, plafond):
-    ''' A partir de la table des salaires côtisés au sein du régime, on détermine le vecteur du nombre de trimestres côtisés
-    sal_cot : table ne contenant que les salaires annuels cotisés au sein du régime (lignes : individus / colonnes : date)
-    salref : vecteur des salaires minimum (annuels) à comparer pour obtenir le nombre de trimestres '''
-    sal_ = sal.translate_frequency(output_frequency='year', method='sum')
-    sal_annuel = sal_.array
-    sal_annuel[isnan(sal_annuel)] = 0
-    division = divide(sal_annuel, salref).astype(int)
-    nb_trim_cot = minimum(division, plafond) 
-    return TimeArray(nb_trim_cot, sal_.dates)

@@ -12,7 +12,7 @@ from pandas import Series
 
 from regime import RegimeBase, compare_destinie
 from utils_pension import build_long_values, build_salref_bareme, _info_numpy, print_multi_info_numpy
-from pension_functions import nb_trim_surcote, sal_to_trimcot, unemployment_trimesters
+from pension_functions import nb_trim_surcote, unemployment_trimesters
 
 code_avpf = 8
 code_chomage = 2

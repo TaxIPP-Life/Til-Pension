@@ -16,16 +16,6 @@ first_year_avpf = 1972
 code_chomage = 2
 code_preretraite = 9
 
-def sal_to_trimcot(sal, salref, plafond):
-    ''' A partir de la table des salaires côtisés au sein du régime, on détermine le vecteur du nombre de trimestres côtisés
-    sal_cot : table ne contenant que les salaires annuels cotisés au sein du régime (lignes : individus / colonnes : date)
-    salref : vecteur des salaires minimum (annuels) à comparer pour obtenir le nombre de trimestres '''
-    sal_ = sal.translate_frequency(output_frequency='year', method='sum')
-    sal_annuel = sal_.array
-    sal_annuel[isnan(sal_annuel)] = 0
-    division = divide(sal_annuel, salref).astype(int)
-    nb_trim_cot = minimum(division, plafond) 
-    return TimeArray(nb_trim_cot, sal_.dates)
 
 def sali_in_regime(sali, workstate, code):
     ''' Cette fonction renvoie le TimeArray ne contenant que les salaires validés avec workstate == code_regime'''
@@ -85,6 +75,17 @@ def trim_cot_by_year_prive(data, code, salref):
     sali = data.sali
     wk_selection = workstate.isin(code)
     sal_selection = TimeArray(wk_selection.array*sali.array, sali.dates)
+    def sal_to_trimcot(sal, salref, plafond):
+        ''' A partir de la table des salaires côtisés au sein du régime, on détermine le vecteur du nombre de trimestres côtisés
+        sal_cot : table ne contenant que les salaires annuels cotisés au sein du régime (lignes : individus / colonnes : date)
+        salref : vecteur des salaires minimum (annuels) à comparer pour obtenir le nombre de trimestres '''
+        sal_ = sal.translate_frequency(output_frequency='year', method='sum')
+        sal_annuel = sal_.array
+        sal_annuel[isnan(sal_annuel)] = 0
+        division = divide(sal_annuel, salref).astype(int)
+        nb_trim_cot = minimum(division, plafond) 
+        return TimeArray(nb_trim_cot, sal_.dates)
+
     trim_cot_by_year = sal_to_trimcot(sal_selection, salref, plafond=4)
     return trim_cot_by_year
     
@@ -104,8 +105,21 @@ def sali_avpf(data, code, P_longit, compare_destinie):
         sal_for_avpf.array = multiply(avpf_selection.array, 12*avpf)
         if compare_destinie == True:
             smic_long = build_long_values(param_long=P_longit.common.smic_proj, first_year=first_year_avpf, last_year=data.datesim.year) 
-            sal_for_avpf.array = multiply(avpf_selection.array, smic_long)    
-    return sal_for_avpf
+            sal_for_avpf.array = multiply(avpf_selection.array, smic_long) 
+
+    def sal_to_trimcot(sal, salref, plafond):
+        ''' A partir de la table des salaires côtisés au sein du régime, on détermine le vecteur du nombre de trimestres côtisés
+        sal_cot : table ne contenant que les salaires annuels cotisés au sein du régime (lignes : individus / colonnes : date)
+        salref : vecteur des salaires minimum (annuels) à comparer pour obtenir le nombre de trimestres '''
+        sal_ = sal.translate_frequency(output_frequency='year', method='sum')
+        sal_annuel = sal_.array
+        sal_annuel[isnan(sal_annuel)] = 0
+        division = divide(sal_annuel, salref).astype(int)
+        nb_trim_cot = minimum(division, plafond) 
+        return TimeArray(nb_trim_cot, sal_.dates)
+    
+    salref = build_salref_bareme(P_longit.common, first_year_avpf, data.datesim.year)
+    return sal_for_avpf, sal_to_trimcot(sal_for_avpf, salref, plafond=4)
 
 
 def trim_mda(info_ind, P, yearleg): 
