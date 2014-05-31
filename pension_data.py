@@ -26,6 +26,9 @@ class PensionData(object):
         datesim = DateTil(datesim)
         self.datesim = datesim
         
+        assert sorted(sali.dates) == sali.dates
+        self.initial_date = DateTil(sali.dates[0])
+        
         if 'date_liquidation' not in info_ind.columns:
             self.info_ind['date_liquidation'] = datesim.datetime
         

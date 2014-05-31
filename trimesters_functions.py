@@ -83,7 +83,7 @@ def trim_cot_by_year_prive(data, code, P_longit):
     # Selection des salaires à prendre en compte dans le décompte (mois où il y a eu côtisation au régime)
     workstate = data.workstate
     sali = data.sali
-    first_year_sal = min(workstate.dates) // 100
+    first_year_sal = data.initial_date.year
     wk_selection = workstate.isin(code)
     sal_selection = TimeArray(wk_selection.array*sali.array, sali.dates)
     salref = build_salref_bareme(P_longit.common, first_year_sal, data.datesim.year)
