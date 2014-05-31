@@ -76,7 +76,7 @@ def revenu_valides(workstate, sali, code): #sali,
     trim = divide(wk_selection.array.sum(axis=1), 4).astype(int)
     return trim
 
-def trim_cot_by_year_prive(data, code, P_longit, table=False):
+def trim_cot_by_year_prive(data, code, P_longit):
     ''' FP Nombre de trimestres côtisés pour le régime général par année 
     ref : code de la sécurité sociale, article R351-9
     '''
