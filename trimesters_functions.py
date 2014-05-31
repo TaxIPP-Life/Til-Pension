@@ -36,7 +36,6 @@ def trim_cot_by_year_FP(workstate, code):
     ''' Cette fonction pertmet de calculer des nombres par trimesters validés dans un régime
     validation au sein du régime = 'workstate' = code
     TODO: gérer la comptabilisation des temps partiels quand variable présente'''
-    assert isinstance(workstate, TimeArray)
     trim_service = workstate.isin(code)
     frequency_init = trim_service.frequency
     trim_service.name = 'trim_cot'
@@ -76,29 +75,6 @@ def revenu_valides(workstate, sali, code): #sali,
     sal_selection = TimeArray(wk_selection.array*sali.array, sali.dates)
     trim = divide(wk_selection.array.sum(axis=1), 4).astype(int)
     return trim
-
-def nb_trim_bonif_CPCM(info_ind, trim_cot):
-    ''' FP '''
-    # TODO: autres bonifs : déportés politiques, campagnes militaires, services aériens, dépaysement 
-    info_child = info_ind.loc[info_ind['sexe'] == 1, 'nb_born'] #Majoration attribuée aux mères uniquement
-    bonif_enf = Series(0, index = info_ind.index)
-    bonif_enf[info_child.index.values] = 4*info_child.values
-    return array(bonif_enf*(trim_cot>0)) #+...
-
-def nb_trim_bonif_5eme(trim_cot):
-    ''' FP '''
-    # TODO: Add bonification au cinquième pour les superactifs (policiers, surveillants pénitentiaires, contrôleurs aériens... à identifier grâce à workstate)
-    super_actif = 0 # condition superactif à définir
-    taux_5eme = 0.2
-    bonif_5eme = minimum(trim_cot*taux_5eme, 5*4)
-    return array(bonif_5eme*super_actif)
-
-def nb_trim_mda(info_ind, trim_cot):
-    # TODO: autres bonifs : déportés politiques, campagnes militaires, services aériens, dépaysement 
-    info_child = info_ind.loc[info_ind['sexe'] == 1, 'nb_born'] #Majoration attribuée aux mères uniquement
-    bonif_enf = Series(0, index = info_ind.index)
-    bonif_enf[info_child.index.values] = 4*info_child.values
-    return array(bonif_enf*(trim_cot>0)) #+...
 
 def trim_cot_by_year_prive(data, code, P_longit, table=False):
     ''' FP Nombre de trimestres côtisés pour le régime général par année 
@@ -149,4 +125,26 @@ def trim_mda(info_ind, P, yearleg):
         mda.loc[~cond_enf_min] = 0
         #TODO:  Réforme de 2003 : min(1 trimestre à la naissance + 1 à chaque anniv, 8)
     return array(mda)
-    
+
+def nb_trim_bonif_CPCM(info_ind, trim_cot):
+    ''' FP '''
+    # TODO: autres bonifs : déportés politiques, campagnes militaires, services aériens, dépaysement 
+    info_child = info_ind.loc[info_ind['sexe'] == 1, 'nb_born'] #Majoration attribuée aux mères uniquement
+    bonif_enf = Series(0, index = info_ind.index)
+    bonif_enf[info_child.index.values] = 4*info_child.values
+    return array(bonif_enf*(trim_cot>0)) #+...
+
+def nb_trim_bonif_5eme(trim_cot):
+    ''' FP '''
+    # TODO: Add bonification au cinquième pour les superactifs (policiers, surveillants pénitentiaires, contrôleurs aériens... à identifier grâce à workstate)
+    super_actif = 0 # condition superactif à définir
+    taux_5eme = 0.2
+    bonif_5eme = minimum(trim_cot*taux_5eme, 5*4)
+    return array(bonif_5eme*super_actif)
+
+def nb_trim_mda(info_ind, trim_cot):
+    # TODO: autres bonifs : déportés politiques, campagnes militaires, services aériens, dépaysement 
+    info_child = info_ind.loc[info_ind['sexe'] == 1, 'nb_born'] #Majoration attribuée aux mères uniquement
+    bonif_enf = Series(0, index = info_ind.index)
+    bonif_enf[info_child.index.values] = 4*info_child.values
+    return array(bonif_enf*(trim_cot>0)) #+...
