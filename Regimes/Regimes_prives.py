@@ -6,6 +6,7 @@ import os
 parentdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.sys.path.insert(0,parentdir) 
 from time_array import TimeArray
+from pension_data import PensionData
 
 from numpy import array, multiply
 from pandas import Series
@@ -13,7 +14,7 @@ from pandas import Series
 from regime import compare_destinie
 from regime_prive import RegimePrive
 from utils_pension import build_long_values, build_salref_bareme
-from trimesters_functions import trim_ass_by_year, sali_avpf, trim_cot_by_year_prive, sali_in_regime, trim_mda
+from trimesters_functions import trim_ass_by_year, sali_avpf, trim_cot_by_year_prive, sali_in_regime, trim_mda, imput_sali_avpf
 
 code_avpf = 8
 code_chomage = 2
@@ -48,9 +49,12 @@ class RegimeGeneral(RegimePrive):
         
         trim_ass = trim_ass_by_year(workstate, trim_cot, self.code_regime, compare_destinie)
         trimesters['ass'] = trim_ass
+        
+        data_avpf = PensionData(data.workstate, data.sali, data.info_ind, data.datesim)
+        data_avpf.sali = imput_sali_avpf(data_avpf, code_avpf, self.P_longit, compare_destinie)
 #         salref = build_salref_bareme(self.P_longit.common, first_year_avpf, data.datesim.year)
         # Allocation vieillesse des parents au foyer : nombre de trimestres attribués 
-        sal_for_avpf, trim_avpf = sali_avpf(data, code_avpf, self.P_longit, compare_destinie)
+        sal_for_avpf, trim_avpf = sali_avpf(data_avpf, code_avpf, self.P_longit)
         trimesters['avpf']  = trim_avpf    
         wages['avpf'] = sal_for_avpf
         

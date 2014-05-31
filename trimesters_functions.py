@@ -89,7 +89,24 @@ def trim_cot_by_year_prive(data, code, salref):
     trim_cot_by_year = sal_to_trimcot(sal_selection, salref, plafond=4)
     return trim_cot_by_year
     
-def sali_avpf(data, code, P_longit, compare_destinie):
+    
+def imput_sali_avpf(data, code, P_longit, compare_destinie):
+    #TODO: move to an other place
+    workstate = data.workstate
+    sali = data.sali
+    avpf_selection = workstate.isin([code]).selected_dates(first_year_avpf)
+    sal_for_avpf = sali.selected_dates(first_year_avpf)
+    if sal_for_avpf.array.all() == 0:
+        # TODO: frquency warning, cette manière de calculer les trimestres avpf ne fonctionne qu'avec des tables annuelles
+        avpf = build_long_values(param_long=P_longit.common.avpf, first_year=first_year_avpf, last_year=data.datesim.year)
+        sal_for_avpf.array = multiply(avpf_selection.array, 12*avpf)
+        if compare_destinie == True:
+            smic_long = build_long_values(param_long=P_longit.common.smic_proj, first_year=first_year_avpf, last_year=data.datesim.year) 
+            sal_for_avpf.array = multiply(avpf_selection.array, smic_long)
+    return sal_for_avpf
+            
+
+def sali_avpf(data, code, P_longit):
     ''' Allocation vieillesse des parents au foyer (Regime general)
          - selectionne les revenus correspondant au periode d'AVPF
          - imputes des salaires de remplacements (quand non présents)
@@ -99,14 +116,6 @@ def sali_avpf(data, code, P_longit, compare_destinie):
     avpf_selection = workstate.isin([code]).selected_dates(first_year_avpf)
     sal_for_avpf = sali.selected_dates(first_year_avpf)
     sal_for_avpf.array = sal_for_avpf.array*avpf_selection.array
-    if sal_for_avpf.array.all() == 0:
-        # TODO: frquency warning, cette manière de calculer les trimestres avpf ne fonctionne qu'avec des tables annuelles
-        avpf = build_long_values(param_long=P_longit.common.avpf, first_year=first_year_avpf, last_year=data.datesim.year)
-        sal_for_avpf.array = multiply(avpf_selection.array, 12*avpf)
-        if compare_destinie == True:
-            smic_long = build_long_values(param_long=P_longit.common.smic_proj, first_year=first_year_avpf, last_year=data.datesim.year) 
-            sal_for_avpf.array = multiply(avpf_selection.array, smic_long) 
-
     def sal_to_trimcot(sal, salref, plafond):
         ''' A partir de la table des salaires côtisés au sein du régime, on détermine le vecteur du nombre de trimestres côtisés
         sal_cot : table ne contenant que les salaires annuels cotisés au sein du régime (lignes : individus / colonnes : date)
