@@ -76,17 +76,15 @@ def revenu_valides(workstate, sali, code): #sali,
     trim = divide(wk_selection.array.sum(axis=1), 4).astype(int)
     return trim
 
-def trim_cot_by_year_prive(data, code, P_longit):
+def trim_cot_by_year_prive(data, code, salref):
     ''' FP Nombre de trimestres côtisés pour le régime général par année 
     ref : code de la sécurité sociale, article R351-9
     '''
     # Selection des salaires à prendre en compte dans le décompte (mois où il y a eu côtisation au régime)
     workstate = data.workstate
     sali = data.sali
-    first_year_sal = data.initial_date.year
     wk_selection = workstate.isin(code)
     sal_selection = TimeArray(wk_selection.array*sali.array, sali.dates)
-    salref = build_salref_bareme(P_longit.common, first_year_sal, data.datesim.year)
     trim_cot_by_year = sal_to_trimcot(sal_selection, salref, plafond=4)
     return trim_cot_by_year
     

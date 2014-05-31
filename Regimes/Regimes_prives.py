@@ -39,7 +39,8 @@ class RegimeGeneral(RegimePrive):
         sali = data.sali
         info_ind = data.info_ind
         
-        trim_cot = trim_cot_by_year_prive(data, self.code_regime, self.P_longit)
+        salref = build_salref_bareme(self.P_longit.common, data.initial_date.year, data.datesim.year)
+        trim_cot = trim_cot_by_year_prive(data, self.code_regime, salref)
         trimesters['cot']  = trim_cot
         
         sal_by_year = sali.translate_frequency(output_frequency='year', method='sum')
@@ -80,7 +81,8 @@ class RegimeSocialIndependants(RegimePrive):
         sali = data.sali
         
         reduce_data = data.selected_dates(first=first_year_indep)
-        nb_trim_cot = trim_cot_by_year_prive(reduce_data, self.code_regime, self.P_longit)
+        salref = build_salref_bareme(self.P_longit.common, data.initial_date.year, data.datesim.year)
+        nb_trim_cot = trim_cot_by_year_prive(reduce_data, self.code_regime, salref)
         trimesters['cot']  = nb_trim_cot
         nb_trim_ass = trim_ass_by_year(reduce_data.workstate, nb_trim_cot, self.code_regime, compare_destinie)
         trimesters['ass'] = nb_trim_ass
