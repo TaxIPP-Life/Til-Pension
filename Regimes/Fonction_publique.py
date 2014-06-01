@@ -11,7 +11,7 @@ from pandas import Series
 from regime import RegimeBase, compare_destinie
 from pension_functions import nb_trim_surcote
 from utils_pension import print_multi_info_numpy, _info_numpy
-from trimesters_functions import trim_cot_by_year_FP, nb_trim_bonif_5eme, nb_trim_mda
+from trimesters_functions import trim_cot_by_year_FP, nb_trim_bonif_5eme, trim_mda
 from time_array import TimeArray
 
 code_avpf = 8
@@ -41,7 +41,8 @@ class FonctionPublique(RegimeBase):
         trimesters['cot'] = trim_valide.substract(trim_to_RG)
         wages['cot'] = sal_regime.substract(sal_to_RG)
         trim_cotises = trimesters['cot'].sum(1)
-        trim_maj['DA'] = nb_trim_mda(info_ind)*(trim_cotises>0)
+        P_mda = self.P.public.fp.mda
+        trim_maj['DA'] = trim_mda(info_ind, P_mda)*(trim_cotises>0)
         trim_maj['5eme'] = nb_trim_bonif_5eme(trim_cotises)*(trim_cotises>0)
         to_other['RegimeGeneral'] = {'trimesters': {'cot_FP' : trim_to_RG}, 'wages': {'sal_FP' : sal_to_RG}}
         if to_check :
