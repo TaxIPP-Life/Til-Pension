@@ -38,18 +38,19 @@ def trim_cot_by_year_FP(workstate, code):
         trim_service.array = divide(trim_service.array,3)
     return trim_service
 
-def trim_ass_by_year(workstate, nb_trim_cot, code, compare_destinie):
+def trim_ass_by_year(data, code, compare_destinie):
     ''' 
     Comptabilisation des périodes assimilées à des durées d'assurance
     Pour l"instant juste chômage workstate == 5 (considéré comme indemnisé) 
     qui succède directement à une période de côtisation au RG workstate == [3,4]
     TODO: ne pas comptabiliser le chômage de début de carrière
     '''
+    workstate = data.workstate
     trim_by_year_chom = unemployment_trimesters(workstate, code_regime=code)
     trim_by_year_ass = trim_by_year_chom #+...
     if compare_destinie:
         trim_by_year_ass.array = (workstate.isin([code_chomage, code_preretraite])).array*4
-    return trim_by_year_ass
+    return trim_by_year_ass, None
 
 #TODO: remove ? 
 def revenu_valides(workstate, sali, code): #sali, 
@@ -71,10 +72,11 @@ def trim_cot_by_year_prive(data, code, salref):
     ref : code de la sécurité sociale, article R351-9
     '''
     # Selection des salaires à prendre en compte dans le décompte (mois où il y a eu côtisation au régime)
+    data.translate_frequency(output_frequency='year', method='sum')
     workstate = data.workstate
     sali = data.sali
     wk_selection = workstate.isin(code)
-    sal_selection = TimeArray(wk_selection.array*sali.array, sali.dates)
+    sal_selection = TimeArray(wk_selection.array*sali.array, sali.dates, name='sal_RG')
     def sal_to_trimcot(sal, salref, plafond):
         ''' A partir de la table des salaires côtisés au sein du régime, on détermine le vecteur du nombre de trimestres côtisés
         sal_cot : table ne contenant que les salaires annuels cotisés au sein du régime (lignes : individus / colonnes : date)
@@ -87,8 +89,31 @@ def trim_cot_by_year_prive(data, code, salref):
         return TimeArray(nb_trim_cot, sal_.dates)
 
     trim_cot_by_year = sal_to_trimcot(sal_selection, salref, plafond=4)
-    return trim_cot_by_year
+    return trim_cot_by_year, sal_selection
+
+
+def sali_avpf(data, code, salref):
+    ''' Allocation vieillesse des parents au foyer (Regime general)
+         - selectionne les revenus correspondant au periode d'AVPF
+         - imputes des salaires de remplacements (quand non présents)
+    '''
+    workstate = data.workstate
+    sali = data.sali
+    avpf_selection = workstate.isin([code]).selected_dates(first_year_avpf)
+    sal_for_avpf = sali.selected_dates(first_year_avpf)
+    sal_for_avpf.array = sal_for_avpf.array*avpf_selection.array
     
+    def sal_to_trimcot(sal, salref, plafond):
+        ''' A partir de la table des salaires côtisés au sein du régime, on détermine le vecteur du nombre de trimestres côtisés
+        sal_cot : table ne contenant que les salaires annuels cotisés au sein du régime (lignes : individus / colonnes : date)
+        salref : vecteur des salaires minimum (annuels) à comparer pour obtenir le nombre de trimestres '''
+        sal_ = sal.translate_frequency(output_frequency='year', method='sum')
+        sal_annuel = sal_.array
+        sal_annuel[isnan(sal_annuel)] = 0
+        division = divide(sal_annuel, salref).astype(int)
+        nb_trim_cot = minimum(division, plafond) 
+        return TimeArray(nb_trim_cot, sal_.dates)
+    return sal_for_avpf, sal_to_trimcot(sal_for_avpf, salref, plafond=4)
     
 def imput_sali_avpf(data, code, P_longit, compare_destinie):
     #TODO: move to an other place
@@ -104,32 +129,6 @@ def imput_sali_avpf(data, code, P_longit, compare_destinie):
             smic_long = build_long_values(param_long=P_longit.common.smic_proj, first_year=first_year_avpf, last_year=data.datesim.year) 
             sal_for_avpf.array = multiply(avpf_selection.array, smic_long)
     return sal_for_avpf
-            
-
-def sali_avpf(data, code, P_longit):
-    ''' Allocation vieillesse des parents au foyer (Regime general)
-         - selectionne les revenus correspondant au periode d'AVPF
-         - imputes des salaires de remplacements (quand non présents)
-    '''
-    workstate = data.workstate
-    sali = data.sali
-    avpf_selection = workstate.isin([code]).selected_dates(first_year_avpf)
-    sal_for_avpf = sali.selected_dates(first_year_avpf)
-    sal_for_avpf.array = sal_for_avpf.array*avpf_selection.array
-    def sal_to_trimcot(sal, salref, plafond):
-        ''' A partir de la table des salaires côtisés au sein du régime, on détermine le vecteur du nombre de trimestres côtisés
-        sal_cot : table ne contenant que les salaires annuels cotisés au sein du régime (lignes : individus / colonnes : date)
-        salref : vecteur des salaires minimum (annuels) à comparer pour obtenir le nombre de trimestres '''
-        sal_ = sal.translate_frequency(output_frequency='year', method='sum')
-        sal_annuel = sal_.array
-        sal_annuel[isnan(sal_annuel)] = 0
-        division = divide(sal_annuel, salref).astype(int)
-        nb_trim_cot = minimum(division, plafond) 
-        return TimeArray(nb_trim_cot, sal_.dates)
-    
-    salref = build_salref_bareme(P_longit.common, first_year_avpf, data.datesim.year)
-    return sal_for_avpf, sal_to_trimcot(sal_for_avpf, salref, plafond=4)
-
 
 def trim_mda(info_ind, P, yearleg): 
     ''' Majoration pour enfant à charge : nombre de trimestres acquis (Régime Général)'''

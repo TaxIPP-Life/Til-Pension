@@ -41,23 +41,16 @@ class RegimeGeneral(RegimePrive):
         info_ind = data.info_ind
         
         salref = build_salref_bareme(self.P_longit.common, data.initial_date.year, data.datesim.year)
-        trim_cot = trim_cot_by_year_prive(data, self.code_regime, salref)
-        trimesters['cot']  = trim_cot
+        trimesters['cot'], wages['cot'] = trim_cot_by_year_prive(data, self.code_regime, salref)
         
-        sal_by_year = sali.translate_frequency(output_frequency='year', method='sum')
-        wages['cot'] = TimeArray((trim_cot.array > 0)*sal_by_year.array, sal_by_year.dates, name='sal_RG')
-        
-        trim_ass = trim_ass_by_year(workstate, trim_cot, self.code_regime, compare_destinie)
-        trimesters['ass'] = trim_ass
+        trimesters['ass'], _ = trim_ass_by_year(data, self.code_regime, compare_destinie)
         
         data_avpf = PensionData(data.workstate, data.sali, data.info_ind, data.datesim)
         data_avpf.sali = imput_sali_avpf(data_avpf, code_avpf, self.P_longit, compare_destinie)
-#         salref = build_salref_bareme(self.P_longit.common, first_year_avpf, data.datesim.year)
+        salref = build_salref_bareme(self.P_longit.common, first_year_avpf, data.datesim.year)
         # Allocation vieillesse des parents au foyer : nombre de trimestres attribués 
-        sal_for_avpf, trim_avpf = sali_avpf(data_avpf, code_avpf, self.P_longit)
-        trimesters['avpf']  = trim_avpf    
-        wages['avpf'] = sal_for_avpf
-        
+        trimesters['avpf'], wages['avpf'] = sali_avpf(data_avpf, code_avpf, salref)
+
         trim_maj['DA'] = trim_mda(info_ind, self.P, self.dateleg.year)
 
         if to_check is not None:
@@ -85,9 +78,9 @@ class RegimeSocialIndependants(RegimePrive):
         
         reduce_data = data.selected_dates(first=first_year_indep)
         salref = build_salref_bareme(self.P_longit.common, first_year_indep, data.datesim.year)
-        nb_trim_cot = trim_cot_by_year_prive(reduce_data, self.code_regime, salref)
-        trimesters['cot']  = nb_trim_cot
-        nb_trim_ass = trim_ass_by_year(reduce_data.workstate, nb_trim_cot, self.code_regime, compare_destinie)
+        trimesters['cot'], _ = trim_cot_by_year_prive(reduce_data, self.code_regime, salref)
+
+        nb_trim_ass, _ = trim_ass_by_year(reduce_data, self.code_regime, compare_destinie)
         trimesters['ass'] = nb_trim_ass
         wages['regime'] = sali_in_regime(sali, workstate, self.code_regime)
         trim_maj['DA'] = 0*trim_mda(data.info_ind, self.P, self.dateleg.year)
