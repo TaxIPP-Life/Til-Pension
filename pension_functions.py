@@ -10,24 +10,7 @@ from pandas import Series
 
 code_chomage=2
 avpf = 8
-id_test = 21310 # 28332 #1882 #1851 #, 18255   
-
-def unemployment_trimesters(workstate, code_regime=None):
-    ''' Input : monthly or yearly-table (lines: indiv, col: dates 'yyyymm') 
-    Output : vector with number of trimesters for unemployment'''
-    if not code_regime:
-        print "Indiquer le code identifiant du régime"
-
-    workstate = workstate.isin(code_regime + [code_chomage]) 
-    unemp_trim = workstate.select_unemployment(code_regime, code_chomage)
-    if workstate.frequency == 'month':
-        month_by_year_unemp = unemp_trim.translate_frequency('year', method='sum')
-        trim_unemp = TimeArray(divide(month_by_year_unemp, 3), workstate.dates)
-        return trim_unemp   
-    else:
-        assert workstate.frequency == 'year'
-        return TimeArray(multiply(unemp_trim, 4), workstate.dates)
-    
+id_test = 21310 # 28332 #1882 #1851 #, 18255       
 
 def nb_trim_surcote(trim_by_year, date_start_surcote):
     ''' Cette fonction renvoie le vecteur numpy du nombre de trimestres surcotés à partir de :

@@ -195,7 +195,7 @@ class TimeArray(object):
         last_fp[last_fp_idx[0]] = self.array[last_fp_idx]
         return last_fp
        
-    def select_unemployment(self, code1, code2):
+    def select_code_after_period(self, code1, code2):
         ''' returns values value in code2 if the period before was in code1
         usefull for unemployment
         Rq : consider True in t=0'''

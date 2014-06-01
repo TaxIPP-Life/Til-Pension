@@ -8,7 +8,6 @@ Created on 30 mai 2014
 from numpy import maximum, minimum, array, nonzero, divide, transpose, zeros, isnan, around, multiply
 from pandas import Series
 
-from pension_functions import unemployment_trimesters
 from utils_pension import build_long_values, build_salref_bareme
 from time_array import TimeArray
 
@@ -40,6 +39,20 @@ def trim_cot_by_year_FP(data, code):
         trim_service.array = divide(trim_service.array,3)
     return trim_service, sali_in_regime(workstate, sali, code)
 
+
+def unemployment_trimesters(workstate, code_regime=None):
+    ''' Input : monthly or yearly-table (lines: indiv, col: dates 'yyyymm') 
+    Output : vector with number of trimesters for unemployment'''
+    workstate = workstate.isin(code_regime + [code_chomage]) 
+    unemp_trim = workstate.select_code_after_period(code_regime, code_chomage)
+    if workstate.frequency == 'month':
+        month_by_year_unemp = unemp_trim.translate_frequency('year', method='sum')
+        trim_unemp = TimeArray(divide(month_by_year_unemp, 3), workstate.dates)
+        return trim_unemp   
+    else:
+        assert workstate.frequency == 'year'
+        return TimeArray(multiply(unemp_trim, 4), workstate.dates)
+    
 def trim_ass_by_year(data, code, compare_destinie):
     ''' 
     Comptabilisation des périodes assimilées à des durées d'assurance
