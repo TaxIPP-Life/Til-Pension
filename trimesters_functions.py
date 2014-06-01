@@ -89,6 +89,7 @@ def imput_sali_avpf(data, code, P_longit, compare_destinie):
             sal_for_avpf.array = multiply(avpf_selection.array, smic_long)
     return sal_for_avpf
 
+
 def trim_mda(info_ind, P, yearleg): 
     ''' Majoration pour enfant à charge : nombre de trimestres acquis (Régime Général)'''
     # Rq : cette majoration n'est applicable que pour les femmes dans le RG
@@ -105,14 +106,6 @@ def trim_mda(info_ind, P, yearleg):
         #TODO:  Réforme de 2003 : min(1 trimestre à la naissance + 1 à chaque anniv, 8)
     return array(mda)
 
-def nb_trim_bonif_CPCM(info_ind, trim_cot):
-    ''' FP '''
-    # TODO: autres bonifs : déportés politiques, campagnes militaires, services aériens, dépaysement 
-    info_child = info_ind.loc[info_ind['sexe'] == 1, 'nb_born'] #Majoration attribuée aux mères uniquement
-    bonif_enf = Series(0, index = info_ind.index)
-    bonif_enf[info_child.index.values] = 4*info_child.values
-    return array(bonif_enf*(trim_cot>0)) #+...
-
 def nb_trim_bonif_5eme(trim_cot):
     ''' FP '''
     # TODO: Add bonification au cinquième pour les superactifs (policiers, surveillants pénitentiaires, contrôleurs aériens... à identifier grâce à workstate)
@@ -122,6 +115,7 @@ def nb_trim_bonif_5eme(trim_cot):
     return array(bonif_5eme*super_actif)
 
 def nb_trim_mda(info_ind, trim_cot):
+    ''' FP '''
     # TODO: autres bonifs : déportés politiques, campagnes militaires, services aériens, dépaysement 
     info_child = info_ind.loc[info_ind['sexe'] == 1, 'nb_born'] #Majoration attribuée aux mères uniquement
     bonif_enf = Series(0, index = info_ind.index)
