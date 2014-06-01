@@ -17,15 +17,17 @@ code_chomage = 2
 code_preretraite = 9
 
 
-def sali_in_regime(sali, workstate, code):
+def sali_in_regime(workstate, sali, code):
     ''' Cette fonction renvoie le TimeArray ne contenant que les salaires validés avec workstate == code_regime'''
     wk_selection = workstate.isin(code).array
     return TimeArray(wk_selection*sali.array, sali.dates)
 
-def trim_cot_by_year_FP(workstate, code):
+def trim_cot_by_year_FP(data, code):
     ''' Cette fonction pertmet de calculer des nombres par trimesters validés dans un régime
     validation au sein du régime = 'workstate' = code
     TODO: gérer la comptabilisation des temps partiels quand variable présente'''
+    workstate = data.workstate
+    sali = data.sali
     trim_service = workstate.isin(code)
     frequency_init = trim_service.frequency
     trim_service.name = 'trim_cot'
@@ -36,7 +38,7 @@ def trim_cot_by_year_FP(workstate, code):
     if frequency_init == 'month':
         #from month to trimester
         trim_service.array = divide(trim_service.array,3)
-    return trim_service
+    return trim_service, sali_in_regime(workstate, sali, code)
 
 def trim_ass_by_year(data, code, compare_destinie):
     ''' 

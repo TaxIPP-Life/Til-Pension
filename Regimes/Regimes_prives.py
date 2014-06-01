@@ -82,7 +82,7 @@ class RegimeSocialIndependants(RegimePrive):
 
         nb_trim_ass, _ = trim_ass_by_year(reduce_data, self.code_regime, compare_destinie)
         trimesters['ass'] = nb_trim_ass
-        wages['regime'] = sali_in_regime(sali, workstate, self.code_regime)
+        wages['regime'] = sali_in_regime(workstate, sali, self.code_regime)
         trim_maj['DA'] = 0*trim_mda(data.info_ind, self.P, self.dateleg.year)
         if to_check is not None:
                 to_check['DA_RSI'] = (trimesters['cot'].sum(1) + trim_maj['DA'])//4

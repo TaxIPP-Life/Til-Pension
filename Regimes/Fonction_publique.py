@@ -11,7 +11,7 @@ from pandas import Series
 from regime import RegimeBase, compare_destinie
 from pension_functions import nb_trim_surcote
 from utils_pension import print_multi_info_numpy, _info_numpy
-from trimesters_functions import trim_cot_by_year_FP, sali_in_regime, nb_trim_bonif_5eme, nb_trim_mda
+from trimesters_functions import trim_cot_by_year_FP, nb_trim_bonif_5eme, nb_trim_mda
 from time_array import TimeArray
 
 code_avpf = 8
@@ -33,13 +33,10 @@ class FonctionPublique(RegimeBase):
         wages = dict()
         trim_maj = dict()
         to_other = dict()
-        
-        workstate = data.workstate
-        sali = data.sali
+    
         info_ind = data.info_ind
                 
-        trim_valide = trim_cot_by_year_FP(workstate, self.code_actif)
-        sal_regime = sali_in_regime(workstate, sali, self.code_actif)
+        trim_valide, sal_regime = trim_cot_by_year_FP(data, self.code_actif)
         trim_to_RG, sal_to_RG = self.select_to_RG(data, trim_valide, sal_regime)
         trimesters['cot'] = trim_valide.substract(trim_to_RG)
         wages['cot'] = sal_regime.substract(sal_to_RG)
@@ -51,9 +48,10 @@ class FonctionPublique(RegimeBase):
         output = {'trimesters': trimesters, 'wages': wages, 'maj': trim_maj}
         return output, to_other
         
-    def _age_min_retirement(self, workstate):
+    def _age_min_retirement(self, data):
         P = self.P.public.fp
-        trim_actif = trim_cot_by_year_FP(workstate, self.code_actif).array.sum(1)
+        trim_actif, _ = trim_cot_by_year_FP(data, self.code_actif)
+        trim_actif = trim_actif.array.sum(1)
         # age_min = age_min_actif pour les fonctionnaires actif en fin de carrières ou carrière mixte ayant une durée de service actif suffisante
         age_min_s = P.sedentaire.age_min
         age_min_a = P.actif.age_min
