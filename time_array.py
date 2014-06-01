@@ -198,10 +198,10 @@ class TimeArray(object):
     def select_code_after_period(self, code1, code2):
         ''' returns values value in code2 if the period before was in code1
         usefull for unemployment
-        Rq : consider True in t=0'''
+        Rq : don't consider True in t=0'''
         array = self.array
         output = zeros(array.shape)
-        output[:,0] = (array[:,0] == code2)
+#         output[:,0] = (array[:,0] == code2)
         previous = in1d(array[:,:-1], [code1, code2]).reshape(array[:,:-1].shape)
         in_code2 = (array[:,1:] == code2)
         selected = previous*in_code2

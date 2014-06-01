@@ -58,7 +58,6 @@ def trim_ass_by_year(data, code, compare_destinie):
     Comptabilisation des périodes assimilées à des durées d'assurance
     Pour l"instant juste chômage workstate == 5 (considéré comme indemnisé) 
     qui succède directement à une période de côtisation au RG workstate == [3,4]
-    TODO: ne pas comptabiliser le chômage de début de carrière
     '''
     workstate = data.workstate
     trim_by_year_chom = unemployment_trimesters(workstate, code_regime=code)
