@@ -14,7 +14,7 @@ from pandas import Series
 from regime import compare_destinie
 from regime_prive import RegimePrive
 from utils_pension import build_long_values, build_salref_bareme
-from trimesters_functions import trim_ass_by_year, sali_avpf, trim_cot_by_year_prive, sali_in_regime, trim_mda, imput_sali_avpf
+from trimesters_functions import trim_ass_by_year, validation_trimestre, sali_in_regime, trim_mda, imput_sali_avpf
 
 code_avpf = 8
 code_chomage = 2
@@ -41,15 +41,15 @@ class RegimeGeneral(RegimePrive):
         info_ind = data.info_ind
         
         salref = build_salref_bareme(self.P_longit.common, data.initial_date.year, data.datesim.year)
-        trimesters['cot'], wages['cot'] = trim_cot_by_year_prive(data, self.code_regime, salref)
+        trimesters['cot'], wages['cot'] = validation_trimestre(data, self.code_regime, salref)
         
         trimesters['ass'], _ = trim_ass_by_year(data, self.code_regime, compare_destinie)
         
-        data_avpf = PensionData(data.workstate, data.sali, data.info_ind, data.datesim)
+        data_avpf = data.selected_dates(first_year_avpf)
         data_avpf.sali = imput_sali_avpf(data_avpf, code_avpf, self.P_longit, compare_destinie)
         salref = build_salref_bareme(self.P_longit.common, first_year_avpf, data.datesim.year)
         # Allocation vieillesse des parents au foyer : nombre de trimestres attribués 
-        trimesters['avpf'], wages['avpf'] = sali_avpf(data_avpf, code_avpf, salref)
+        trimesters['avpf'], wages['avpf'] = validation_trimestre(data_avpf, code_avpf, salref)
 
         trim_maj['DA'] = trim_mda(info_ind, self.P, self.dateleg.year)
 
@@ -78,7 +78,7 @@ class RegimeSocialIndependants(RegimePrive):
         
         reduce_data = data.selected_dates(first=first_year_indep)
         salref = build_salref_bareme(self.P_longit.common, first_year_indep, data.datesim.year)
-        trimesters['cot'], _ = trim_cot_by_year_prive(reduce_data, self.code_regime, salref)
+        trimesters['cot'], _ = validation_trimestre(reduce_data, self.code_regime, salref)
 
         nb_trim_ass, _ = trim_ass_by_year(reduce_data, self.code_regime, compare_destinie)
         trimesters['ass'] = nb_trim_ass
