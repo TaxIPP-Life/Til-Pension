@@ -17,6 +17,9 @@ class TimeArray(object):
         self.frequency = determine_frequency(dates)
         self.name = name
     
+    def __repr__(self):
+        return self.array.__repr__() + self.dates.__repr__() 
+    
     def copy(self):
         return TimeArray(self.array.copy(), self.dates)
     
@@ -192,4 +195,16 @@ class TimeArray(object):
         last_fp[last_fp_idx[0]] = self.array[last_fp_idx]
         return last_fp
        
+    def select_unemployment(self, code1, code2):
+        ''' returns values value in code2 if the period before was in code1
+        usefull for unemployment
+        Rq : consider True in t=0'''
+        array = self.array
+        output = zeros(array.shape)
+        output[:,0] = (array[:,0] == code2)
+        previous = in1d(array[:,:-1], [code1, code2]).reshape(array[:,:-1].shape)
+        in_code2 = (array[:,1:] == code2)
+        selected = previous*in_code2
+        output[:,1:] = selected
+        return output
                

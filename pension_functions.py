@@ -8,37 +8,9 @@ from numpy import minimum, array, greater, divide, zeros, in1d, sort, where, \
                      multiply, apply_along_axis, isnan
 from pandas import Series
 
-chomage=2
+code_chomage=2
 avpf = 8
 id_test = 21310 # 28332 #1882 #1851 #, 18255   
-
-def select_unemployment(data, code_regime, option='dummy', data_type='numpy'):
-    ''' Ne conserve que les périodes de chomage succédant directement à une période de cotisation au régime
-    TODO: A améliorer car boucle for très moche
-    Rq : on fait l'hypothèse que les personnes étant au chômage en t0 côtisent au RG '''
-    if data_type == 'numpy':
-        unemp = zeros((data.shape[0],data.shape[1]))
-        unemp[:,0] = (data[:,0] == chomage)
-        #unemp.loc[unemp[previous_col] == chomage, previous_col] = 1 -> A commenter si l'on ne veut pas comptabiliser les trimestres de chômage initiaux (Hypothèse)
-        previous_chom_reg = in1d(data[:,:-1],code_regime + [chomage]).reshape(data[:,:-1].shape)
-        unemp = (data[:,1:] == chomage)
-        selected_chom = previous_chom_reg*unemp
-        unemp = zeros((data.shape[0],data.shape[1]))
-        unemp[:,1:] = selected_chom
-        return unemp
-    
-    if data_type == 'pandas':
-        data_col = data.columns[1:]
-        previous_col = data.columns[0]
-        unemp = data.copy().replace(code_regime, 0)
-        #unemp.loc[unemp[previous_col] == chomage, previous_col] = 1 -> A commenter si l'on ne veut pas comptabiliser les trimestres de chômage initiaux (Hypothèse)
-        for col in data_col:
-            selected_chom = in1d(data[previous_col],code_regime + [chomage]) & (data[col] == chomage)
-            unemp.loc[selected_chom, col] = 1
-            previous_col = col
-        if option == 'code':
-            unemp = unemp.replace(1, chomage)
-        return unemp == 1
 
 def unemployment_trimesters(timearray, code_regime=None):
     ''' Input : monthly or yearly-table (lines: indiv, col: dates 'yyyymm') 
@@ -47,12 +19,12 @@ def unemployment_trimesters(timearray, code_regime=None):
     if not code_regime:
         print "Indiquer le code identifiant du régime"
 
-    table = table.isin(code_regime + [chomage]) 
-    unemp_trim = select_unemployment(table.array, code_regime)
+    table = table.isin(code_regime + [code_chomage]) 
+    unemp_trim = table.select_unemployment(code_regime, code_chomage)
     if timearray.frequency == 'month':
         month_by_year_unemp = unemp_trim.translate_frequency('year', method='sum')
         trim_unemp = TimeArray(divide(month_by_year_unemp, 3), timearray.dates)
-        return trim_by_year_unemp   
+        return trim_unemp   
     else:
         assert timearray.frequency == 'year'
         return TimeArray(multiply(unemp_trim, 4), timearray.dates)
