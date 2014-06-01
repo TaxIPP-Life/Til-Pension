@@ -50,8 +50,8 @@ class RegimeGeneral(RegimePrive):
         salref = build_salref_bareme(self.P_longit.common, first_year_avpf, data.datesim.year)
         # Allocation vieillesse des parents au foyer : nombre de trimestres attribués 
         trimesters['avpf'], wages['avpf'] = validation_trimestre(data_avpf, code_avpf, salref)
-
-        trim_maj['DA'] = trim_mda(info_ind, self.P, self.dateleg.year)
+        P_mda = self.P.prive.RG.mda
+        trim_maj['DA'] = trim_mda(info_ind, P_mda)
 
         if to_check is not None:
             to_check['DA_RG'] = ((trimesters['cot'] + trimesters['ass'] + trimesters['avpf']).sum(1) 
@@ -83,7 +83,9 @@ class RegimeSocialIndependants(RegimePrive):
         nb_trim_ass, _ = trim_ass_by_year(reduce_data, self.code_regime, compare_destinie)
         trimesters['ass'] = nb_trim_ass
         wages['regime'] = sali_in_regime(workstate, sali, self.code_regime)
-        trim_maj['DA'] = 0*trim_mda(data.info_ind, self.P, self.dateleg.year)
+        ###TODO: Pourquoi cette ligne ?
+        P_mda = self.P.prive.RG.mda
+        trim_maj['DA'] = 0*trim_mda(data.info_ind, P_mda)
         if to_check is not None:
                 to_check['DA_RSI'] = (trimesters['cot'].sum(1) + trim_maj['DA'])//4
         output = {'trimesters': trimesters, 'wages': wages, 'maj': trim_maj}

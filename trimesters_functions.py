@@ -90,7 +90,7 @@ def imput_sali_avpf(data, code, P_longit, compare_destinie):
     return sal_for_avpf
 
 
-def trim_mda(info_ind, P, yearleg): 
+def trim_mda(info_ind, P): 
     ''' Majoration pour enfant à charge : nombre de trimestres acquis (Régime Général)'''
     # Rq : cette majoration n'est applicable que pour les femmes dans le RG
     child_mother = info_ind.loc[info_ind['sexe'] == 1, 'nb_born']
@@ -99,25 +99,26 @@ def trim_mda(info_ind, P, yearleg):
         mda = Series(0, index=info_ind.index)
         # TODO: distinguer selon l'âge des enfants après 2003
         # ligne suivante seulement if child_mother['age_enf'].min() > 16 :
-        P_mda = P.prive.RG.mda
-        mda[child_mother.index.values] = P_mda.trim_per_child*child_mother.values
-        cond_enf_min = child_mother.values >= P_mda.nb_enf_min
+        mda[child_mother.index.values] = P.trim_per_child*child_mother.values
+        cond_enf_min = child_mother.values >= P.nb_enf_min
         mda.loc[~cond_enf_min] = 0
         #TODO:  Réforme de 2003 : min(1 trimestre à la naissance + 1 à chaque anniv, 8)
     return array(mda)
 
-def nb_trim_bonif_5eme(trim_cot):
-    ''' FP '''
-    # TODO: Add bonification au cinquième pour les superactifs (policiers, surveillants pénitentiaires, contrôleurs aériens... à identifier grâce à workstate)
-    super_actif = 0 # condition superactif à définir
-    taux_5eme = 0.2
-    bonif_5eme = minimum(trim_cot*taux_5eme, 5*4)
-    return array(bonif_5eme*super_actif)
-
-def nb_trim_mda(info_ind, trim_cot):
+def nb_trim_mda(info_ind):
     ''' FP '''
     # TODO: autres bonifs : déportés politiques, campagnes militaires, services aériens, dépaysement 
     info_child = info_ind.loc[info_ind['sexe'] == 1, 'nb_born'] #Majoration attribuée aux mères uniquement
     bonif_enf = Series(0, index = info_ind.index)
     bonif_enf[info_child.index.values] = 4*info_child.values
-    return array(bonif_enf*(trim_cot>0)) #+...
+    return array(bonif_enf) 
+
+def nb_trim_bonif_5eme(trim):
+    ''' FP '''
+    #TODO: 5*4 ? d'ou ca vient ? 
+    #TODO: Add bonification au cinquième pour les superactifs (policiers, surveillants pénitentiaires, contrôleurs aériens... à identifier grâce à workstate)
+    super_actif = 0 # condition superactif à définir
+    taux_5eme = 0.2
+    bonif_5eme = minimum(trim*taux_5eme, 5*4)
+    return array(bonif_5eme*super_actif)
+

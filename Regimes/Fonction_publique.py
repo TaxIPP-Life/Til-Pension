@@ -40,8 +40,9 @@ class FonctionPublique(RegimeBase):
         trim_to_RG, sal_to_RG = self.select_to_RG(data, trim_valide, sal_regime)
         trimesters['cot'] = trim_valide.substract(trim_to_RG)
         wages['cot'] = sal_regime.substract(sal_to_RG)
-        trim_maj['DA'] = nb_trim_mda(info_ind, trim_valide.sum())
-        trim_maj['5eme'] = nb_trim_bonif_5eme(trim_valide.sum())
+        trim_cotises = trimesters['cot'].sum(1)
+        trim_maj['DA'] = nb_trim_mda(info_ind)*(trim_cotises>0)
+        trim_maj['5eme'] = nb_trim_bonif_5eme(trim_cotises)*(trim_cotises>0)
         to_other['RegimeGeneral'] = {'trimesters': {'cot_FP' : trim_to_RG}, 'wages': {'sal_FP' : sal_to_RG}}
         if to_check :
             to_check['DA_FP'] = (trimesters['cot'].sum() + trim_maj['DA'] + trim_maj['5eme']) //4
