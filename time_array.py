@@ -207,4 +207,3 @@ class TimeArray(object):
         selected = previous*in_code2
         output[:,1:] = selected
         return output
-               
