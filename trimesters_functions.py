@@ -63,21 +63,15 @@ def validation_trimestre(data, code, salref, frequency='year'):
     data.translate_frequency(output_frequency=frequency, method='sum')
     workstate = data.workstate
     sali = data.sali
+    #selection des données du régime
     wk_selection = workstate.isin(code)
     sal_selection = TimeArray(wk_selection.array*sali.array, sali.dates, name='temp')
-
-    def sal_to_trimcot(sal, salref, plafond):
-        ''' A partir de la table des salaires côtisés au sein du régime, on détermine le vecteur du nombre de trimestres côtisés
-        sal_cot : table ne contenant que les salaires annuels cotisés au sein du régime (lignes : individus / colonnes : date)
-        salref : vecteur des salaires minimum (annuels) à comparer pour obtenir le nombre de trimestres '''
-        sal_ = sal.translate_frequency(output_frequency='year', method='sum')
-        sal_annuel = sal_.array
-        sal_annuel[isnan(sal_annuel)] = 0
-        division = divide(sal_annuel, salref).astype(int)
-        nb_trim_cot = minimum(division, plafond) 
-        return TimeArray(nb_trim_cot, sal_.dates)
-
-    trim_cot_by_year = sal_to_trimcot(sal_selection, salref, plafond=4)
+    # applique le bareme de legislation sur les salaires
+    plafond=4
+    sal_annuel = sal_selection.array
+    sal_annuel[isnan(sal_annuel)] = 0
+    division = divide(sal_annuel, salref).astype(int)
+    trim_cot_by_year = TimeArray(minimum(division, plafond), sali.dates)
     return trim_cot_by_year, sal_selection
     
 def imput_sali_avpf(data, code, P_longit, compare_destinie):
