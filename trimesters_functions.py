@@ -40,19 +40,6 @@ def trim_cot_by_year_FP(data, code):
     return trim_service, sali_in_regime(workstate, sali, code)
 
 
-def unemployment_trimesters(workstate, code_regime=None):
-    ''' Input : monthly or yearly-table (lines: indiv, col: dates 'yyyymm') 
-    Output : vector with number of trimesters for unemployment'''
-    workstate = workstate.isin(code_regime + [code_chomage]) 
-    unemp_trim = workstate.select_code_after_period(code_regime, code_chomage)
-    if workstate.frequency == 'month':
-        month_by_year_unemp = unemp_trim.translate_frequency('year', method='sum')
-        trim_unemp = TimeArray(divide(month_by_year_unemp, 3), workstate.dates)
-        return trim_unemp   
-    else:
-        assert workstate.frequency == 'year'
-        return TimeArray(multiply(unemp_trim, 4), workstate.dates)
-    
 def trim_ass_by_year(data, code, compare_destinie):
     ''' 
     Comptabilisation des périodes assimilées à des durées d'assurance
@@ -60,7 +47,15 @@ def trim_ass_by_year(data, code, compare_destinie):
     qui succède directement à une période de côtisation au RG workstate == [3,4]
     '''
     workstate = data.workstate
-    trim_by_year_chom = unemployment_trimesters(workstate, code_regime=code)
+    
+    unemp_trim = workstate.select_code_after_period(code, code_chomage)
+    if workstate.frequency == 'month':
+        month_by_year_unemp = unemp_trim.translate_frequency('year', method='sum')
+        trim_by_year_chom = TimeArray(divide(month_by_year_unemp, 3), workstate.dates)  
+    else:
+        assert workstate.frequency == 'year'
+        trim_by_year_chom =  TimeArray(multiply(unemp_trim, 4), workstate.dates)
+    
     trim_by_year_ass = trim_by_year_chom #+...
     if compare_destinie:
         trim_by_year_ass.array = (workstate.isin([code_chomage, code_preretraite])).array*4
