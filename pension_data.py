@@ -42,3 +42,13 @@ class PensionData(object):
             sal = self.sali.selected_dates(first, last, date_type, False)
             return PensionData(wk, sal, self.info_ind, self.datesim)
         
+    def translate_frequency(self, output_frequency='month', method=None, inplace=False):
+        ''' cf TimeArray '''
+        if inplace:
+            self.workstate.translate_frequency(output_frequency, method, inplace=True)
+            self.sali.translate_frequency(output_frequency, method, inplace=True)
+        else:
+            wk = self.workstate.translate_frequency(output_frequency, method, False)
+            sal = self.sali.translate_frequency(output_frequency, method, False)
+            return PensionData(wk, sal, self.info_ind, self.datesim)
+        
