@@ -78,7 +78,7 @@ def build_salref_bareme(bareme_long, first_year, last_year, scale=None):
     '''
     assert first_year <= 1972 
     assert last_year > 1972
-    salmin = DataFrame({'year': range(first_year, last_year ), 'sal': -ones(last_year - first_year)} ) 
+    salmin = DataFrame({'year': range(first_year, last_year), 'sal': -ones(last_year - first_year)} ) 
     avts_year = []
     smic_year = []
     smic_long = bareme_long.smic
@@ -110,20 +110,6 @@ def build_salref_bareme(bareme_long, first_year, last_year, scale=None):
         else:
             salmin.loc[salmin['year'] == year, 'sal'] = 150*smic_long[smic_year[0]]
     return array(salmin['sal'])
-
-def calculate_age(birth_date, date):
-    ''' calculate age at date thanks birthdate '''
-    def _age(birthdate):
-        try: 
-            birthday = birthdate.replace(year=date.year)
-        except ValueError: # raised when birth date is February 29 and the current year is not a leap year
-            birthday = birthdate.replace(year=date.year, month=birthdate.month+1, day=1)
-        if birthday > date:
-            return date.year - birthdate.year - 1
-        else:
-            return date.year - birthdate.year
-    return birth_date.apply(_age)
-
 
 def build_naiss(agem, datesim):
     ''' Détermination de la date de naissance à partir de l'âge et de la date de simulation '''

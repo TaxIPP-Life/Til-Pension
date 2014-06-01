@@ -30,24 +30,6 @@ def nb_trim_surcote(trim_by_year, date_start_surcote):
             output[to_keep] += trim_by_year.array[to_keep, ix_date]
     return output
 
-def count_enf_pac(info_child, index):
-    info_child['enf_pac'] = ( info_child['age_enf'] <= 18)*( info_child['age_enf'] >= 0 )*info_child['nb_enf']
-    info = info_child.groupby(['id_parent'])['enf_pac'].sum().reset_index()
-    info.columns = ['id_parent', 'nb_pac']
-    info.index = info['id_parent']
-    nb_pac= Series(zeros(len(index)), index=index)
-    nb_pac += info['nb_pac']
-    return nb_pac.fillna(0)
-
-def count_enf_born(info_child, index):
-    info_child['enf_born'] =  ( info_child['age_enf'] >= 0 )*info_child['nb_enf']
-    info = info_child.groupby(['id_parent'])['enf_born'].sum().reset_index()
-    info.columns = ['id_parent', 'nb_born']
-    info.index = info['id_parent']
-    nb_born= Series(zeros(len(index)), index=index)
-    nb_born += info['nb_born']
-    return nb_born.fillna(0)
-
 def sum_from_dict(dictionnary, key='', plafond=None):
     ''' Somme les TimeArray contenus dans un dictionnaire et dont le nom contient la 'key' '''
     timearray_with_key = [trim for name, trim in dictionnary.items() if key in name]
