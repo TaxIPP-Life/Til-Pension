@@ -2,6 +2,7 @@
 
 import pandas as pd
 import sys
+import datetime
 
 from CONFIG_compare import path_pension, pensipp_comparison_path
 sys.path.append(path_pension)
@@ -108,7 +109,6 @@ def compare_til_pensipp(pensipp_input, pensipp_output, var_to_check_montant, var
 if __name__ == '__main__':    
     # Comparaison des résultats avec PENSIPP
     import pandas.rpy.common as com
-    import datetime
     from rpy2 import robjects as r
     input_pensipp = pensipp_comparison_path  + 'dataALL.RData'
     output_pensipp = pensipp_comparison_path + 'output2.RData'
