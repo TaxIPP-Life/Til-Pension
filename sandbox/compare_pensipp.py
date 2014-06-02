@@ -3,9 +3,8 @@
 import pandas as pd
 import sys
 
-#from pgm.CONFIG import path_pension
-#sys.path.append(path_pension)
-from CONFIG_compare import pensipp_comparison_path
+from CONFIG_compare import path_pension, pensipp_comparison_path
+sys.path.append(path_pension)
 
 from pgm.run_pension import run_pension
 from utils_compar import calculate_age, count_enf_born, count_enf_pac
