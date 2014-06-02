@@ -32,11 +32,14 @@ def build_info_child(enf, info_ind):
     info_enf = info_enf.merge(info_ind[['naiss', 'id']], left_on='id_enf', right_on= 'id').drop(['id_x', 'id_y', 'enf'], axis=1)
     return info_enf
 
-def compare_til_pensipp(pensipp_input, pensipp_output, var_to_check_montant, var_to_check_taux, threshold):
-     
-    r.r("load('" + str(pensipp_input) + "')") 
+def load_from_Rdata(path):
+    import pandas.rpy.common as com
+    import datetime
+    from rpy2 import robjects as r
     
+    input_pensipp = path + 'dataALL.RData'
     dates_to_col = [ year*100 + 1 for year in range(1901,2061)]
+    r.r("load('" + str(input_pensipp) + "')")
     statut = com.load_data('statut')
     statut.columns =  dates_to_col
     salaire = com.load_data('salaire')
@@ -48,17 +51,26 @@ def compare_til_pensipp(pensipp_input, pensipp_output, var_to_check_montant, var
     id_enf = com.load_data('enf')
     id_enf.columns =  [ 'enf'+ str(i) for i in range(id_enf.shape[1])]
     info_child = build_info_child(id_enf,info) 
-    r.r['load'](pensipp_output)
+    
+    output_pensipp = path + 'output2.RData'
+    r.r['load'](output_pensipp)
     result_pensipp = com.load_data('output1')
-    result_pensipp.rename(columns= {'dec': 'decote_RG', 'surc': 'surcote_RG', 'taux': 'taux_RG', 'sam':'salref_RG', 'pliq_rg': 'pension_RG', 'prorat' : 'CP_RG',
-                                    'pts_ar' : 'nb_points_arrco', 'pts_ag' : 'nb_points_agirc', 'pliq_ar' :'pension_arrco', 'pliq_ag' :'pension_agirc', 'DA_rg_maj': 'DA_RegimeGeneral',
-                                    'taux_rg': 'taux_RG', 'pliq_fp': 'pension_FP', 'taux_fp': 'taux_FP', 'DA_fp_maj':'DA_FonctionPublique', 'DA_in' : 'DA_RSI_brute', 'DA_in_maj' : 'DA_RegimeSocialIndependants',
-                                    'DAcible_rg': 'N_taux_RG', 'DAcible_fp':'N_taux_FP', 'CPcible_rg':'N_CP_RG'},
-                          inplace = True)
+    result_pensipp.rename(columns= {'dec': 'decote_RG', 'surc': 'surcote_RG', 'taux': 'taux_RG', 'sam':'salref_RG', 'pliq_rg': 'pension_RG',
+                                     'prorat' : 'CP_RG', 'pts_ar' : 'nb_points_arrco', 'pts_ag' : 'nb_points_agirc', 'pliq_ar' :'pension_arrco',
+                                     'pliq_ag' :'pension_agirc', 'DA_rg_maj': 'DA_RegimeGeneral', 'taux_rg': 'taux_RG', 'pliq_fp': 'pension_FP',
+                                     'taux_fp': 'taux_FP', 'DA_fp':'DA_FonctionPublique', 'DA_in' : 'DA_RSI_brute', 'DA_in_maj' : 'DA_RegimeSocialIndependants',
+                                     'DAcible_rg': 'N_taux_RG', 'DAcible_fp':'N_taux_FP', 'CPcible_rg':'N_CP_RG'},
+                                    inplace = True)        
+    return info, info_child, salaire, statut, result_pensipp
+
+def compare_til_pensipp(pensipp_comparison_path, var_to_check_montant, var_to_check_taux, threshold):
+     
+    info, info_child, salaire, statut, result_pensipp = load_from_Rdata(pensipp_comparison_path)
     result_til = pd.DataFrame(columns = var_to_check_montant + var_to_check_taux, index = result_pensipp.index)
     
     for year in range(2004,2005):
         print year
+        dates_to_col = [ year*100 + 1 for year in range(1901,2061)]
         col_to_keep = [date for date in dates_to_col if date < (year*100 + 1) and date >= 194901]
         info.loc[:,'agem'] =  (year - info['t_naiss'])*12
         select_id = (info.loc[:,'agem'] ==  63 * 12)
@@ -107,11 +119,6 @@ def compare_til_pensipp(pensipp_input, pensipp_output, var_to_check_montant, var
     print( u"Avec un seuil de {}, le calcul pose problème pour les variables suivantes : {} \n Il ne pose aucun problème pour : {}").format(threshold, var_conflict, no_conflict)   
 
 if __name__ == '__main__':    
-    # Comparaison des résultats avec PENSIPP
-    import pandas.rpy.common as com
-    from rpy2 import robjects as r
-    input_pensipp = pensipp_comparison_path  + 'dataALL.RData'
-    output_pensipp = pensipp_comparison_path + 'output2.RData'
 
     var_to_check_montant = [ u'pension_RG', u'salref_RG', u'DA_RegimeGeneral', u'DA_RegimeSocialIndependants', 
                             u'nb_points_arrco', u'nb_points_agirc', u'pension_arrco', u'pension_agirc',
@@ -122,7 +129,7 @@ if __name__ == '__main__':
                          u'taux_FP'
                           ]
     threshold = {'montant' : 1, 'taux' : 0.05}
-    compare_til_pensipp(input_pensipp, output_pensipp, var_to_check_montant, var_to_check_taux, threshold)
+    compare_til_pensipp(pensipp_comparison_path, var_to_check_montant, var_to_check_taux, threshold)
 
 #    or to have a profiler : 
 #    import cProfile
