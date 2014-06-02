@@ -36,8 +36,8 @@ class FonctionPublique(RegimeBase):
     
         info_ind = data.info_ind
                 
-        trim_valide, sal_regime = trim_cot_by_year_FP(data, self.code_actif)
-        trim_to_RG, sal_to_RG = self.select_to_RG(data, trim_valide, sal_regime)
+        trim_valide, sal_regime = trim_cot_by_year_FP(data, self.code_regime)
+        trim_to_RG, sal_to_RG = self.select_to_RG(data, trim_valide.copy(), sal_regime)
         trimesters['cot'] = trim_valide.substract(trim_to_RG)
         wages['cot'] = sal_regime.substract(sal_to_RG)
         trim_cotises = trimesters['cot'].sum(1)
@@ -46,6 +46,7 @@ class FonctionPublique(RegimeBase):
         trim_maj['5eme'] = nb_trim_bonif_5eme(trim_cotises)*(trim_cotises>0)
         to_other['RegimeGeneral'] = {'trimesters': {'cot_FP' : trim_to_RG}, 'wages': {'sal_FP' : sal_to_RG}}
         output = {'trimesters': trimesters, 'wages': wages, 'maj': trim_maj}
+        #print_multi_info_numpy([data.workstate, data.sali, trimesters['cot'], trim_valide], 833, self.index)
         return output, to_other
         
     def _age_min_retirement(self, data):
