@@ -33,7 +33,7 @@ def trim_cot_by_year_FP(data, code):
     trim_service.translate_frequency(output_frequency='year', method='sum', inplace=True)
     if frequency_init == 'year':
         #from year to trimester
-        trim_service.array = trim_service.array*4
+        trim_service.array = multiply(trim_service.array,4)
     if frequency_init == 'month':
         #from month to trimester
         trim_service.array = divide(trim_service.array,3)
@@ -74,7 +74,7 @@ def validation_trimestre(data, code, salref, frequency='year'):
     wk_selection = workstate.isin(code)
     sal_selection = TimeArray(wk_selection.array*sali.array, sali.dates, name='temp')
     # applique le bareme de legislation sur les salaires
-    plafond=4
+    plafond = 4
     sal_annuel = sal_selection.array
     sal_annuel[isnan(sal_annuel)] = 0
     division = divide(sal_annuel, salref).astype(int)

@@ -17,8 +17,6 @@ from utils_pension import build_long_values, build_salref_bareme, print_multi_in
 from trimesters_functions import trim_ass_by_year, validation_trimestre, sali_in_regime, trim_mda, imput_sali_avpf
 
 code_avpf = 8
-code_chomage = 2
-code_preretraite = 9
 first_year_indep = 1949
 first_year_avpf = 1972
     
@@ -36,8 +34,6 @@ class RegimeGeneral(RegimePrive):
         trim_maj = dict()
         to_other = dict()
         
-        workstate = data.workstate
-        sali = data.sali
         info_ind = data.info_ind
         
         salref = build_salref_bareme(self.P_longit.common, data.initial_date.year, data.datesim.year)
@@ -83,5 +79,4 @@ class RegimeSocialIndependants(RegimePrive):
         P_mda = self.P.prive.RG.mda
         trim_maj['DA'] = trim_mda(data.info_ind, P_mda)*(trimesters['cot'].sum(1)>0)
         output = {'trimesters': trimesters, 'wages': wages, 'maj': trim_maj}
-        #print_multi_info_numpy([sali, workstate, trimesters['cot']], id_test, self.index)
         return output, to_other

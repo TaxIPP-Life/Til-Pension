@@ -15,8 +15,6 @@ from utils_pension import build_long_values, build_salref_bareme, _info_numpy, p
 from pension_functions import nb_trim_surcote
 
 code_avpf = 8
-code_chomage = 2
-code_preretraite = 9
 #first_year_sal = 1949
 first_year_avpf = 1972
 

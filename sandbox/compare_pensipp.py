@@ -37,7 +37,7 @@ def compare_til_pensipp(pensipp_input, pensipp_output, var_to_check_montant, var
     result_pensipp = com.load_data('output1')
     result_pensipp.rename(columns= {'dec': 'decote_RG', 'surc': 'surcote_RG', 'taux': 'taux_RG', 'sam':'salref_RG', 'pliq_rg': 'pension_RG', 'prorat' : 'CP_RG',
                                     'pts_ar' : 'nb_points_arrco', 'pts_ag' : 'nb_points_agirc', 'pliq_ar' :'pension_arrco', 'pliq_ag' :'pension_agirc', 'DA_rg_maj': 'DA_RegimeGeneral',
-                                    'taux_rg': 'taux_RG', 'pliq_fp': 'pension_FP', 'taux_fp': 'taux_FP', 'DA_fp':'DA_FonctionPublique', 'DA_in' : 'DA_RSI_brute', 'DA_in_maj' : 'DA_RegimeSocialIndependants',
+                                    'taux_rg': 'taux_RG', 'pliq_fp': 'pension_FP', 'taux_fp': 'taux_FP', 'DA_fp_maj':'DA_FonctionPublique', 'DA_in' : 'DA_RSI_brute', 'DA_in_maj' : 'DA_RegimeSocialIndependants',
                                     'DAcible_rg': 'N_taux_RG', 'DAcible_fp':'N_taux_FP', 'CPcible_rg':'N_CP_RG'},
                           inplace = True)
     result_til = pd.DataFrame(columns = var_to_check_montant + var_to_check_taux, index = result_pensipp.index)
