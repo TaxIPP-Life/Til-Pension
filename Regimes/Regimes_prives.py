@@ -76,11 +76,12 @@ class RegimeSocialIndependants(RegimePrive):
         salref = build_salref_bareme(self.P_longit.common, first_year_indep, data.datesim.year)
         trimesters['cot'], _ = validation_trimestre(reduce_data, self.code_regime, salref)
 
-        nb_trim_ass, _ = trim_ass_by_year(reduce_data, self.code_regime, compare_destinie)
-        trimesters['ass'] = nb_trim_ass
+        # TODO : pour l'instant tous les trimestres assimilés sont imputés au RG
+        #nb_trim_ass, _ = trim_ass_by_year(reduce_data, self.code_regime, compare_destinie)
+        #trimesters['ass'] = nb_trim_ass 
         wages['regime'] = sali_in_regime(workstate, sali, self.code_regime)
         P_mda = self.P.prive.RG.mda
         trim_maj['DA'] = trim_mda(data.info_ind, P_mda)*(trimesters['cot'].sum(1)>0)
         output = {'trimesters': trimesters, 'wages': wages, 'maj': trim_maj}
-        print_multi_info_numpy([sali, workstate, trimesters['cot']], 186, self.index)
+        #print_multi_info_numpy([sali, workstate, trimesters['cot']], id_test, self.index)
         return output, to_other
