@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from pandas import DataFrame
-from numpy import array, tile, divide, around, in1d, repeat, sort, apply_along_axis, zeros, minimum
+from numpy import array, tile, divide, around, in1d, repeat, sort, apply_along_axis, zeros, minimum, subtract
 
 def determine_frequency(dates):
     if (array(dates) % 100 == 1).all() :
@@ -136,17 +136,26 @@ class TimeArray(object):
             dates = other_dates
         return TimeArray(sum_array, dates)
         
-    def substract(self, other_time_array, inplace=False):
-        array = self.array.copy()
-        dates = self.dates
-        other_dates = other_time_array.dates
-        test_dates = [date for date in other_dates if date in dates]
-        assert test_dates == other_dates
-        assert array.shape[0] == other_time_array.array.shape[0]
-        list_ix_col = [list(dates).index(date) for date in other_dates]
-        array[:,list_ix_col] -= other_time_array.array
+    def subtract(self, other, inplace=False):
+        initial_dates = self.dates
+        array = self.array
+        other_dates = other.dates
+        assert array.shape[0] == other.array.shape[0] # Même nombre de lignes
+        other_in_initial = [date for date in other_dates if date in initial_dates] 
+        initial_in_other = [date for date in initial_dates if date in other_dates]
+        assert other_in_initial == other_dates or initial_in_other == initial_dates #les dates de l'une sont un sous ensemble de l'autre
+        if other_in_initial == other_dates:
+            sub_array = array.copy()
+            list_ix_col = [list(initial_dates).index(date) for date in other_dates]
+            sub_array[:,list_ix_col] = subtract(sub_array[:,list_ix_col], other.array)
+            dates = initial_dates
+        if initial_in_other == initial_dates:
+            sub_array = other.array.copy()
+            list_ix_col = [list(other_dates).index(date) for date in initial_dates]
+            sub_array[:,list_ix_col] = subtract(sub_array[:,list_ix_col], array)
+            dates = other_dates
         if inplace == True:
-            self.array = array
+            self.array = sub_array
         else:
             return TimeArray(array, dates)
         
