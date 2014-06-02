@@ -13,13 +13,13 @@ from pandas import Series
 
 from regime import compare_destinie
 from regime_prive import RegimePrive
-from utils_pension import build_long_values, build_salref_bareme
+from utils_pension import build_long_values, build_salref_bareme, print_multi_info_numpy
 from trimesters_functions import trim_ass_by_year, validation_trimestre, sali_in_regime, trim_mda, imput_sali_avpf
 
 code_avpf = 8
 code_chomage = 2
 code_preretraite = 9
-first_year_indep = 1972
+first_year_indep = 1949
 first_year_avpf = 1972
     
 class RegimeGeneral(RegimePrive):
@@ -30,7 +30,7 @@ class RegimeGeneral(RegimePrive):
         self.code_regime = [3,4]
         self.param_name_bis = 'prive.RG'
      
-    def get_trimesters_wages(self, data, to_check=False):
+    def get_trimesters_wages(self, data):
         trimesters = dict()
         wages = dict()
         trim_maj = dict()
@@ -51,11 +51,7 @@ class RegimeGeneral(RegimePrive):
         # Allocation vieillesse des parents au foyer : nombre de trimestres attribués 
         trimesters['avpf'], wages['avpf'] = validation_trimestre(data_avpf, code_avpf, salref)
         P_mda = self.P.prive.RG.mda
-        trim_maj['DA'] = trim_mda(info_ind, P_mda)
-
-        if to_check is not None:
-            to_check['DA_RG'] = ((trimesters['cot'] + trimesters['ass'] + trimesters['avpf']).sum(1) 
-                                 + trim_maj['DA'])/4
+        trim_maj['DA'] = trim_mda(info_ind, P_mda)*(trimesters['cot'].sum(1)>0)
         output = {'trimesters': trimesters, 'wages': wages, 'maj': trim_maj}
         return output, to_other
 
@@ -67,7 +63,7 @@ class RegimeSocialIndependants(RegimePrive):
         self.code_regime = [7]
         self.param_name_bis = 'indep.rsi'
 
-    def get_trimesters_wages(self, data, to_check=False):
+    def get_trimesters_wages(self, data):
         trimesters = dict()
         wages = dict()
         trim_maj = dict()
@@ -83,10 +79,8 @@ class RegimeSocialIndependants(RegimePrive):
         nb_trim_ass, _ = trim_ass_by_year(reduce_data, self.code_regime, compare_destinie)
         trimesters['ass'] = nb_trim_ass
         wages['regime'] = sali_in_regime(workstate, sali, self.code_regime)
-        ###TODO: Pourquoi cette ligne ?
         P_mda = self.P.prive.RG.mda
-        trim_maj['DA'] = 0*trim_mda(data.info_ind, P_mda)
-        if to_check is not None:
-                to_check['DA_RSI'] = (trimesters['cot'].sum(1) + trim_maj['DA'])//4
+        trim_maj['DA'] = trim_mda(data.info_ind, P_mda)*(trimesters['cot'].sum(1)>0)
         output = {'trimesters': trimesters, 'wages': wages, 'maj': trim_maj}
+        print_multi_info_numpy([sali, workstate, trimesters['cot']], 186, self.index)
         return output, to_other

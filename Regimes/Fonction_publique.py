@@ -28,7 +28,7 @@ class FonctionPublique(RegimeBase):
         self.code_sedentaire = 6
         self.code_actif = 5
 
-    def get_trimesters_wages(self, data, to_check):
+    def get_trimesters_wages(self, data):
         trimesters = dict()
         wages = dict()
         trim_maj = dict()
@@ -45,8 +45,6 @@ class FonctionPublique(RegimeBase):
         trim_maj['DA'] = trim_mda(info_ind, P_mda)*(trim_cotises>0)
         trim_maj['5eme'] = nb_trim_bonif_5eme(trim_cotises)*(trim_cotises>0)
         to_other['RegimeGeneral'] = {'trimesters': {'cot_FP' : trim_to_RG}, 'wages': {'sal_FP' : sal_to_RG}}
-        if to_check :
-            to_check['DA_FP'] = (trimesters['cot'].sum() + trim_maj['DA'] + trim_maj['5eme']) //4
         output = {'trimesters': trimesters, 'wages': wages, 'maj': trim_maj}
         return output, to_other
         
