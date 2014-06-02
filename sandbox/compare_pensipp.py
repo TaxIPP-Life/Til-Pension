@@ -9,14 +9,29 @@ sys.path.append(path_pension)
 from pgm.run_pension import run_pension
 from utils_compar import calculate_age, count_enf_born, count_enf_pac
 
+def _child_by_age(info_child, year, id_selected):
+    info_child = info_child.loc[info_child['id_parent'].isin(id_selected),:]
+    info_child['age'] = calculate_age(info_child.loc[:,'naiss'], datetime.date(year,1,1))
+    nb_enf = info_child.groupby(['id_parent', 'age']).size().reset_index()
+    nb_enf.columns = ['id_parent', 'age_enf', 'nb_enf']
+    return nb_enf
+
+def build_info_child(enf, info_ind):
+    '''
+    Input tables :
+        - 'enf' : pour chaque personne sont donnés les identifiants de ses enfants
+        - 'ind' : table des infos perso (dates de naissances notamment)
+    Output table :
+        - info_child_father : identifiant du pere, ages possibles des enfants, nombre d'enfant ayant cet age
+        - info_child_mother : identifiant de la mere, ages possibles des enfants, nombre d'enfant ayant cet age
+    '''
+    info_enf = enf.stack().reset_index()
+    info_enf.columns =  ['id_parent', 'enf', 'id_enf']
+    info_enf = info_enf.merge(info_ind[['sexe', 'id']], left_on='id_parent', right_on= 'id')
+    info_enf = info_enf.merge(info_ind[['naiss', 'id']], left_on='id_enf', right_on= 'id').drop(['id_x', 'id_y', 'enf'], axis=1)
+    return info_enf
+
 def compare_til_pensipp(pensipp_input, pensipp_output, var_to_check_montant, var_to_check_taux, threshold):
-    
-    def _child_by_age(info_child, year, id_selected):
-        info_child = info_child.loc[info_child['id_parent'].isin(id_selected),:]
-        info_child['age'] = calculate_age(info_child.loc[:,'naiss'], datetime.date(year,1,1))
-        nb_enf = info_child.groupby(['id_parent', 'age']).size().reset_index()
-        nb_enf.columns = ['id_parent', 'age_enf', 'nb_enf']
-        return nb_enf
      
     r.r("load('" + str(pensipp_input) + "')") 
     
@@ -89,21 +104,6 @@ def compare_til_pensipp(pensipp_input, pensipp_output, var_to_check_montant, var
     no_conflict = [var for var in var_to_check_montant + var_to_check_taux
                     if var not in var_conflict and var not in var_not_implemented]  
     print( u"Avec un seuil de {}, le calcul pose problème pour les variables suivantes : {} \n Il ne pose aucun problème pour : {}").format(threshold, var_conflict, no_conflict)   
-
-def build_info_child(enf, info_ind):
-    '''
-    Input tables :
-        - 'enf' : pour chaque personne sont donnés les identifiants de ses enfants
-        - 'ind' : table des infos perso (dates de naissances notamment)
-    Output table :
-        - info_child_father : identifiant du pere, ages possibles des enfants, nombre d'enfant ayant cet age
-        - info_child_mother : identifiant de la mere, ages possibles des enfants, nombre d'enfant ayant cet age
-    '''
-    info_enf = enf.stack().reset_index()
-    info_enf.columns =  ['id_parent', 'enf', 'id_enf']
-    info_enf = info_enf.merge(info_ind[['sexe', 'id']], left_on='id_parent', right_on= 'id')
-    info_enf = info_enf.merge(info_ind[['naiss', 'id']], left_on='id_enf', right_on= 'id').drop(['id_x', 'id_y', 'enf'], axis=1)
-    return info_enf
 
 if __name__ == '__main__':    
     # Comparaison des résultats avec PENSIPP
