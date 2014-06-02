@@ -186,6 +186,8 @@ $RECYCLE.BIN/
 #############
 ## Python
 #############
+# Files
+CONFIG_compare.py
 
 *.py[co]
 

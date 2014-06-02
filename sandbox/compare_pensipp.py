@@ -5,8 +5,7 @@ import sys
 
 #from pgm.CONFIG import path_pension
 #sys.path.append(path_pension)
-from compare_path import pensipp_path
-pensipp_path = None #path of  RData bases for comparison 
+from CONFIG_compare import pensipp_comparison_path
 
 from pgm.run_pension import run_pension
 from utils_compar import calculate_age, count_enf_born, count_enf_pac
@@ -112,8 +111,8 @@ if __name__ == '__main__':
     import pandas.rpy.common as com
     import datetime
     from rpy2 import robjects as r
-    input_pensipp = pensipp_path  + 'dataALL.RData'
-    output_pensipp = pensipp_path + 'output2.RData'
+    input_pensipp = pensipp_comparison_path  + 'dataALL.RData'
+    output_pensipp = pensipp_comparison_path + 'output2.RData'
 
     var_to_check_montant = [ u'pension_RG', u'salref_RG', u'DA_RG', u'DA_RSI', 
                             u'nb_points_arrco', u'nb_points_agirc', u'pension_arrco', u'pension_agirc',
