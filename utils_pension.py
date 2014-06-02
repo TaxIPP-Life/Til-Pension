@@ -5,7 +5,7 @@ import collections
 import pdb
 import datetime as dt
 
-from numpy import array, ones
+from numpy import array, ones, zeros
 from pandas import DataFrame
 
 from datetime import date
@@ -157,9 +157,25 @@ def _info_numpy(np_object, ident, list_ident, text=None):
 
 def print_multi_info_numpy(list_timearray, ident, list_ident):
     to_print = {}
+    first_shape = list_timearray[0].array.shape
+    max_nb_dates = 0
     for timearray in list_timearray:
-        np_object = timearray.array
-        assert len(np_object.shape) == 2
-        to_print[timearray.name] = _info_numpy(np_object, ident, list_ident, text=None)
+        array = timearray.array
+        assert len(array.shape) == 2
+        nb_rows = array.shape[0]
+        nb_cols = array.shape[1]
+        assert first_shape[0] == nb_rows
+        if nb_cols > max_nb_dates:
+            max_nb_dates = nb_cols
+    
+    for timearray in list_timearray:
+        array = timearray.array
+        nb_dates = array.shape[1]
+        col_to_print = _info_numpy(array, ident, list_ident, text=None)
+        if nb_dates < max_nb_dates:
+            long_col_to_print = zeros(max_nb_dates)
+            long_col_to_print[-len(col_to_print):] = col_to_print
+            col_to_print = long_col_to_print
+        to_print[timearray.name] = col_to_print
     print DataFrame(to_print).to_string()
         
