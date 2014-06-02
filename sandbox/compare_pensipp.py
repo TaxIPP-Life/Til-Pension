@@ -3,21 +3,25 @@
 import pandas as pd
 import sys
 
-# from pgm.CONFIG import path_pension
-path_pension = 'C:\\Til'
-sys.path.append(path_pension)
+#from pgm.CONFIG import path_pension
+#sys.path.append(path_pension)
+from compare_path import pensipp_path
+pensipp_path = None #path of  RData bases for comparison 
+
 from pgm.run_pension import run_pension
 from utils_compar import calculate_age, count_enf_born, count_enf_pac
 
 def compare_til_pensipp(pensipp_input, pensipp_output, var_to_check_montant, var_to_check_taux, threshold):
+    
     def _child_by_age(info_child, year, id_selected):
         info_child = info_child.loc[info_child['id_parent'].isin(id_selected),:]
         info_child['age'] = calculate_age(info_child.loc[:,'naiss'], datetime.date(year,1,1))
         nb_enf = info_child.groupby(['id_parent', 'age']).size().reset_index()
         nb_enf.columns = ['id_parent', 'age_enf', 'nb_enf']
         return nb_enf
-        
+     
     r.r("load('" + str(pensipp_input) + "')") 
+    
     dates_to_col = [ year*100 + 1 for year in range(1901,2061)]
     statut = com.load_data('statut')
     statut.columns =  dates_to_col
@@ -108,16 +112,16 @@ if __name__ == '__main__':
     import pandas.rpy.common as com
     import datetime
     from rpy2 import robjects as r
-    input_pensipp ='D:/PENSIPP vs. TIL/dataALL.RData'
-    output_pensipp = 'D:/PENSIPP vs. TIL/output1.RData'
+    input_pensipp = pensipp_path  + 'dataALL.RData'
+    output_pensipp = pensipp_path + 'output2.RData'
 
-    var_to_check_montant = [ u'pension_RG', u'salref_RG', #u'DA_RG', u'DA_RSI', 
+    var_to_check_montant = [ u'pension_RG', u'salref_RG', u'DA_RG', u'DA_RSI', 
                             u'nb_points_arrco', u'nb_points_agirc', u'pension_arrco', u'pension_agirc',
-                            #u'DA_FP', u'pension_FP',
-                            #u'N_taux_RG', 'N_CP_RG', 'N_taux_FP'
+                            u'DA_FP', u'pension_FP',
+                            u'N_taux_RG', 'N_CP_RG', 'N_taux_FP'
                             ] 
     var_to_check_taux = [u'taux_RG', u'surcote_RG', u'decote_RG', u'CP_RG',
-                          #u'taux_FP'
+                         u'taux_FP'
                           ]
     threshold = {'montant' : 1, 'taux' : 0.05}
     compare_til_pensipp(input_pensipp, output_pensipp, var_to_check_montant, var_to_check_taux, threshold)
