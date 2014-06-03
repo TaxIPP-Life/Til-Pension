@@ -112,8 +112,8 @@ class PensionSimulation(object):
         P = self.param[0]
         P_longit = self.param[1]
         
-        #TODO: remove yearleg, index, first_year, data_type
-        config = {'dateleg' : self.yearleg, 'P': P, 'P_longit': P_longit, 'index': self.data.info_ind.index,
+        #TODO: remove yearleg, first_year, data_type
+        config = {'dateleg' : self.yearleg, 'P': P, 'P_longit': P_longit,
                   'time_step': time_step, 'first_year': first_year_sal}
         
         data = self.data
