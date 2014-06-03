@@ -5,10 +5,8 @@ import sys
 import datetime
 from pandas import read_table
 
-from CONFIG_compare import path_pension, pensipp_comparison_path
-sys.path.append(path_pension)
-
-from pgm.run_pension import run_pension
+from CONFIG_compare import pensipp_comparison_path
+from simulation import PensionSimulation
 from utils_compar import calculate_age, count_enf_born, count_enf_pac
 
 def _child_by_age(info_child, year, id_selected):
@@ -107,7 +105,9 @@ def compare_til_pensipp(pensipp_comparison_path, var_to_check_montant, var_to_ch
         info_ind = info.loc[select_id,:]
         info_ind.loc[:,'nb_pac'] = nb_pac
         info_ind.loc[:,'nb_born'] = nb_enf
-        result_til_year = run_pension(sali, workstate, info_ind, yearsim=year, time_step='year', to_check=True)
+#        data = (workstate, sali, info_ind, year) #TODO: to use that format
+        simul_til = PensionSimulation()
+        result_til_year = simul_til.main(workstate, sali, info_ind, year, time_step='year', to_check=True)
         result_til.loc[result_til_year.index, :] = result_til_year
         result_til.loc[result_til_year.index,'yearliq'] = year
 
