@@ -2952,8 +2952,7 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
    			<VALUE valeur="0.00875" deb="2012-01-01" fin="2012-12-31"/>
    			<VALUE valeur="0.01" deb="2013-01-01" fin="2013-12-31"/>
    			<VALUE valeur="0.01125" deb="2014-01-01" fin="2014-12-31"/>
-   			<VALUE valeur="0.0125" deb="2015-01-01" fin="2015-12-31"/>
-   			<VALUE valeur="4" deb="2016-01-01" fin="2100-12-31"/>
+   			<VALUE valeur="0.0125" deb="2015-01-01" fin="2100-12-31"/>
    		</CODE>
  		<VALBYTRANCHES description="Age d'annulation de la décote (différence de trimestres par rapport à la limite d'âge), par date de liquidation" code="age_null_val" format="integer">
 		    <VARCONTROL>
