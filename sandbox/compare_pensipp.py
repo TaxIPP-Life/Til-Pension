@@ -8,6 +8,8 @@ from pandas import read_table
 from CONFIG_compare import pensipp_comparison_path
 from simulation import PensionSimulation
 from utils_compar import calculate_age, count_enf_born, count_enf_pac
+from pension_data import PensionData
+first_year_sal = 1949 
 
 def _child_by_age(info_child, year, id_selected):
     info_child = info_child.loc[info_child['id_parent'].isin(id_selected),:]
@@ -107,7 +109,12 @@ def compare_til_pensipp(pensipp_comparison_path, var_to_check_montant, var_to_ch
         info_ind.loc[:,'nb_born'] = nb_enf
 #        data = (workstate, sali, info_ind, year) #TODO: to use that format
         simul_til = PensionSimulation()
-        result_til_year = simul_til.main(workstate, sali, info_ind, year, time_step='year', to_check=True)
+        data = PensionData.from_arrays(workstate, sali, info_ind, year)
+        data.selected_dates(first=first_year_sal, last=year + 1, inplace=True)
+        simul_til.data = data
+        simul_til.load_param(year)
+        simul_til.evaluate()
+        result_til_year = simul_til.evaluate()
         result_til.loc[result_til_year.index, :] = result_til_year
         result_til.loc[result_til_year.index,'yearliq'] = year
 
