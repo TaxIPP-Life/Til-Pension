@@ -71,18 +71,16 @@ class ARRCO(RegimeComplementaires):
         self.code_noncadre = 3
         self.code_cadre = 4
         
-        
     def sali_for_regime(self, data):
         '''plafonne le salaire des cadres à 1 pss pour qu'il ne pait que la prmeière tranche '''
         workstate = data.workstate
         sali = data.sali
-        first_year_sal = min(workstate.dates) // 100
         nb_pss=1
         cadre_selection = (workstate.array == self.code_cadre)
         noncadre_selection = (workstate.array == self.code_noncadre)
         sali = sali.array
         plaf_ss = self.P_longit.common.plaf_ss
-        pss = build_long_values(plaf_ss, first_year=first_year_sal, last_year=data.last_date.year + 1) 
+        pss = build_long_values(plaf_ss, first_year=data.first_date.year, last_year=data.last_date.year + 1) 
         plaf_sali = minimum(sali, nb_pss*pss)
         return sali*noncadre_selection + plaf_sali*cadre_selection
         

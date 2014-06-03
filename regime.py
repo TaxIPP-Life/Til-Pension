@@ -23,7 +23,6 @@ class Regime(object):
         self.dates = None     
         self.time_step = None
         self.data_type = None
-        self.first_year = None
         self.dateleg = None
         self.index = None
         

@@ -15,7 +15,6 @@ from utils_pension import build_long_values, build_salref_bareme, _info_numpy, p
 from pension_functions import nb_trim_surcote
 
 code_avpf = 8
-#first_year_sal = 1949
 first_year_avpf = 1972
 
 
@@ -38,10 +37,11 @@ class RegimePrive(RegimeBase):
         notamment application du plafonnement à un PSS'''
         P = reduce(getattr, self.param_name_bis.split('.'), self.P)
         nb_best_years_to_take = P.nb_years
-        first_year_sal = min(data.workstate.dates) // 100
         yearsim = data.last_date.year
-        plafond = build_long_values(param_long=self.P_longit.common.plaf_ss, first_year=first_year_sal, last_year=yearsim + 1)
-        revalo = build_long_values(param_long=self.P_longit.prive.RG.revalo, first_year=first_year_sal, last_year=yearsim + 1)
+        plafond = build_long_values(param_long=self.P_longit.common.plaf_ss, 
+                                     first_year=data.first_date.year, last_year=data.last_date.year + 1)
+        revalo = build_long_values(param_long=self.P_longit.prive.RG.revalo, 
+                                     first_year=data.first_date.year, last_year=data.last_date.year + 1)
      
         for i in range(1, len(revalo)) :
             revalo[:i] *= revalo[i]

@@ -85,6 +85,7 @@ def imput_sali_avpf(data, code, P_longit, compare_destinie):
     #TODO: move to an other place
     workstate = data.workstate
     sali = data.sali
+    first_year_avpf = data.first_date.year
     avpf_selection = workstate.isin([code]).selected_dates(first_year_avpf)
     sal_for_avpf = sali.selected_dates(first_year_avpf)
     if sal_for_avpf.array.all() == 0:
