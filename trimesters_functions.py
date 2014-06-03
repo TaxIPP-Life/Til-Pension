@@ -119,26 +119,22 @@ def nb_trim_bonif_5eme(trim):
     bonif_5eme = minimum(trim*taux_5eme, 5*4)
     return array(bonif_5eme*super_actif)
 
-def surcote_rate(trim_by_year_RG, date_start_surcote, taux_surcote, first_year_surcote=None, last_year_surcote=None):
-    ''' Surcote associée aux trimestres côtisés entre la first_year_surcote et la last_year_surcote '''
-    trim_selected = trim_by_year_RG.selected_dates(first=first_year_surcote, last=last_year_surcote)
-    nb_trim = nb_trim_surcote(trim_selected, date_start_surcote)
-    return taux_surcote*nb_trim
 
-def nb_trim_surcote(trim_by_year, date_start_surcote):
-    ''' Cette fonction renvoie le vecteur numpy du nombre de trimestres surcotés à partir de :
+def nb_trim_surcote(trim_by_year, date_start_surcote, first_year_surcote=None, last_year_surcote=None):
+    ''' Cette fonction renvoie le vecteur numpy du nombre de trimestres surcotés entre la first_year_surcote et la last_year_surcote grâce à :
     - la table du nombre de trimestre comptablisé au sein du régime par année : trim_by_year.array
     - le vecteur des dates (format yyyymm) à partir desquelles les individus surcote (détermination sur cotisations tout régime confondu)
     '''
-    yearmax = max(trim_by_year.dates)
+    trim_selected = trim_by_year.selected_dates(first=first_year_surcote, last=last_year_surcote)
+    yearmax = max(trim_selected.dates)
     yearmin = min(date_start_surcote) 
     # Possible dates for surcote :
-    dates_surcote = [date for date in trim_by_year.dates
+    dates_surcote = [date for date in trim_selected.dates
                       if date >= yearmin]
-    output = zeros(len(date_start_surcote))
+    nb_trim = zeros(len(date_start_surcote))
     for date in dates_surcote:
         to_keep = where(greater(date, date_start_surcote))[0]
-        ix_date = trim_by_year.dates.index(yearmax)
+        ix_date = trim_selected.dates.index(yearmax)
         if to_keep.any():
-            output[to_keep] += trim_by_year.array[to_keep, ix_date]
-    return output
+            nb_trim[to_keep] += trim_selected.array[to_keep, ix_date]
+    return nb_trim
