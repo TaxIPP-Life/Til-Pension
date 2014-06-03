@@ -13,52 +13,13 @@ from Regimes.Regimes_prives import RegimeGeneral, RegimeSocialIndependants
 from time_array import TimeArray
 from pension_data import PensionData
 from utils_pension import build_naiss, load_param
-from pension_functions import sum_from_dict, trim_maj_all
+from pension_functions import select_regime_base, sum_by_regime, update_all_regime
 first_year_sal = 1949 
 import cProfile
 
 base_regimes = ['RegimeGeneral', 'FonctionPublique', 'RegimeSocialIndependants']
 complementaire_regimes = ['ARRCO', 'AGIRC']
 base_to_complementaire = {'RegimeGeneral': ['arrco', 'agirc'], 'FonctionPublique': []}
-
-def sum_by_regime(trimesters_wages, to_other):
-    for regime, dict_regime in to_other.iteritems():
-        for type in dict_regime.keys():
-            trimesters_wages[regime][type].update(dict_regime[type])
-            
-    trim_by_year_regime = {regime : sum_from_dict(trimesters_wages[regime]['trimesters']) for regime in trimesters_wages.keys()} 
-    trim_by_year_tot = sum_from_dict(trim_by_year_regime)
-    
-    for regime in trimesters_wages.keys() :
-        trimesters_wages[regime]['wages'].update({ 'regime' : sum_from_dict(trimesters_wages[regime]['wages'])})
-        trimesters_wages[regime]['trimesters'].update({ 'regime' : sum_from_dict(trimesters_wages[regime]['trimesters'])})
-    return trimesters_wages
-
-def attribution_mda(trimesters_wages):
-    ''' La Mda (attribuée par tous les régimes de base), ne peut être accordé par plus d'un régime. 
-    Régle d'attribution : a cotisé au régime + si polypensionnés -> ordre d'attribution : RG, RSI, FP
-    Rq : Pas beau mais temporaire, pour comparaison Destinie'''
-    RG_cot = (trimesters_wages['RegimeGeneral']['trimesters']['regime'].sum(1) > 0)
-    FP_cot = (trimesters_wages['FonctionPublique']['trimesters']['regime'].sum(1) > 0)
-    RSI_cot = (trimesters_wages['RegimeSocialIndependants']['trimesters']['regime'].sum(1) > 0)
-    trimesters_wages['RegimeGeneral']['maj']['DA'] = trimesters_wages['RegimeGeneral']['maj']['DA']*RG_cot
-    trimesters_wages['RegimeSocialIndependants']['maj']['DA']= trimesters_wages['RegimeSocialIndependants']['maj']['DA']*RSI_cot*(1-RG_cot)
-    trimesters_wages['RegimeSocialIndependants']['maj']['DA'] = trimesters_wages['RegimeSocialIndependants']['maj']['DA']*RSI_cot*(1-RG_cot)*(1-RSI_cot)
-    return trimesters_wages
-    
-def update_all_regime(trimesters_wages):
-    trim_by_year_tot = sum_from_dict({ 'regime' : trimesters_wages[regime]['trimesters']['regime'] for regime in trimesters_wages.keys()})
-    trimesters_wages = attribution_mda(trimesters_wages)
-    maj_tot = sum([sum(trimesters_wages[regime]['maj'].values()) for regime in trimesters_wages.keys()])
-    trimesters_wages['all_regime'] = {'trimesters' : {'tot' : trim_by_year_tot}, 'maj' : {'tot' : maj_tot}}
-    return trimesters_wages
-
-def select_regime_base(trimesters_wages, code_regime_comp, correspondance):
-    for base, comp in correspondance.iteritems():
-        if code_regime_comp in comp:
-            regime_base = base
-    return trimesters_wages[regime_base]
-
 
 def til_pension(sali, workstate, info_ind, time_step='year', yearsim=2009, yearleg=None, example=False):
     command = """run_pension(sali, workstate, info_ind, time_step, yearsim, yearleg, example)"""
@@ -131,7 +92,7 @@ class PensionSimulation(object):
             to_other.update(to_other_regime)
             
         trimesters_wages = sum_by_regime(trimesters_wages, to_other)
-        trimesters_wages = update_all_regime(trimesters_wages)
+        trimesters_wages = update_all_regime(trimesters_wages, dict_to_check)
         
         for reg_name in base_regimes:
             reg = eval(reg_name + '()')
