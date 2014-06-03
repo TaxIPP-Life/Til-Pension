@@ -84,35 +84,6 @@ class PensionSimulation(object):
             - info_ind : pandas DataFrame
             - yearsim: int
         '''
-        if isinstance(sali, DataFrame):
-            assert isinstance(workstate, DataFrame)
-            try:
-                assert all(sali.index == workstate.index) and all(sali.index == info_ind.index)
-            except:
-                assert all(sali.index == workstate.index)
-                assert len(sali) == len(info_ind)
-                sal = sali.index
-                idx = info_ind.index
-                assert all(sal[sal.isin(idx)] == idx[idx.isin(sal)])
-                print(sal[~sal.isin(idx)])
-                print(idx[~idx.isin(sal)])
-                # un décalage ?
-                decal = idx[~idx.isin(sal)][0] - sal[~sal.isin(idx)][0]
-                import pdb
-                pdb.set_trace()
-        
-            #TODO: should be done before
-            assert sali.columns.tolist() == workstate.columns.tolist()
-            assert sali.columns.tolist() == (sorted(sali.columns))
-            dates = sali.columns.tolist()
-            sali = np.array(sali)
-            workstate = np.array(workstate)
-        
-        if isinstance(sali, np.ndarray):
-            assert isinstance(workstate, np.ndarray)
-            sali = TimeArray(sali, dates, name='sali')
-            workstate = TimeArray(workstate, dates, name='workstate')
-    
         if max(info_ind.loc[:,'sexe']) == 2:
             info_ind.loc[:,'sexe'] = info_ind.loc[:,'sexe'].replace(1,0)
             info_ind.loc[:,'sexe'] = info_ind.loc[:,'sexe'].replace(2,1)
@@ -121,7 +92,7 @@ class PensionSimulation(object):
         yearsim = dates[-1]//100
         info_ind.loc[:,'naiss'] = build_naiss(info_ind.loc[:,'agem'], dt.date(yearsim,1,1))
         
-        data = PensionData(workstate, sali, info_ind, yearsim)
+        data = PensionData.from_arrays(workstate, sali, info_ind, yearsim)
         if yearsim:
             data.selected_dates(first=first_year_sal, last=yearsim + 1, inplace=True)
         else:
