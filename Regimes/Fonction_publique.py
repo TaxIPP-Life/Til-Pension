@@ -9,9 +9,9 @@ from numpy import maximum, minimum, array, nonzero, divide, transpose, zeros
 from pandas import Series
 
 from regime import RegimeBase, compare_destinie
-from pension_functions import nb_trim_surcote
+from trimesters_functions import nb_trim_surcote
 from utils_pension import print_multi_info_numpy, _info_numpy
-from trimesters_functions import trim_cot_by_year_FP, nb_trim_bonif_5eme, trim_mda
+from trimesters_functions import trim_cot_by_year_FP, nb_trim_bonif_5eme, trim_mda, surcote_rate
 from time_array import TimeArray
 
 code_avpf = 8
@@ -126,13 +126,12 @@ class FonctionPublique(RegimeBase):
         ''' Détermination de la surcote à appliquer aux pensions '''
         yearsim = self.dateleg.year
         trimesters = trim_wage_regime['trimesters']
-        if yearsim < 2004:
+        if yearsim < 2005:
             return age*0
         else:
             P = reduce(getattr, self.param_name.split('.'), self.P)
-            taux_surcote = P.surcote.taux
-            nb_trim = nb_trim_surcote(trimesters['regime'], date_start_surcote)
-            return taux_surcote*nb_trim
+            return surcote_rate(trimesters['regime'], date_start_surcote, P.surcote.taux,
+                                   first_year_surcote=2004)
 
     def calculate_salref(self, data, regime):
         last_fp_idx = data.workstate.idx_last_time_in(self.code_regime)
