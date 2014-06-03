@@ -1045,7 +1045,7 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 			<VALUE valeur=".40" deb="1945-01-01" fin="1971-12-31"/>
 			<VALUE valeur=".50" deb="1972-01-01" fin="2100-12-31"/>
 	  	  </CODE>
-	  	  <VALBYTRANCHES description="Nombre de trimestres cibles pour atteindre le taux plein" code="N_taux" format="integer">
+	  	  <VALBYTRANCHES description="Nombre de trimestres cibles pour atteindre le taux plein" code="n_trim" format="integer">
 		    <VARCONTROL>
 			  <CONTROL valeur="naiss" deb="1994-01-01" fin="2100-12-31" format="date"/>
 		    </VARCONTROL> 
@@ -2762,7 +2762,7 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 	      <CODE description="Valeur du taux" code="taux" format="percent">
 			<VALUE valeur=".75" deb="1949-01-01" fin="2100-12-31"/>
 	  	  </CODE>
-	  	  <VALBYTRANCHES description="Nombre de trimestres cibles pour le taux plein/proratisation, par génération" code="N_taux" format="integer">
+	  	  <VALBYTRANCHES description="Nombre de trimestres cibles pour le taux plein/proratisation, par génération" code="n_trim" format="integer">
 		    <VARCONTROL>
 			  <CONTROL valeur="naiss" deb="1994-01-01" fin="2100-12-31" format="date"/> # True value : 01/01/2003
 		    </VARCONTROL> 

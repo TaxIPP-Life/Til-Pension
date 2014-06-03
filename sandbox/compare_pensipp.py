@@ -59,7 +59,7 @@ def load_from_Rdata(path):
                                      'prorat' : 'CP_RG', 'pts_ar' : 'nb_points_arrco', 'pts_ag' : 'nb_points_agirc', 'pliq_ar' :'pension_arrco',
                                      'pliq_ag' :'pension_agirc', 'DA_rg_maj': 'DA_RegimeGeneral', 'taux_rg': 'taux_RG', 'pliq_fp': 'pension_FP',
                                      'taux_fp': 'taux_FP', 'DA_fp':'DA_FonctionPublique', 'DA_in' : 'DA_RSI_brute', 'DA_in_maj' : 'DA_RegimeSocialIndependants',
-                                     'DAcible_rg': 'N_taux_RG', 'DAcible_fp':'N_taux_FP', 'CPcible_rg':'N_CP_RG'},
+                                     'DAcible_rg': 'n_trim_RG', 'DAcible_fp':'n_trim_FP', 'CPcible_rg':'N_CP_RG'},
                                     inplace = True) 
       
     return info, info_child, salaire, statut, result_pensipp
@@ -123,7 +123,7 @@ if __name__ == '__main__':
     var_to_check_montant = [ u'pension_RG', u'salref_RG', u'DA_RegimeGeneral', u'DA_RegimeSocialIndependants', 
                             u'nb_points_arrco', u'nb_points_agirc', u'pension_arrco', u'pension_agirc',
                             u'DA_FonctionPublique', u'pension_FP',
-                            u'N_taux_RG', 'N_CP_RG', 'N_taux_FP'
+                            u'n_trim_RG', 'N_CP_RG', 'n_trim_FP'
                             ] 
     var_to_check_taux = [u'taux_RG', u'surcote_RG', u'decote_RG', u'CP_RG',
                          u'taux_FP'

@@ -108,14 +108,14 @@ class RegimePrive(RegimeBase):
         P = reduce(getattr, self.param_name.split('.'), self.P)
         tx_decote = P.decote.taux
         age_annulation = P.decote.age_null
-        N_taux = P.plein.N_taux
+        n_trim = P.plein.n_trim
         agem = data.info_ind['agem']
         if yearleg < 1983:
             trim_decote = max(divide(age_annulation - agem, 3), 0)
         else:
             decote_age = maximum(divide(age_annulation - agem, 3), 0)
             trim_tot = trimesters['tot'].sum(1) + trim_maj['tot']
-            decote_cot = maximum(N_taux - trim_tot, 0)
+            decote_cot = maximum(n_trim - trim_tot, 0)
             assert len(decote_age) == len(decote_cot)
             trim_decote = minimum(decote_age, decote_cot)
         return trim_decote*tx_decote
@@ -130,7 +130,7 @@ class RegimePrive(RegimeBase):
         else:
             trim_maj = 0
         trim_by_year_tot = trim_wage_all['trimesters']['tot']
-        N_taux = P.plein.N_taux
+        n_trim = P.plein.n_trim
       
         def _trimestre_surcote_0304(trim_by_year_RG, date_start_surcote, P):
             ''' surcote associée aux trimestres côtisés en 2003 
@@ -167,7 +167,7 @@ class RegimePrive(RegimeBase):
         if yearleg < 2004:
             taux_surcote = P.surcote.taux_07
             trim_tot = self.trim_by_year.sum(axis=1)
-            return maximum(trim_tot - N_taux, 0)*taux_surcote 
+            return maximum(trim_tot - n_trim, 0)*taux_surcote 
         elif yearleg < 2007:
             taux_surcote = P.surcote.taux_07
             trim_surcote = nb_trim_surcote(trim_by_year_RG, maximum(date_start_surcote, 100*2003 + 1))
@@ -189,7 +189,7 @@ class RegimePrive(RegimeBase):
         + mécanisme de répartition si cotisations à plusieurs régimes'''
         yearleg = self.dateleg.year
         P = reduce(getattr, self.param_name.split('.'), self.P)
-        N_taux = P.plein.N_taux
+        n_trim = P.plein.n_trim
         if yearleg < 2004:
             mico = P.mico.entier 
             # TODO: règle relativement complexe à implémenter de la limite de cumul (voir site CNAV)
@@ -197,7 +197,7 @@ class RegimePrive(RegimeBase):
         else:
             mico_entier = P.mico.entier
             mico_maj = P.mico.entier_maj
-            RG_exclusif = ( pension_RG == pension) | (trim <= N_taux)
+            RG_exclusif = ( pension_RG == pension) | (trim <= n_trim)
             mico_RG = mico_entier + minimum(1, divide(trim_cot, P.N_CP))*(mico_maj - mico_entier)
             mico =  mico_RG*( RG_exclusif + (1 - RG_exclusif)*divide(trim_RG, trim))
             return maximum(0, mico - pension_RG)

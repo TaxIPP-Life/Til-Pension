@@ -90,7 +90,7 @@ class FonctionPublique(RegimeBase):
         P = self.P.public.fp
         trimesters = trim_wage_regime['trimesters']
         trim_maj = trim_wage_regime['maj']
-        N_CP = P.plein.N_taux
+        N_CP = P.plein.n_trim
         trim_regime = trimesters['regime'].sum(1)
         trim_bonif_5eme = trim_maj['5eme']
         CP_5eme = minimum(divide(trim_regime + trim_bonif_5eme, N_CP), 1)
@@ -113,11 +113,11 @@ class FonctionPublique(RegimeBase):
             P = reduce(getattr, self.param_name.split('.'), self.P)
             tx_decote = P.decote.taux
             age_annulation = P.decote.age_null
-            N_taux = P.plein.N_taux
+            n_trim = P.plein.n_trim
             agem = data.info_ind['agem']
             trim_decote_age = divide(age_annulation - agem, 3)
             trim_tot = trimesters['tot'].sum(1) + trim_maj['tot']
-            trim_decote_cot = N_taux - trim_tot
+            trim_decote_cot = n_trim - trim_tot
             assert len(trim_decote_age) == len(trim_decote_cot)
             trim_decote = maximum(0, minimum(trim_decote_age, trim_decote_cot))
         return trim_decote*tx_decote

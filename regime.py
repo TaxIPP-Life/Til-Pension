@@ -67,9 +67,9 @@ class Regime(object):
         #TODO: do something better with datesim
         datesim = self.dateleg.liam
         P = reduce(getattr, self.param_name.split('.'), self.P)
-        N_taux = array(P.plein.N_taux)
+        n_trim = array(P.plein.n_trim)
         cumul_trim = trim_by_year_tot.array.cumsum(axis=1)
-        trim_limit = array((N_taux - nan_to_num(trim_maj)))
+        trim_limit = array((n_trim - nan_to_num(trim_maj)))
         years_surcote_trim = greater(cumul_trim.T,trim_limit)
         nb_years_surcote_trim = years_surcote_trim.sum(axis=0)
         start_surcote = [int(datesim - year_surcote*100)
@@ -134,7 +134,7 @@ class Regime(object):
             to_check['taux_' + reg] = taux*(trim_regime>0)
             to_check['salref_' + reg] = salref
             P = reduce(getattr, self.param_name.split('.'), self.P)
-            to_check['N_taux_' + reg] = P.plein.N_taux // 4
+            to_check['n_trim_' + reg] = P.plein.n_trim // 4
             try:
                 to_check['N_CP_' + reg] = P.N_CP // 4
             except:
@@ -207,7 +207,7 @@ class RegimeComplementaires(Regime):
         P = reduce(getattr, self.param_name.split('.'), self.P)
         coef_mino = P.coef_mino
         age_annulation_decote = self.P.prive.RG.decote.age_null
-        N_taux = self.P.prive.RG.plein.N_taux
+        n_trim = self.P.prive.RG.plein.n_trim
         diff_age = maximum(divide(age_annulation_decote - agem, 12), 0)
         coeff_min = Series(zeros(len(agem)), index=agem.index)
         coeff_maj = Series(zeros(len(agem)), index=agem.index)
@@ -221,7 +221,7 @@ class RegimeComplementaires(Regime):
             return coeff_min
         elif yearleg >= 1983:
             # A partir de cette date, la minoration ne s'applique que si la durée de cotisation au régime général est inférieure à celle requise pour le taux plein
-            return  coeff_min*(N_taux > trim) + (N_taux <= trim)        
+            return  coeff_min*(n_trim > trim) + (n_trim <= trim)        
     
     def majoration_enf(self):     
         raise NotImplementedError
