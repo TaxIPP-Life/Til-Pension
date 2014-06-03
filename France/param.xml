@@ -2902,14 +2902,6 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 			    <VALUE valeur="171" deb="2014-01-01" fin="2100-12-31"/>
 			  </VALEUR>
 			</TRANCHE>
-			<TRANCHE code ="tranche18">
-		      <SEUIL>
-	  	        <VALUE valeur="1970-01-01" deb="2014-01-01" fin="2100-12-31"/>
-			  </SEUIL>
-			  <VALEUR>
-			    <VALUE valeur="172" deb="2014-01-01" fin="2100-12-31"/>
-			  </VALEUR>
-			</TRANCHE>
 		</VALBYTRANCHES> 
 	  </NODE>
 	  <CODE description="Valeur du taux bonifié" code="taux_bonif" format="percent">
