@@ -112,7 +112,12 @@ class PensionSimulation(object):
             return pension_reg # TODO: define the output        
         
              
-    def main(self, sali, workstate, info_ind, yearleg, time_step='year', to_check=False):
-        self.load_data_from_pieces(sali, workstate, info_ind)
+    def main(self, data, yearleg, time_step='year', to_check=False):
+        if data is not None:
+            self.data = data
         self.load_param(yearleg)
         self.evaluate(time_step='year', to_check=False)
+
+    def profile_main(self, data, yearleg, time_step='year', to_check=False):
+        command = """self.main(data, yearleg, time_step, to_check)"""
+        cProfile.runctx( command, globals(), locals(), filename="profile_pension" + str(yearleg))
