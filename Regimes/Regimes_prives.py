@@ -36,7 +36,7 @@ class RegimeGeneral(RegimePrive):
         
         info_ind = data.info_ind
         
-        salref = build_salref_bareme(self.P_longit.common, data.initial_date.year, data.last_date.year + 1)
+        salref = build_salref_bareme(self.P_longit.common, data.first_date.year, data.last_date.year + 1)
         trimesters['cot'], wages['cot'] = validation_trimestre(data, self.code_regime, salref)
         trimesters['ass'], _ = trim_ass_by_year(data, self.code_regime, compare_destinie)
         
