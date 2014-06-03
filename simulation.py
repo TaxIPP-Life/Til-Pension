@@ -1,10 +1,6 @@
 # -*- coding: utf-8 -*-
-import numpy as np
-import pandas as pd
-import sys
-import datetime as dt
-import time
 
+import datetime as dt
 from pandas import DataFrame
 
 from Regimes.Fonction_publique import FonctionPublique
@@ -111,14 +107,12 @@ class PensionSimulation(object):
     
         if to_check == True:
             #pd.DataFrame(to_check).to_csv('resultat2004.csv')
-            return pd.DataFrame(dict_to_check)
+            return DataFrame(dict_to_check)
         else:
             return pension_reg # TODO: define the output        
         
              
-    def main(self, sali, workstate, info_ind, yearleg, yearsim=None, time_step='year', to_check=False):
-        self.load_data_from_pieces(sali, workstate, info_ind, yearsim)
+    def main(self, sali, workstate, info_ind, yearleg, time_step='year', to_check=False):
+        self.load_data_from_pieces(sali, workstate, info_ind)
         self.load_param(yearleg)
-        self.evaluate()
-        
-
+        self.evaluate(time_step='year', to_check=False)
