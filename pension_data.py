@@ -12,34 +12,43 @@ class PensionData(object):
     '''
     Class à envoyer à Simulation de Til-pension
     '''
-    def __init__(self, workstate, sali, info_ind, datesim=None): 
+    def __init__(self, workstate, sali, info_ind): 
         assert isinstance(workstate, TimeArray)
         assert isinstance(sali, TimeArray)
-        assert workstate.dates == sali.dates
-        
         self.workstate = workstate
         self.sali = sali
         self.info_ind = info_ind
         
-        if datesim is None: 
-            datesim = max(sali.dates)
-        datesim = DateTil(datesim)
-        self.datesim = datesim
         
-        assert sorted(sali.dates) == sali.dates
-        self.initial_date = DateTil(sali.dates[0])
+        assert workstate.dates == sali.dates
+        dates = sali.dates
+        assert sorted(dates) == dates
+        self.last_date = None #intialisation for assertion in set_dates
+        self.set_dates(dates)
         
-        if 'date_liquidation' not in info_ind.columns:
-            self.info_ind['date_liquidation'] = datesim.datetime
+        try:
+            if 'date_liquidation' not in info_ind.columns:
+                self.info_ind['date_liquidation'] = self.last_date.datetime
+        except:
+            import pdb
+            pdb.set_trace()
+    def set_dates(self, dates):
+        self.dates = dates
+        # on ne change pas last_date pour ne pas avoir d'incohérence avec date_liquidation
+        if self.last_date is not None and DateTil(dates[-1]).liam != self.last_date.liam:
+            raise Exception("Impossible to change last_date of a data_frame")
+        self.last_date = DateTil(dates[-1])
+        self.first_date = DateTil(dates[0])
         
     def selected_dates(self, first=None, last=None, date_type='year', inplace=False):
         ''' cf TimeArray '''
         if inplace:
             self.workstate.selected_dates(first, last, date_type, inplace=True)
             self.sali.selected_dates(first, last, date_type, inplace=True)
+            self.set_dates(self.sali.dates)
         else:
-            wk = self.workstate.selected_dates(first, last, date_type, False)
-            sal = self.sali.selected_dates(first, last, date_type, False)
+            wk = self.workstate.selected_dates(first, last, date_type)
+            sal = self.sali.selected_dates(first, last, date_type)
             return PensionData(wk, sal, self.info_ind)
         
     def translate_frequency(self, output_frequency='month', method=None, inplace=False):
@@ -47,13 +56,14 @@ class PensionData(object):
         if inplace:
             self.workstate.translate_frequency(output_frequency, method, inplace=True)
             self.sali.translate_frequency(output_frequency, method, inplace=True)
+            self.set_dates(self.sali.dates)
         else:
-            wk = self.workstate.translate_frequency(output_frequency, method, False)
-            sal = self.sali.translate_frequency(output_frequency, method, False)
+            wk = self.workstate.translate_frequency(output_frequency, method)
+            sal = self.sali.translate_frequency(output_frequency, method)
             return PensionData(wk, sal, self.info_ind)
 
     @classmethod
-    def from_arrays(cls, workstate, sali, info_ind, datesim=None):
+    def from_arrays(cls, workstate, sali, info_ind):
         if isinstance(sali, DataFrame):
             assert isinstance(workstate, DataFrame)
             try:
@@ -83,5 +93,5 @@ class PensionData(object):
             sali = TimeArray(sali, dates, name='sali')
             workstate = TimeArray(workstate, dates, name='workstate')
             
-        return PensionData(workstate, sali, info_ind, datesim)
+        return PensionData(workstate, sali, info_ind)
         

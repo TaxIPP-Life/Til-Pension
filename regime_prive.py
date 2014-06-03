@@ -39,7 +39,7 @@ class RegimePrive(RegimeBase):
         P = reduce(getattr, self.param_name_bis.split('.'), self.P)
         nb_best_years_to_take = P.nb_years
         first_year_sal = min(data.workstate.dates) // 100
-        yearsim = data.datesim.year
+        yearsim = data.last_date.year
         plafond = build_long_values(param_long=self.P_longit.common.plaf_ss, first_year=first_year_sal, last_year=yearsim + 1)
         revalo = build_long_values(param_long=self.P_longit.prive.RG.revalo, first_year=first_year_sal, last_year=yearsim + 1)
      

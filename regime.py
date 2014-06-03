@@ -176,7 +176,7 @@ class RegimeComplementaires(Regime):
         workstate = data.workstate
         sali = data.sali
         
-        yearsim = data.datesim.year
+        yearsim = data.last_date.year
         last_year_sali = yearsim - 1
         sali_plaf = self.sali_for_regime(data)
         if last_year == None:

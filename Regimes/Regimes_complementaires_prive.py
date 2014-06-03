@@ -53,7 +53,7 @@ class AGIRC(RegimeComplementaires):
         val_point = P.val_point
         majo_born = val_point*points_born
         majo_pac = val_point*points_pac
-#        yearnaiss = self.datesim.year - divide(agem, 12)
+#        yearnaiss = self.last_date.year - divide(agem, 12)
 #        if yearnaiss <= 1951:
 #            plafond = P.maj_enf.plaf_pac
 #            majo_pac = minimum(majo_pac, plafond)
@@ -82,7 +82,7 @@ class ARRCO(RegimeComplementaires):
         noncadre_selection = (workstate.array == self.code_noncadre)
         sali = sali.array
         plaf_ss = self.P_longit.common.plaf_ss
-        pss = build_long_values(plaf_ss, first_year=first_year_sal, last_year=data.datesim.year + 1) 
+        pss = build_long_values(plaf_ss, first_year=first_year_sal, last_year=data.last_date.year + 1) 
         plaf_sali = minimum(sali, nb_pss*pss)
         return sali*noncadre_selection + plaf_sali*cadre_selection
         

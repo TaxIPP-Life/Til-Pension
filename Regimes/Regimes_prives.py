@@ -36,13 +36,13 @@ class RegimeGeneral(RegimePrive):
         
         info_ind = data.info_ind
         
-        salref = build_salref_bareme(self.P_longit.common, data.initial_date.year, data.datesim.year + 1)
+        salref = build_salref_bareme(self.P_longit.common, data.initial_date.year, data.last_date.year + 1)
         trimesters['cot'], wages['cot'] = validation_trimestre(data, self.code_regime, salref)
         trimesters['ass'], _ = trim_ass_by_year(data, self.code_regime, compare_destinie)
         
         data_avpf = data.selected_dates(first_year_avpf)
         data_avpf.sali = imput_sali_avpf(data_avpf, code_avpf, self.P_longit, compare_destinie)
-        salref = build_salref_bareme(self.P_longit.common, first_year_avpf, data.datesim.year + 1)
+        salref = build_salref_bareme(self.P_longit.common, first_year_avpf, data.last_date.year + 1)
         # Allocation vieillesse des parents au foyer : nombre de trimestres attribués 
         trimesters['avpf'], wages['avpf'] = validation_trimestre(data_avpf, code_avpf, salref + 1)
         P_mda = self.P.prive.RG.mda
@@ -68,7 +68,7 @@ class RegimeSocialIndependants(RegimePrive):
         sali = data.sali
         
         reduce_data = data.selected_dates(first=first_year_indep)
-        salref = build_salref_bareme(self.P_longit.common, first_year_indep, data.datesim.year + 1)
+        salref = build_salref_bareme(self.P_longit.common, first_year_indep, data.last_date.year + 1)
         trimesters['cot'], _ = validation_trimestre(reduce_data, self.code_regime, salref)
 
         # TODO : pour l'instant tous les trimestres assimilés sont imputés au RG
