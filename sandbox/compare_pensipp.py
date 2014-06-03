@@ -74,14 +74,14 @@ def load_from_Rdata(path, to_csv=False):
     result_pensipp.rename(columns= {'dec': 'decote_RG', 'surc': 'surcote_RG', 'taux': 'taux_RG', 'sam':'salref_RG', 'pliq_rg': 'pension_RG',
                                      'prorat' : 'CP_RG', 'pts_ar' : 'nb_points_arrco', 'pts_ag' : 'nb_points_agirc', 'pliq_ar' :'pension_arrco',
                                      'pliq_ag' :'pension_agirc', 'DA_rg_maj': 'DA_RegimeGeneral', 'taux_rg': 'taux_RG', 'pliq_fp': 'pension_FP',
-                                     'taux_fp': 'taux_FP', 'DA_fp':'DA_FonctionPublique', 'DA_in' : 'DA_RSI_brute', 'DA_in_maj' : 'DA_RegimeSocialIndependants',
-                                     'DAcible_rg': 'N_taux_RG', 'DAcible_fp':'N_taux_FP', 'CPcible_rg':'N_CP_RG'},
+                                     'taux_fp': 'taux_FP', 'DA_fp_maj':'DA_FonctionPublique', 'DA_in' : 'DA_RSI_brute', 'DA_in_maj' : 'DA_RegimeSocialIndependants',
+                                     'DAcible_rg': 'n_trim_RG', 'DAcible_fp':'n_trim_FP', 'CPcible_rg':'N_CP_RG'},
                                     inplace = True)     
     if to_csv:
         for table in ['info', 'info_child', 'salaire', 'statut', 'result_pensipp']:
             temp = eval(table)
             temp.to_csv(pensipp_comparison_path + table + '.csv', sep =',')
-   
+            
     return info, info_child, salaire, statut, result_pensipp
 
 def compare_til_pensipp(pensipp_comparison_path, var_to_check_montant, var_to_check_taux, threshold):
@@ -116,7 +116,7 @@ def compare_til_pensipp(pensipp_comparison_path, var_to_check_montant, var_to_ch
         simul_til.evaluate()
         result_til_year = simul_til.evaluate(to_check=True)
         result_til.loc[result_til_year.index, :] = result_til_year
-        result_til.loc[result_til_year.index,'yearliq'] = yearsim
+        result_til.loc[result_til_year.index, 'yearliq'] = yearsim
 
     def _check_var(var, threshold, var_conflict, var_not_implemented):
         if var not in result_til.columns:
@@ -125,8 +125,9 @@ def compare_til_pensipp(pensipp_comparison_path, var_to_check_montant, var_to_ch
         if var not in result_pensipp.columns:
             print("La variable {} n'est pas bien implémenté dans Til".format(var))
             var_not_implemented += [var]
-        til_var = result_til[var]
-        pensipp_var = result_pensipp[var]
+        
+        til_var = result_til.loc[:,var]
+        pensipp_var = result_pensipp.loc[:,var]
         conflict = ((til_var - pensipp_var).abs() > threshold)
         if conflict.any():
             var_conflict += [var]
@@ -154,7 +155,7 @@ if __name__ == '__main__':
     var_to_check_montant = [ u'pension_RG', u'salref_RG', u'DA_RegimeGeneral', u'DA_RegimeSocialIndependants', 
                             u'nb_points_arrco', u'nb_points_agirc', u'pension_arrco', u'pension_agirc',
                             u'DA_FonctionPublique', u'pension_FP',
-                            u'N_taux_RG', 'N_CP_RG', 'N_taux_FP'
+                            u'n_trim_RG', 'N_CP_RG', 'n_trim_FP'
                             ] 
     var_to_check_taux = [u'taux_RG', u'surcote_RG', u'decote_RG', u'CP_RG',
                          u'taux_FP'

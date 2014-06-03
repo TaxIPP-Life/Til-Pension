@@ -8,20 +8,10 @@ import datetime as dt
 from numpy import array, ones, zeros
 from pandas import DataFrame
 
-from datetime import date
 from xml.etree import ElementTree
 from Param import legislations_add_pension as legislations
 from Param import legislationsxml_add_pension as  legislationsxml
 from openfisca_core import conv
-
-def sum_by_years(table):
-    years = set([x//100 for x in table.columns])
-    years_columns = [100*year + 1 for year in years]
-    output = table.loc[:,years_columns]
-    for month in range(1,12):
-        month_to_add = [year + month for year in years_columns]
-        output += table.loc[:, month_to_add].values
-    return output
 
 
 def substract_months(sourcedate, months):
@@ -31,7 +21,6 @@ def substract_months(sourcedate, months):
     month = month % 12 + 1
     day = min(sourcedate.day,calendar.monthrange(year,month)[1])
     return dt.date(year,month,day)
-
 
 def build_long_values(param_long, first_year, last_year):   
     ''' Cette fonction permet de traduire les paramètres longitudinaux en vecteur numpy 
@@ -70,7 +59,6 @@ def build_long_baremes(bareme_long, first_year, last_year, scale=None):
             baremes[year] = scaleBaremes(baremes[year], val_scale)
     return baremes
 
-
 def build_salref_bareme(bareme_long, first_year, last_year, scale=None):
     '''
     salaire trimestriel de référence minimum
@@ -92,7 +80,6 @@ def build_salref_bareme(bareme_long, first_year, last_year, scale=None):
         if not avts_year:
             avts_year = avts_old
         salmin.loc[salmin['year'] == year, 'sal'] = avts_long[avts_year[0]] 
-        
     #TODO: Trancher si on calcule les droits à retraites en incluant le travail à l'année de simulation pour l'instant
     #non (ex : si datesim = 2009 on considère la carrière en emploi jusqu'en 2008)
     for year in range(1972, last_year):
@@ -115,20 +102,6 @@ def build_naiss(agem, datesim):
     ''' Détermination de la date de naissance à partir de l'âge et de la date de simulation '''
     naiss = agem.apply(lambda x: substract_months(datesim, int(x)))
     return naiss
-
-def table_selected_dates(table, dates, first_year=None, last_year=None):
-    ''' La table d'input dont les colonnes sont des dates est renvoyées emputée des années postérieures à last_year (last_year non-incluse) 
-    et antérieures à first_year (first_year incluse) '''
-    try:
-        idx1 = dates.index(100*first_year + 1)
-    except:
-        idx1 = 0
-    try:
-        idx2 = dates.index(100*(last_year + 1) + 1)
-    except:
-        idx2 = len(dates)
-    idx_to_take = range(idx1, idx2)
-    return table[:,idx_to_take]
 
 def load_param(param_file, info_ind, date):
     ''' It's a simplification of an (old) openfisca program '''

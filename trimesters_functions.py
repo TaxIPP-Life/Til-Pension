@@ -5,7 +5,7 @@ Created on 30 mai 2014
 
 @author: aeidelman
 '''
-from numpy import maximum, minimum, array, nonzero, divide, transpose, zeros, isnan, around, multiply
+from numpy import maximum, minimum, array, nonzero, divide, transpose, zeros, isnan, around, multiply, greater, where
 from pandas import Series
 
 from utils_pension import build_long_values, build_salref_bareme
@@ -122,3 +122,34 @@ def nb_trim_bonif_5eme(trim):
     bonif_5eme = minimum(trim*taux_5eme, 5*4)
     return array(bonif_5eme*super_actif)
 
+
+def nb_trim_surcote(trim_by_year, date_start_surcote, first_year_surcote=None, last_year_surcote=None):
+    ''' Cette fonction renvoie le vecteur numpy du nombre de trimestres surcotés entre la first_year_surcote et la last_year_surcote grâce à :
+    - la table du nombre de trimestre comptablisé au sein du régime par année : trim_by_year.array
+    - le vecteur des dates (format yyyymm) à partir desquelles les individus surcote (détermination sur cotisations tout régime confondu)
+    '''
+    trim_selected = trim_by_year.selected_dates(first=first_year_surcote, last=last_year_surcote)
+    yearmax = max(trim_selected.dates)
+    yearmin = min(date_start_surcote) 
+    # Possible dates for surcote :
+    dates_surcote = [date for date in trim_selected.dates
+                      if date >= yearmin]
+    nb_trim = zeros(len(date_start_surcote))
+    for date in dates_surcote:
+        to_keep = where(greater(date, date_start_surcote))[0]
+        ix_date = trim_selected.dates.index(yearmax)
+        if to_keep.any():
+            nb_trim[to_keep] += trim_selected.array[to_keep, ix_date]
+    return nb_trim
+
+def nb_trim_decote(trimesters, trim_maj, agem, P):
+    ''' Cette fonction renvoie le vecteur numpy du nombre de trimestres décotés 
+    lorsque les deux règles (d'âge et de nombre de trimestres cibles) jouent
+    '''
+    age_annulation = P.decote.age_null
+    n_trim = P.plein.n_trim
+    trim_decote_age = divide(age_annulation - agem, 3)
+    trim_tot = trimesters['tot'].sum(1) + trim_maj['tot']
+    trim_decote_cot = n_trim - trim_tot
+    assert len(trim_decote_age) == len(trim_decote_cot)
+    return maximum(0, minimum(trim_decote_age, trim_decote_cot))

@@ -9,9 +9,9 @@ from numpy import maximum, minimum, array, nonzero, divide, transpose, zeros
 from pandas import Series
 
 from regime import RegimeBase, compare_destinie
-from pension_functions import nb_trim_surcote
+from trimesters_functions import nb_trim_surcote
 from utils_pension import print_multi_info_numpy, _info_numpy
-from trimesters_functions import trim_cot_by_year_FP, nb_trim_bonif_5eme, trim_mda
+from trimesters_functions import trim_cot_by_year_FP, nb_trim_bonif_5eme, trim_mda, nb_trim_surcote, nb_trim_decote
 from time_array import TimeArray
 
 code_avpf = 8
@@ -90,7 +90,7 @@ class FonctionPublique(RegimeBase):
         P = self.P.public.fp
         trimesters = trim_wage_regime['trimesters']
         trim_maj = trim_wage_regime['maj']
-        N_CP = P.plein.N_taux
+        N_CP = P.plein.n_trim
         trim_regime = trimesters['regime'].sum(1)
         trim_bonif_5eme = trim_maj['5eme']
         CP_5eme = minimum(divide(trim_regime + trim_bonif_5eme, N_CP), 1)
@@ -111,28 +111,20 @@ class FonctionPublique(RegimeBase):
             return zeros(data.info_ind.shape[0])
         else:
             P = reduce(getattr, self.param_name.split('.'), self.P)
-            tx_decote = P.decote.taux
-            age_annulation = P.decote.age_null
-            N_taux = P.plein.N_taux
             agem = data.info_ind['agem']
-            trim_decote_age = divide(age_annulation - agem, 3)
-            trim_tot = trimesters['tot'].sum(1) + trim_maj['tot']
-            trim_decote_cot = N_taux - trim_tot
-            assert len(trim_decote_age) == len(trim_decote_cot)
-            trim_decote = maximum(0, minimum(trim_decote_age, trim_decote_cot))
-        return trim_decote*tx_decote
+            trim_decote = nb_trim_decote(trimesters, trim_maj, agem, P)
+            return P.decote.taux*trim_decote
         
     def _calculate_surcote(self, trim_wage_regime, trim_wage_all, date_start_surcote, age):
         ''' Détermination de la surcote à appliquer aux pensions '''
         yearsim = self.dateleg.year
         trimesters = trim_wage_regime['trimesters']
-        if yearsim < 2004:
+        if yearsim < 2005:
             return age*0
         else:
             P = reduce(getattr, self.param_name.split('.'), self.P)
-            taux_surcote = P.surcote.taux
-            nb_trim = nb_trim_surcote(trimesters['regime'], date_start_surcote)
-            return taux_surcote*nb_trim
+            return P.surcote.taux*nb_trim_surcote(trimesters['regime'], date_start_surcote,
+                                                  first_year_surcote=2004)
 
     def calculate_salref(self, data, regime):
         last_fp_idx = data.workstate.idx_last_time_in(self.code_regime)
