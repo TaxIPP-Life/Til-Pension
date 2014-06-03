@@ -36,14 +36,19 @@ def build_info_child(enf, info_ind):
 def load_from_csv(path):
     ''' the csv are directly produce after executing load_from_Rdata 
             - we don't need to work on columns names'''
-    statut = read_table(path + 'statut.csv')
-    salaire = read_table(path + 'salaire.csv')
-    info = read_table(path + 'info.csv')
-    info_child = read_table(path + 'info_childe.csv')
-    result_pensipp = read_table(path + 'output2.csv')
+    statut = read_table(path + 'statut.csv', sep=',', index_col=0)
+    salaire = read_table(path + 'salaire.csv', sep=',', index_col=0)
+    info = read_table(path + 'info.csv', sep=',', index_col=0)
+    info_child = read_table(path + 'info_child.csv', sep=',', index_col=0)
+    # is read_table not able to convert directly to datetime
+    info_child['naiss'] = [datetime.date(int(date[0:4]),int(date[5:7]),int(date[8:10])) for date in info_child['naiss']]
+    info['naiss'] = [datetime.date(int(year),1,1) for year in info['t_naiss']]
+    result_pensipp = read_table(path + 'result_pensipp.csv', sep=',', index_col=0)
+    for table in [salaire, statut]:
+        table.columns = [int(col) for col in table.columns]
     return info, info_child, salaire, statut, result_pensipp
 
-def load_from_Rdata(path):
+def load_from_Rdata(path, to_csv=False):
     import pandas.rpy.common as com
     import datetime
     from rpy2 import robjects as r
@@ -72,19 +77,19 @@ def load_from_Rdata(path):
                                      'taux_fp': 'taux_FP', 'DA_fp':'DA_FonctionPublique', 'DA_in' : 'DA_RSI_brute', 'DA_in_maj' : 'DA_RegimeSocialIndependants',
                                      'DAcible_rg': 'N_taux_RG', 'DAcible_fp':'N_taux_FP', 'CPcible_rg':'N_CP_RG'},
                                     inplace = True)     
-#    # to_csv
-#    for table in ['info', 'info_child', 'salaire', 'statut', 'result_pensipp']:
-#        temp = eval(table)
-#        temp.to_csv(pensipp_comparison_path + table + '.csv', sep =',')
+    if to_csv:
+        for table in ['info', 'info_child', 'salaire', 'statut', 'result_pensipp']:
+            temp = eval(table)
+            temp.to_csv(pensipp_comparison_path + table + '.csv', sep =',')
    
     return info, info_child, salaire, statut, result_pensipp
 
 def compare_til_pensipp(pensipp_comparison_path, var_to_check_montant, var_to_check_taux, threshold):
-     
     try: 
         info, info_child, salaire, statut, result_pensipp = load_from_csv(pensipp_comparison_path)
     except:
-        info, info_child, salaire, statut, result_pensipp = load_from_Rdata(pensipp_comparison_path)
+        print(" le load from csv n'a pas marché")
+        info, info_child, salaire, statut, result_pensipp = load_from_Rdata(pensipp_comparison_path, to_csv=True)
     result_til = pd.DataFrame(columns = var_to_check_montant + var_to_check_taux, index = result_pensipp.index)
     
     for year in range(2004,2005):
@@ -92,7 +97,7 @@ def compare_til_pensipp(pensipp_comparison_path, var_to_check_montant, var_to_ch
         dates_to_col = [ year*100 + 1 for year in range(1901,2061)]
         col_to_keep = [date for date in dates_to_col if date < (year*100 + 1) and date >= 194901]
         info.loc[:,'agem'] =  (year - info['t_naiss'])*12
-        select_id = (info.loc[:,'agem'] ==  63 * 12)
+        select_id = (info.loc[:,'agem'] ==  12*63)
         id_selected = select_id[select_id == True].index
         sali = salaire.loc[select_id, col_to_keep]
         workstate = statut.loc[select_id, col_to_keep]
