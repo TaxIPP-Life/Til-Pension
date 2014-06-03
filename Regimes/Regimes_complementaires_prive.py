@@ -82,7 +82,7 @@ class ARRCO(RegimeComplementaires):
         noncadre_selection = (workstate.array == self.code_noncadre)
         sali = sali.array
         plaf_ss = self.P_longit.common.plaf_ss
-        pss = build_long_values(plaf_ss, first_year=first_year_sal, last_year=data.datesim.year) 
+        pss = build_long_values(plaf_ss, first_year=first_year_sal, last_year=data.datesim.year + 1) 
         plaf_sali = minimum(sali, nb_pss*pss)
         return sali*noncadre_selection + plaf_sali*cadre_selection
         

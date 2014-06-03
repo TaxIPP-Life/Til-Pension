@@ -40,8 +40,8 @@ class RegimePrive(RegimeBase):
         nb_best_years_to_take = P.nb_years
         first_year_sal = min(data.workstate.dates) // 100
         yearsim = data.datesim.year
-        plafond = build_long_values(param_long=self.P_longit.common.plaf_ss, first_year=first_year_sal, last_year=yearsim)
-        revalo = build_long_values(param_long=self.P_longit.prive.RG.revalo, first_year=first_year_sal, last_year=yearsim)
+        plafond = build_long_values(param_long=self.P_longit.common.plaf_ss, first_year=first_year_sal, last_year=yearsim + 1)
+        revalo = build_long_values(param_long=self.P_longit.prive.RG.revalo, first_year=first_year_sal, last_year=yearsim + 1)
      
         for i in range(1, len(revalo)) :
             revalo[:i] *= revalo[i]
@@ -149,9 +149,7 @@ class RegimePrive(RegimeBase):
             trim_selected = trim_by_year_RG.selected_dates(first=2004, last=2009)
             #agemin = agem.copy()
             age_start_surcote = 65*12 
-            
-            date_start_surcote_65 = self._date_start_surcote(trim_by_year_tot, trim_maj, age, age_start_surcote)
-
+            date_start_surcote_65 = self._date_start_surcote(trim_by_year_tot, trim_maj['DA'], age, age_start_surcote)
             nb_trim_65 = nb_trim_surcote(trim_selected, date_start_surcote_65)
             nb_trim = nb_trim_surcote(trim_selected, date_start_surcote) 
             nb_trim = nb_trim - nb_trim_65
