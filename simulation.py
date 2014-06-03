@@ -76,7 +76,7 @@ class PensionSimulation(object):
                                 )
         self.param = None
         
-    def load_data_from_pieces(self, workstate, sali, info_ind, yearsim=None):
+    def load_data_from_pieces(self, workstate, sali, info_ind):
         ''' generate data
             table are taken only since first_year_sal
             and until yearsim if yearsim is not None
@@ -87,16 +87,11 @@ class PensionSimulation(object):
         if max(info_ind.loc[:,'sexe']) == 2:
             info_ind.loc[:,'sexe'] = info_ind.loc[:,'sexe'].replace(1,0)
             info_ind.loc[:,'sexe'] = info_ind.loc[:,'sexe'].replace(2,1)
-        
-        #TODO: faire mieux sur les dates
-        yearsim = dates[-1]//100
+        yearsim = sali.dates[-1]
         info_ind.loc[:,'naiss'] = build_naiss(info_ind.loc[:,'agem'], dt.date(yearsim,1,1))
         
-        data = PensionData.from_arrays(workstate, sali, info_ind, yearsim)
-        if yearsim:
-            data.selected_dates(first=first_year_sal, last=yearsim + 1, inplace=True)
-        else:
-            data.selected_dates(first=first_year_sal, inplace=True)
+        data = PensionData.from_arrays(workstate, sali, info_ind)
+        data.selected_dates(first=first_year_sal, inplace=True)
         self.data = data
         
     def load_param(self, yearleg):
@@ -166,3 +161,4 @@ class PensionSimulation(object):
         self.load_param(yearleg)
         self.evaluate()
         
+
