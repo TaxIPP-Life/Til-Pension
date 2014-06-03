@@ -60,7 +60,8 @@ def load_from_Rdata(path):
                                      'pliq_ag' :'pension_agirc', 'DA_rg_maj': 'DA_RegimeGeneral', 'taux_rg': 'taux_RG', 'pliq_fp': 'pension_FP',
                                      'taux_fp': 'taux_FP', 'DA_fp':'DA_FonctionPublique', 'DA_in' : 'DA_RSI_brute', 'DA_in_maj' : 'DA_RegimeSocialIndependants',
                                      'DAcible_rg': 'N_taux_RG', 'DAcible_fp':'N_taux_FP', 'CPcible_rg':'N_CP_RG'},
-                                    inplace = True)        
+                                    inplace = True) 
+      
     return info, info_child, salaire, statut, result_pensipp
 
 def compare_til_pensipp(pensipp_comparison_path, var_to_check_montant, var_to_check_taux, threshold):
@@ -70,13 +71,11 @@ def compare_til_pensipp(pensipp_comparison_path, var_to_check_montant, var_to_ch
     
     for year in range(2004,2005):
         print year
-        dates_to_col = [ year*100 + 1 for year in range(1901,2061)]
-        col_to_keep = [date for date in dates_to_col if date < (year*100 + 1) and date >= 194901]
         info.loc[:,'agem'] =  (year - info['t_naiss'])*12
         select_id = (info.loc[:,'agem'] ==  63 * 12)
         id_selected = select_id[select_id == True].index
-        sali = salaire.loc[select_id, col_to_keep]
-        workstate = statut.loc[select_id, col_to_keep]
+        sali = salaire.loc[select_id,:]
+        workstate = statut.loc[select_id, :]
         info_child = _child_by_age(info_child, year, id_selected)
         nb_pac = count_enf_pac(info_child, info.index)
         nb_enf = count_enf_born(info_child, info.index)
@@ -85,7 +84,7 @@ def compare_til_pensipp(pensipp_comparison_path, var_to_check_montant, var_to_ch
         info_ind.loc[:,'nb_born'] = nb_enf
         result_til_year = run_pension(sali, workstate, info_ind, yearsim=year, time_step='year', to_check=True)
         result_til.loc[result_til_year.index, :] = result_til_year
-        result_til.loc[result_til_year.index,'yearliq'] = year
+        result_til.loc[result_til_year.index, 'yearliq'] = year
 
     def _check_var(var, threshold, var_conflict, var_not_implemented):
         if var not in result_til.columns:
@@ -94,8 +93,9 @@ def compare_til_pensipp(pensipp_comparison_path, var_to_check_montant, var_to_ch
         if var not in result_pensipp.columns:
             print("La variable {} n'est pas bien implémenté dans Til".format(var))
             var_not_implemented += [var]
-        til_var = result_til[var]
-        pensipp_var = result_pensipp[var]
+        
+        til_var = result_til.loc[:,var]
+        pensipp_var = result_pensipp.loc[:,var]
         conflict = ((til_var - pensipp_var).abs() > threshold)
         if conflict.any():
             var_conflict += [var]

@@ -126,7 +126,7 @@ class RegimePrive(RegimeBase):
         P = reduce(getattr, self.param_name.split('.'), self.P)
         trim_by_year_RG = trim_wage_regime['trimesters']['regime']
         if 'maj' in trim_wage_regime.keys() :
-            trim_maj = trim_wage_regime['maj']
+            trim_maj = trim_wage_regime['maj']['DA']
         else:
             trim_maj = 0
         trim_by_year_tot = trim_wage_all['trimesters']['tot']
