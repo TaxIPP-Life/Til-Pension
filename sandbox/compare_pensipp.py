@@ -94,13 +94,11 @@ def compare_til_pensipp(pensipp_comparison_path, var_to_check_montant, var_to_ch
     
     for yearsim in range(2004,2005):
         print(yearsim)
-        dates_to_col = [ year*100 + 1 for year in range(1901,2061)]
-        col_to_keep = [date for date in dates_to_col if date < (yearsim*100 + 1) and date >= 194901]
         info.loc[:,'agem'] =  (yearsim - info['t_naiss'])*12
         select_id = (info.loc[:,'agem'] ==  12*63)
         id_selected = select_id[select_id == True].index
-        sali = salaire.loc[select_id, col_to_keep]
-        workstate = statut.loc[select_id, col_to_keep]
+        sali = salaire.loc[select_id, :]
+        workstate = statut.loc[select_id, :]
         info_child = _child_by_age(info_child, yearsim, id_selected)
         nb_pac = count_enf_pac(info_child, info.index)
         nb_enf = count_enf_born(info_child, info.index)
