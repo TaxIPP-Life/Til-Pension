@@ -3,6 +3,7 @@
 import pandas as pd
 import sys
 import datetime
+from pandas import read_table
 
 from CONFIG_compare import path_pension, pensipp_comparison_path
 sys.path.append(path_pension)
@@ -32,6 +33,16 @@ def build_info_child(enf, info_ind):
     info_enf = info_enf.merge(info_ind[['naiss', 'id']], left_on='id_enf', right_on= 'id').drop(['id_x', 'id_y', 'enf'], axis=1)
     return info_enf
 
+def load_from_csv(path):
+    ''' the csv are directly produce after executing load_from_Rdata 
+            - we don't need to work on columns names'''
+    statut = read_table(path + 'statut.csv')
+    salaire = read_table(path + 'salaire.csv')
+    info = read_table(path + 'info.csv')
+    info_child = read_table(path + 'info_childe.csv')
+    result_pensipp = read_table(path + 'output2.csv')
+    return info, info_child, salaire, statut, result_pensipp
+
 def load_from_Rdata(path):
     import pandas.rpy.common as com
     import datetime
@@ -60,12 +71,20 @@ def load_from_Rdata(path):
                                      'pliq_ag' :'pension_agirc', 'DA_rg_maj': 'DA_RegimeGeneral', 'taux_rg': 'taux_RG', 'pliq_fp': 'pension_FP',
                                      'taux_fp': 'taux_FP', 'DA_fp':'DA_FonctionPublique', 'DA_in' : 'DA_RSI_brute', 'DA_in_maj' : 'DA_RegimeSocialIndependants',
                                      'DAcible_rg': 'N_taux_RG', 'DAcible_fp':'N_taux_FP', 'CPcible_rg':'N_CP_RG'},
-                                    inplace = True)        
+                                    inplace = True)     
+#    # to_csv
+#    for table in ['info', 'info_child', 'salaire', 'statut', 'result_pensipp']:
+#        temp = eval(table)
+#        temp.to_csv(pensipp_comparison_path + table + '.csv', sep =',')
+   
     return info, info_child, salaire, statut, result_pensipp
 
 def compare_til_pensipp(pensipp_comparison_path, var_to_check_montant, var_to_check_taux, threshold):
      
-    info, info_child, salaire, statut, result_pensipp = load_from_Rdata(pensipp_comparison_path)
+    try: 
+        info, info_child, salaire, statut, result_pensipp = load_from_csv(pensipp_comparison_path)
+    except:
+        info, info_child, salaire, statut, result_pensipp = load_from_Rdata(pensipp_comparison_path)
     result_til = pd.DataFrame(columns = var_to_check_montant + var_to_check_taux, index = result_pensipp.index)
     
     for year in range(2004,2005):
