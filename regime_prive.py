@@ -132,7 +132,7 @@ class RegimePrive(RegimeBase):
         trim_by_year_tot = trim_wage_all['trimesters']['tot']
         n_trim = P.plein.n_trim
       
-        def _trimestre_surcote_0304(trim_by_year_RG, date_start_surcote, P):
+        def _trimestre_surcote_03(trim_by_year_RG, date_start_surcote, P):
             ''' surcote associée aux trimestres côtisés en 2003 
             TODO : structure pas approprié pour les réformes du type 'et si on surcotait avant 2003, ça donnerait quoi?'''
             taux_surcote = P.taux_4trim
@@ -173,11 +173,11 @@ class RegimePrive(RegimeBase):
             trim_surcote = nb_trim_surcote(trim_by_year_RG, maximum(date_start_surcote, 100*2003 + 1))
             return trim_surcote*taux_surcote 
         elif yearleg < 2010:
-            surcote_03 = _trimestre_surcote_0304(trim_by_year_RG, date_start_surcote, P.surcote)
+            surcote_03 = _trimestre_surcote_03(trim_by_year_RG, date_start_surcote, P.surcote)
             surcote_0408 = _trimestre_surcote_0408(trim_by_year_RG, trim_by_year_tot, trim_maj, date_start_surcote, age, P.surcote)
             return surcote_03 + surcote_0408
         else:
-            surcote_03 = _trimestre_surcote_0304(trim_by_year_RG, date_start_surcote, P.surcote)
+            surcote_03 = _trimestre_surcote_03(trim_by_year_RG, date_start_surcote, P.surcote)
             surcote_0408 = _trimestre_surcote_0408(trim_by_year_RG, trim_by_year_tot, trim_maj, date_start_surcote, age, P.surcote)
             surcote_aft09 = _trimestre_surcote_after_09(trim_by_year_RG, date_start_surcote, P.surcote)
             return surcote_03 + surcote_0408 + surcote_aft09   
