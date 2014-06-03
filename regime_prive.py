@@ -12,7 +12,7 @@ from pandas import Series
 
 from regime import RegimeBase, compare_destinie
 from utils_pension import build_long_values, build_salref_bareme, _info_numpy, print_multi_info_numpy
-from trimesters_functions import nb_trim_surcote
+from trimesters_functions import nb_trim_surcote, nb_trim_decote
 code_avpf = 8
 #first_year_sal = 1949
 first_year_avpf = 1972
@@ -105,19 +105,13 @@ class RegimePrive(RegimeBase):
         trimesters = trim_wage_all['trimesters']
         trim_maj = trim_wage_all['maj']
         P = reduce(getattr, self.param_name.split('.'), self.P)
-        tx_decote = P.decote.taux
-        age_annulation = P.decote.age_null
-        n_trim = P.plein.n_trim
         agem = data.info_ind['agem']
         if yearleg < 1983:
+            age_annulation = P.decote.age_null
             trim_decote = max(divide(age_annulation - agem, 3), 0)
         else:
-            decote_age = maximum(divide(age_annulation - agem, 3), 0)
-            trim_tot = trimesters['tot'].sum(1) + trim_maj['tot']
-            decote_cot = maximum(n_trim - trim_tot, 0)
-            assert len(decote_age) == len(decote_cot)
-            trim_decote = minimum(decote_age, decote_cot)
-        return trim_decote*tx_decote
+            trim_decote = nb_trim_decote(trimesters, trim_maj, agem, P)
+        return P.decote.taux*trim_decote
         
     def _calculate_surcote(self, trim_wage_regime, trim_wage_all, date_start_surcote, age):
         ''' Détermination de la surcote à appliquer aux pensions '''
