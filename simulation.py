@@ -119,5 +119,8 @@ class PensionSimulation(object):
         return self.evaluate(time_step='year', to_check=to_check)
 
     def profile_main(self, data, yearleg, time_step='year', to_check=False):
-        command = """self.main(data, yearleg, time_step, to_check)"""
-        cProfile.runctx( command, globals(), locals(), filename="profile_pension" + str(yearleg))
+        prof = cProfile.Profile()
+        result =prof.runcall( self.main, *(data, yearleg, time_step, to_check))
+        prof.dump_stats("profile_pension" + str(yearleg))
+        return result
+        

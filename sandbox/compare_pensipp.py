@@ -109,7 +109,7 @@ def compare_til_pensipp(pensipp_comparison_path, var_to_check_montant, var_to_ch
         simul_til = PensionSimulation()
         data = PensionData.from_arrays(workstate, sali, info_ind)
         data_bounded = data.selected_dates(first=first_year_sal, last=yearsim + 1)
-        result_til_year = simul_til.main(data_bounded, yearsim, to_check=True)
+        result_til_year = simul_til.profile_main(data_bounded, yearsim, to_check=True)
         result_til.loc[result_til_year.index, :] = result_til_year
         result_til.loc[result_til_year.index, 'yearliq'] = yearsim
 
