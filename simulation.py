@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import datetime as dt
+import os
 from pandas import DataFrame
 
 from Regimes.Fonction_publique import FonctionPublique
@@ -46,7 +47,6 @@ class PensionSimulation(object):
             info_ind.loc[:,'sexe'] = info_ind.loc[:,'sexe'].replace(2,1)
         yearsim = sali.dates[-1]
         info_ind.loc[:,'naiss'] = build_naiss(info_ind.loc[:,'agem'], dt.date(yearsim,1,1))
-        
         data = PensionData.from_arrays(workstate, sali, info_ind)
         data.selected_dates(first=first_year_sal, inplace=True)
         self.data = data
@@ -54,9 +54,9 @@ class PensionSimulation(object):
     def load_param(self, yearleg):
         ''' should run after having a data'''
         assert self.data is not None
-        path_pension = 'C:\\Til-Pension\\' #TODO: have it with os.path.etc..
-        param_file = path_pension + 'France\\param.xml' #TODO: Amelioration
-        date_param = str(yearleg)+ '-05-01' #TODO: change for -01-01 ?
+        path_pension = os.path.dirname(os.path.abspath(__file__))
+        param_file = path_pension + '\\France\\param.xml'
+        date_param = str(yearleg)+ '-01-01'
         date_param = dt.datetime.strptime(date_param ,"%Y-%m-%d").date()
         P, P_longit = load_param(param_file, self.data.info_ind, date_param)
         self.param = P, P_longit
@@ -109,7 +109,7 @@ class PensionSimulation(object):
             #pd.DataFrame(to_check).to_csv('resultat2004.csv')
             return DataFrame(dict_to_check)
         else:
-            return pension_reg # TODO: define the output        
+            return pension_reg # TODO: define the output
         
              
     def main(self, data, yearleg, time_step='year', to_check=False):
