@@ -11,7 +11,7 @@ from pandas import Series
 from regime import RegimeBase, compare_destinie
 from trimesters_functions import nb_trim_surcote
 from utils_pension import print_multi_info_numpy, _info_numpy
-from trimesters_functions import trim_cot_by_year_FP, nb_trim_bonif_5eme, trim_mda, nb_trim_decote
+from trimesters_functions import trim_cot_by_year_FP, nb_trim_bonif_5eme, trim_mda
 
 code_avpf = 8
 code_chomage = 5
@@ -109,9 +109,8 @@ class FonctionPublique(RegimeBase):
         if yearleg < 2006:
             return zeros(data.info_ind.shape[0])
         else:
-            P = reduce(getattr, self.param_name.split('.'), self.P)
             agem = data.info_ind['agem']
-            trim_decote = nb_trim_decote(trimesters, trim_maj, agem, P)
+            trim_decote = self.nb_trim_decote(trimesters, trim_maj, agem)
             return P.decote.taux*trim_decote
         
     def _calculate_surcote(self, trim_wage_regime, trim_wage_all, date_start_surcote, age):

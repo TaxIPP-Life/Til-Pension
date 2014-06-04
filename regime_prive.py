@@ -12,7 +12,7 @@ from pandas import Series
 
 from regime import RegimeBase, compare_destinie
 from utils_pension import build_long_values, build_salref_bareme, _info_numpy, print_multi_info_numpy
-from trimesters_functions import nb_trim_surcote, nb_trim_decote
+from trimesters_functions import nb_trim_surcote
 code_avpf = 8
 first_year_avpf = 1972
 
@@ -110,7 +110,7 @@ class RegimePrive(RegimeBase):
             age_annulation = P.decote.age_null
             trim_decote = max(divide(age_annulation - agem, 3), 0)
         else:
-            trim_decote = nb_trim_decote(trimesters, trim_maj, agem, P)
+            trim_decote = self.nb_trim_decote(trimesters, trim_maj, agem)
         return P.decote.taux*trim_decote
         
     def _calculate_surcote(self, trim_wage_regime, trim_wage_all, date_start_surcote, age):

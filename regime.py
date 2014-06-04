@@ -96,6 +96,20 @@ class Regime(object):
 #         ''' Cette fonction renvoie le TimeArray ne contenant que les salaires validés avec workstate == code_regime'''
 #         wk_selection = workstate.isin(self.code_regime).array
 #         return TimeArray(wk_selection*sali.array, sali.dates, 'sal_regime')
+    def nb_trim_decote(self, trimesters, trim_maj, agem):
+        ''' Cette fonction renvoie le vecteur numpy du nombre de trimestres décotés 
+        lorsque les deux règles (d'âge et de nombre de trimestres cibles) jouent
+        '''
+        P = reduce(getattr, self.param_name.split('.'), self.P)
+        age_annulation = P.decote.age_null
+        plafond = P.decote.nb_trim_max
+        n_trim = P.plein.n_trim
+        trim_decote_age = divide(age_annulation - agem, 3)
+        trim_tot = trimesters['tot'].sum(1) + trim_maj['tot']
+        trim_decote_cot = n_trim - trim_tot
+        assert len(trim_decote_age) == len(trim_decote_cot)
+        trim_plaf = minimum(minimum(trim_decote_age, trim_decote_cot), plafond)
+        return maximum(0, trim_plaf)
     
     def calculate_taux(self, decote, surcote):
         ''' Détérmination du taux de liquidation à appliquer à la pension 

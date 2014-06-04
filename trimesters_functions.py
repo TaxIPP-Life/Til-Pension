@@ -142,16 +142,3 @@ def nb_trim_surcote(trim_by_year, date_start_surcote, first_year_surcote=None, l
             nb_trim[to_keep] += trim_selected.array[to_keep, ix_date]
     return nb_trim
 
-def nb_trim_decote(trimesters, trim_maj, agem, P):
-    ''' Cette fonction renvoie le vecteur numpy du nombre de trimestres décotés 
-    lorsque les deux règles (d'âge et de nombre de trimestres cibles) jouent
-    '''
-    age_annulation = P.decote.age_null
-    plafond = P.decote.nb_trim_max
-    n_trim = P.plein.n_trim
-    trim_decote_age = divide(age_annulation - agem, 3)
-    trim_tot = trimesters['tot'].sum(1) + trim_maj['tot']
-    trim_decote_cot = n_trim - trim_tot
-    assert len(trim_decote_age) == len(trim_decote_cot)
-    trim_plaf = minimum(minimum(trim_decote_age, trim_decote_cot), plafond)
-    return maximum(0, trim_plaf)
