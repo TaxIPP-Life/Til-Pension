@@ -116,7 +116,7 @@ class PensionSimulation(object):
         if data is not None:
             self.data = data
         self.load_param(yearleg)
-        self.evaluate(time_step='year', to_check=False)
+        return self.evaluate(time_step='year', to_check=to_check)
 
     def profile_main(self, data, yearleg, time_step='year', to_check=False):
         command = """self.main(data, yearleg, time_step, to_check)"""
