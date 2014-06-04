@@ -1047,7 +1047,7 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 	  	  </CODE>
 	  	  <VALBYTRANCHES description="Nombre de trimestres cibles pour atteindre le taux plein" code="n_trim" format="integer">
 		    <VARCONTROL>
-			  <CONTROL valeur="naiss" deb="1994-01-01" fin="2100-12-31" format="date"/>
+			  <CONTROL valeur="naiss" deb="1983-01-01" fin="2100-12-31" format="date"/>
 		    </VARCONTROL> 
 		    <TRANCHE code ="tranche1">
 		      <SEUIL>
@@ -1238,7 +1238,7 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
   	  <NODE description="Decote à appliquer en minoration du taux plein" code="decote">
   	   <VALBYTRANCHES description="Coefficient de minoration à appliquer au taux plein" code="taux" format="percent">
 	    <VARCONTROL>
-		  <CONTROL valeur="naiss" deb="2004-01-01" fin="2100-12-31" format="date"/>
+		  <CONTROL valeur="naiss" deb="1946-01-01" fin="2100-12-31" format="date"/>
 	    </VARCONTROL> 
 	    <TRANCHE code ="tranche1">
 	      <SEUIL>
@@ -1331,7 +1331,7 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 	   </VALBYTRANCHES>
 	   <VALBYTRANCHES description="Age d'annulation de la décote" code="age_null" format="integer">
 	    <VARCONTROL>
-		  <CONTROL valeur="naiss" deb="2000-07-01" fin="2100-12-31" format="date"/> # Vrai date 2011 mais pb de selection sur VARCONTROL 
+		  <CONTROL valeur="naiss" deb="1946-07-01" fin="2100-12-31" format="date"/> 
 	    </VARCONTROL> 
 	    <TRANCHE code="tranche1">
 	      <SEUIL>
@@ -1420,7 +1420,7 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 	  </CODE> 
 	  <VALBYTRANCHES description="Age legal de depart à la retraite (en mois)" code="age_min" format="integer">
 	    <VARCONTROL>
-		  <CONTROL valeur="naiss" deb="2000-01" fin="2100-12-31" format="date"/> #TODO: fix this true deb is '2011-07-01'
+		  <CONTROL valeur="naiss" deb="1945-01" fin="2100-12-31" format="date"/> #TODO: fix this true deb is '2011-07-01'
 	    </VARCONTROL> 
 	    <TRANCHE code ="tranche1">
 	      <SEUIL>
@@ -1539,7 +1539,7 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 		</CODE>		
 	  <VALBYTRANCHES description=" Nombre d'années prises en compte pour le SAM" code="nb_years"  format="integer">
  		<VARCONTROL>
-		  <CONTROL valeur="naiss" deb="1994-01-01" fin="2100-12-31" format="date"/>
+		  <CONTROL valeur="naiss" deb="1972-01-01" fin="2100-12-31" format="date"/>
 	    </VARCONTROL> 
 	    <TRANCHE code ="tranche1">
 	      <SEUIL>
@@ -1672,7 +1672,7 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
        </VALBYTRANCHES>
        <VALBYTRANCHES description="Nombre de trimestres maximal prise en compte pour la proratisation, par génération" code="N_CP" format="integer">
 	    <VARCONTROL>
-		  <CONTROL valeur="naiss" deb="2004-01-01" fin="2100-12-31" format="date"/>
+		  <CONTROL valeur="naiss" deb="1945-01-01" fin="2100-12-31" format="date"/>
 	    </VARCONTROL> 
 	    <TRANCHE code ="tranche1">
 	      <SEUIL>
@@ -2623,7 +2623,7 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
   	<NODE description="Régime Social des indépendants" code="rsi" >
   	  <VALBYTRANCHES description=" Nombre d'années prises en compte pour le RAM" code="nb_years" format="integer">
  		<VARCONTROL>
-		  <CONTROL valeur="naiss" deb="1994-01-01" fin="2100-12-31" format="date"/>
+		  <CONTROL valeur="naiss" deb="1972-01-01" fin="2100-12-31" format="date"/>
 	    </VARCONTROL> 
 	    <TRANCHE code ="tranche1">
 	      <SEUIL>
@@ -2764,7 +2764,7 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 	  	  </CODE>
 	  	  <VALBYTRANCHES description="Nombre de trimestres cibles pour le taux plein/proratisation, par génération" code="n_trim" format="integer">
 		    <VARCONTROL>
-			  <CONTROL valeur="naiss" deb="1994-01-01" fin="2100-12-31" format="date"/> # True value : 01/01/2003
+			  <CONTROL valeur="naiss" deb="1948-01-01" fin="2100-12-31" format="date"/> # True value : 01/01/2003
 		    </VARCONTROL> 
 		    <TRANCHE code="tranche1">
 		      <SEUIL>
@@ -3079,7 +3079,7 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 	  	</CODE>
    	   	  <VALBYTRANCHES description="Age limite de la fonction publique sédentaire par génération" code="age_max" format="integer">
 		    <VARCONTROL>
-			  <CONTROL valeur="naiss" deb="1994-01-01" fin="2100-12-31" format="date"/> # True value : 01/07/2001
+			  <CONTROL valeur="naiss" deb="1983-01-01" fin="2100-12-31" format="date"/> 
 		    </VARCONTROL> 
 		    <TRANCHE code ="tranche1">
 		      <SEUIL>
@@ -3146,7 +3146,7 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 		  </VALBYTRANCHES>
 		  <VALBYTRANCHES description="Age d'ouverture des droits dans la fonction publique sédentaire par génération" code="age_min" format="integer">
 		    <VARCONTROL>
-			  <CONTROL valeur="naiss" deb="1994-01-01" fin="2100-12-31" format="date"/> # True value : 01/07/2001
+			  <CONTROL valeur="naiss" deb="1983-01-01" fin="2100-12-31" format="date"/>
 		    </VARCONTROL> 
 		    <TRANCHE code ="tranche1">
 		      <SEUIL>
@@ -3224,7 +3224,7 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 	  	</CODE>
 	  	<VALBYTRANCHES description="Age limite de la fonction publique active par génération" code="age_max" format="integer">
 		    <VARCONTROL>
-			  <CONTROL valeur="naiss" deb="1994-01-01" fin="2100-12-31" format="date"/> # True value : 01/07/2001
+			  <CONTROL valeur="naiss" deb="1983-01-01" fin="2100-12-31" format="date"/>
 		    </VARCONTROL> 
 		    <TRANCHE code ="tranche1">
 		      <SEUIL>
@@ -3291,7 +3291,7 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 		  </VALBYTRANCHES>
 		  <VALBYTRANCHES description="Age d'ouverture des droits dans la fonction publique active par génération" code="age_min" format="integer">
 		    <VARCONTROL>
-			  <CONTROL valeur="naiss" deb="1994-01-01" fin="2100-12-31" format="date"/> # True value : 01/07/2001
+			  <CONTROL valeur="naiss" deb="1983-01-01" fin="2100-12-31" format="date"/> 
 		    </VARCONTROL> 
 		    <TRANCHE code ="tranche1">
 		      <SEUIL>
