@@ -82,7 +82,11 @@ class PensionData(object):
             dates = sali.columns.tolist()
             sali = array(sali)
             workstate = array(workstate)
-        
+            
+        if max(info_ind.loc[:,'sexe']) == 2:
+            info_ind.loc[:,'sexe'] = info_ind.loc[:,'sexe'].replace(1,0)
+            info_ind.loc[:,'sexe'] = info_ind.loc[:,'sexe'].replace(2,1)
+            
         if isinstance(sali, ndarray):
             assert isinstance(workstate, ndarray)
             sali = TimeArray(sali, dates, name='sali')
