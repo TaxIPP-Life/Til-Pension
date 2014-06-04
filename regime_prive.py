@@ -157,7 +157,7 @@ class RegimePrive(RegimeBase):
                                                               first_year_surcote=2003, last_year_surcote=2004)
             surcote_0408 = _trimestre_surcote_0408(trim_by_year_RG, trim_by_year_tot, trim_maj, date_start_surcote, age, P.surcote)
             surcote_aft09 = P.surcote.taux*nb_trim_surcote(trim_by_year_RG, date_start_surcote,
-                                                           first_year_surcote=2003, last_year_surcote=2004)
+                                                           first_year_surcote=2009)
             return surcote_03 + surcote_0408 + surcote_aft09   
         
     def minimum_contributif(self, pension_RG, pension, trim_RG, trim_cot, trim):

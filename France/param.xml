@@ -1236,6 +1236,9 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 		  </VALBYTRANCHES>  
 	  </NODE>
   	  <NODE description="Decote à appliquer en minoration du taux plein" code="decote">
+  	  	<CODE description="Nombre maximum de trimestres pris en compte dans la décote" code="nb_trim_max" format="integer">
+	  		<VALUE valeur="160" deb="1946-01-01" fin="2100-01-01"/>
+	  	</CODE>
   	   <VALBYTRANCHES description="Coefficient de minoration à appliquer au taux plein" code="taux" format="percent">
 	    <VARCONTROL>
 		  <CONTROL valeur="naiss" deb="1946-01-01" fin="2100-12-31" format="date"/>
@@ -2912,11 +2915,14 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 	   		<VALUE valeur="0.0075" deb="2004-01-01" fin="2008-12-31"/>
 	   		<VALUE valeur="0.01250" deb="2009-01-01" fin="2100-12-31"/>
 	   	</CODE>
-	   	<CODE description="Nombre limite de trimestres surcotés" code="trim_lim" format="integer">
-	   		<VALUE valeur="20" deb="2004-01-01" fin="2010-12-31"/>
-	   	</CODE>
+  	  	<CODE description="Nombre maximum de trimestres pris en compte dans la surcote" code="nb_trim_max" format="integer">
+  		  <VALUE valeur="20" deb="2004-01-01" fin="2100-01-01"/>
+  	  	</CODE>
 	</NODE>
    	<NODE description="Décote de la fonction publique" code="decote">
+   		<CODE description="Nombre maximum de trimestres pris en compte dans la décote" code="nb_trim_max" format="integer">
+	  		<VALUE valeur="20" deb="2006-01-01" fin="2100-01-01"/>
+	  	</CODE>
    		<CODE description="Age d'annulation de la décote (différence de trimestres par rapport à la limite d'âge), réforme Fillon" code="age_null" format="integer">
    			<VALUE valeur="16" deb="2006-01-01" fin="2006-12-31"/>
    			<VALUE valeur="14" deb="2007-01-01" fin="2007-12-31"/>

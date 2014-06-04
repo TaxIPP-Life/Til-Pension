@@ -11,8 +11,7 @@ from pandas import Series
 from regime import RegimeBase, compare_destinie
 from trimesters_functions import nb_trim_surcote
 from utils_pension import print_multi_info_numpy, _info_numpy
-from trimesters_functions import trim_cot_by_year_FP, nb_trim_bonif_5eme, trim_mda, nb_trim_surcote, nb_trim_decote
-from time_array import TimeArray
+from trimesters_functions import trim_cot_by_year_FP, nb_trim_bonif_5eme, trim_mda, nb_trim_decote
 
 code_avpf = 8
 code_chomage = 5
@@ -123,9 +122,13 @@ class FonctionPublique(RegimeBase):
             return age*0
         else:
             P = reduce(getattr, self.param_name.split('.'), self.P)
-            return P.surcote.taux*nb_trim_surcote(trimesters['regime'], date_start_surcote,
+            taux_surcote = P.surcote.taux
+            plafond = P.surcote.nb_trim_max
+            trim_surcote = nb_trim_surcote(trimesters['regime'], date_start_surcote,
                                                   first_year_surcote=2004)
-
+            trim_surcote = minimum(trim_surcote, plafond)
+            return taux_surcote*trim_surcote
+        
     def calculate_salref(self, data, regime):
         last_fp_idx = data.workstate.idx_last_time_in(self.code_regime)
         last_fp = zeros(data.sali.array.shape[0])
