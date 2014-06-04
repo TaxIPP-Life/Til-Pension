@@ -78,7 +78,7 @@ def validation_trimestre(data, code, salref, frequency='year'):
     sal_annuel = sal_selection.array
     sal_annuel[isnan(sal_annuel)] = 0
     division = divide(sal_annuel, salref).astype(int)
-    trim_cot_by_year = TimeArray(minimum(division, plafond), sali.dates)
+    trim_cot_by_year = TimeArray(minimum(division, plafond), sali.dates, 'trim_cot')
     return trim_cot_by_year, sal_selection
     
 def imput_sali_avpf(data, code, P_longit, compare_destinie):

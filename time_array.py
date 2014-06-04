@@ -60,7 +60,7 @@ class TimeArray(object):
             self.array = array[:,array_dates]
             self.dates = dates
         else:
-            return TimeArray(array[:,array_dates], dates)
+            return TimeArray(array[:,array_dates], dates, self.name)
     
     def translate_frequency(self, output_frequency='month', method=None, inplace=False):
         '''method should eventually control how to switch from month based table to year based table
