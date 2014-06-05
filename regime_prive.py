@@ -11,7 +11,7 @@ from numpy import maximum, minimum, array, divide, zeros, multiply
 from pandas import Series
 
 from regime import RegimeBase, compare_destinie
-from utils_pension import build_long_values, build_salref_bareme, _info_numpy, print_multi_info_numpy
+from utils_pension import _info_numpy, print_multi_info_numpy
 from trimesters_functions import nb_trim_surcote
 code_avpf = 8
 first_year_avpf = 1972
@@ -36,12 +36,9 @@ class RegimePrive(RegimeBase):
         notamment application du plafonnement à un PSS'''
         P = reduce(getattr, self.param_name_bis.split('.'), self.P)
         nb_best_years_to_take = P.nb_years
-        yearsim = data.last_date.year
-        plafond = build_long_values(param_long=self.P_longit.common.plaf_ss, 
-                                     first_year=data.first_date.year, last_year=data.last_date.year + 1)
-        revalo = build_long_values(param_long=self.P_longit.prive.RG.revalo, 
-                                     first_year=data.first_date.year, last_year=data.last_date.year + 1)
-     
+        plafond = self.P_longit.common.plaf_ss
+        revalo = self.P_longit.prive.RG.revalo 
+
         for i in range(1, len(revalo)) :
             revalo[:i] *= revalo[i]
             
@@ -52,6 +49,7 @@ class RegimePrive(RegimeBase):
         nb_best_years_to_take[years_sali < nb_best_years_to_take] = years_sali[years_sali < nb_best_years_to_take]    
             
         if plafond is not None:
+            print sal_regime.array.shape[1], len(plafond)
             assert sal_regime.array.shape[1] == len(plafond)
             sal_regime.array = minimum(sal_regime.array, plafond) 
         if revalo is not None:
@@ -114,7 +112,7 @@ class RegimePrive(RegimeBase):
         return P.decote.taux*trim_decote
         
     def _calculate_surcote(self, trim_wage_regime, trim_wage_all, date_start_surcote, age):
-        ''' Détermination de la surcote à appliquer aux pensions '''
+        ''' Détermination de la surcote à appliquer aux pensions.'''
         yearleg = self.dateleg.year
         P = reduce(getattr, self.param_name.split('.'), self.P)
         trim_by_year_RG = trim_wage_regime['trimesters']['regime']

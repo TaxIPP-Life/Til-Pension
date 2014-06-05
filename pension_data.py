@@ -4,7 +4,7 @@ from numpy import array, ndarray
 from pandas import DataFrame
 from time_array import TimeArray
 from datetil import DateTil
-from utils_pension import build_long_values, build_long_baremes
+
 compare_destinie = True 
 
 class PensionData(object):

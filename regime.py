@@ -4,7 +4,7 @@ from numpy import maximum, array, nan_to_num, greater, divide, around, zeros, mi
 from pandas import Series
 from time_array import TimeArray
 from datetil import DateTil
-from utils_pension import build_long_values, build_long_baremes
+
 first_year_sal = 1949
 compare_destinie = True 
 
@@ -195,11 +195,9 @@ class RegimeComplementaires(Regime):
             last_year = last_year_sali
         regime = self.regime
         P = reduce(getattr, self.param_name.split('.'), self.P)
-        Plong = self.P_longit.prive.complementaire.__dict__[regime]
-        salref = build_long_values(Plong.sal_ref, first_year=first_year_sal, last_year=yearsim + 1)
-        plaf_ss = self.P_longit.common.plaf_ss
-        pss = build_long_values(plaf_ss, first_year=first_year_sal, last_year=yearsim + 1)    
-        taux_cot = build_long_baremes(Plong.taux_cot_moy, first_year=first_year_sal, last_year=yearsim + 1, scale=pss)
+        Plong_regime = getattr(self.P_longit.prive.complementaire, regime)
+        salref = Plong_regime.sal_ref
+        taux_cot = Plong_regime.taux_cot_moy
         assert len(salref) == sali_plaf.shape[1] == len(taux_cot)
         nb_points = zeros(sali_plaf.shape[0])
         if last_year_sali < first_year:

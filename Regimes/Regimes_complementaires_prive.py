@@ -6,7 +6,6 @@ os.sys.path.insert(0,parentdir)
 
 from numpy import maximum, minimum, divide
 from regime import RegimeComplementaires, compare_destinie
-from utils_pension import build_long_values
 
 
 class AGIRC(RegimeComplementaires):
@@ -80,8 +79,7 @@ class ARRCO(RegimeComplementaires):
         noncadre_selection = (workstate.array == self.code_noncadre)
         sali = sali.array
         plaf_ss = self.P_longit.common.plaf_ss
-        pss = build_long_values(plaf_ss, first_year=data.first_date.year, last_year=data.last_date.year + 1) 
-        plaf_sali = minimum(sali, nb_pss*pss)
+        plaf_sali = minimum(sali, nb_pss*plaf_ss)
         return sali*noncadre_selection + plaf_sali*cadre_selection
         
     def majoration_enf(self, data, nb_points, coeff_age):
