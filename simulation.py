@@ -22,9 +22,9 @@ def til_pension(sali, workstate, info_ind, time_step='year', yearsim=2009, yearl
 
 class PensionSimulation(object):
 
-    def __init__(self):
+    def __init__(self, data):
         self.yearsim = None
-        self.data = None
+        self.data = data
         #TODO: base_to_complementaire n'est pas vraiment de la législation
         self.legislation = dict(base_regimes = ['RegimeGeneral', 'FonctionPublique', 'RegimeSocialIndependants'],
                                 complementaire_regimes = ['ARRCO', 'AGIRC'],
@@ -141,15 +141,13 @@ class PensionSimulation(object):
             return pension_reg # TODO: define the output
         
              
-    def main(self, data, yearleg, time_step='year', to_check=False):
-        if data is not None:
-            self.data = data
+    def main(self, yearleg, time_step='year', to_check=False):
         self.load_param(yearleg)
         return self.evaluate(time_step='year', to_check=to_check)
 
-    def profile_main(self, data, yearleg, time_step='year', to_check=False):
+    def profile_main(self, yearleg, time_step='year', to_check=False):
         prof = cProfile.Profile()
-        result =prof.runcall( self.main, *(data, yearleg, time_step, to_check))
+        result =prof.runcall( self.main, *(yearleg, time_step, to_check))
         prof.dump_stats("profile_pension" + str(yearleg))
         return result
         
