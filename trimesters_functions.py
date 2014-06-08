@@ -10,7 +10,6 @@ from pandas import Series
 
 from time_array import TimeArray
 
-first_year_avpf = 1972
 code_chomage = 2
 code_preretraite = 9
 
@@ -84,17 +83,16 @@ def imput_sali_avpf(data, code, P_longit, compare_destinie):
     #TODO: move to an other place
     workstate = data.workstate
     sali = data.sali
-    first_year_avpf = data.first_date.year
-    avpf_selection = workstate.isin([code]).selected_dates(first_year_avpf)
-    sal_for_avpf = sali.selected_dates(first_year_avpf)
-    if sal_for_avpf.array.all() == 0:
+    wk_selection = workstate.isin([code])
+    sal_selection = TimeArray(wk_selection.array*sali.array, sali.dates, name='temp')
+    if sal_selection.array.all() == 0:
         # TODO: frquency warning, cette manière de calculer les trimestres avpf ne fonctionne qu'avec des tables annuelles
         avpf = P_longit.common.avpf
-        sal_for_avpf.array = 12*multiply(avpf_selection.array, avpf)
+        sal_selection.array = 12*multiply(sal_selection.array, avpf)
         if compare_destinie == True:
             smic_long = P_longit.common.smic_proj
-            sal_for_avpf.array = multiply(avpf_selection.array, smic_long)
-    return sal_for_avpf
+            sal_selection.array = multiply(sal_selection.array, smic_long)
+    return sal_selection
 
 
 def trim_mda(info_ind, P): 

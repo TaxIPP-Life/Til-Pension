@@ -10,7 +10,6 @@ from Regimes.Regimes_prives import RegimeGeneral, RegimeSocialIndependants
 from utils_pension import load_param, build_long_values, scales_long_baremes
 from pension_functions import select_regime_base, sum_by_regime, update_all_regime
 first_year_sal = 1949 
-first_year_avpf = 1972
 import cProfile
 
 base_regimes = ['RegimeGeneral', 'FonctionPublique', 'RegimeSocialIndependants']
@@ -56,17 +55,10 @@ class PensionSimulation(object):
         first_year_sim = self.data.first_date.year + (self.data.last_date.year + 1 - yearleg) 
         last_year_sim = yearleg
         # TODO: trouver une méthode plus systématique qui test le 'type' du noeud et construit le long parameter qui va bien
-        for param_name in ['common.plaf_ss', 'prive.RG.revalo',]:
+        for param_name in ['common.plaf_ss', 'prive.RG.revalo','common.smic_proj','common.avpf']:
             param_name = param_name.split('.')
             param = reduce(getattr, param_name, P_longit)
             param = build_long_values(param_long=param, first=first_year_sim, last=last_year_sim)
-            setattr(eval('P_longit.' + '.'.join(param_name[:-1])), param_name[-1], param)
-        
-        #for first_year avpf
-        for param_name in ['common.smic_proj','common.avpf']:
-            param_name = param_name.split('.')
-            param = reduce(getattr, param_name, P_longit)
-            param = build_long_values(param_long=param, first=first_year_avpf, last=last_year_sim)
             setattr(eval('P_longit.' + '.'.join(param_name[:-1])), param_name[-1], param)
 
         for regime in complementaire_regimes:
