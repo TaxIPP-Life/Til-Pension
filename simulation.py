@@ -10,6 +10,7 @@ from Regimes.Regimes_prives import RegimeGeneral, RegimeSocialIndependants
 from utils_pension import load_param, build_long_values, scales_long_baremes
 from pension_functions import select_regime_base, sum_by_regime, update_all_regime
 first_year_sal = 1949 
+first_year_avpf = 1972
 import cProfile
 
 base_regimes = ['RegimeGeneral', 'FonctionPublique', 'RegimeSocialIndependants']
@@ -75,7 +76,7 @@ class PensionSimulation(object):
         P_longit.common.smic_proj = build_long_values(param_long=P_longit.common.smic_proj,
                                                       first=1972, last=last_year_sim) 
         P_longit.common.avpf = build_long_values(param_long=P_longit.common.avpf, 
-                                 first=1972, last=last_year_sim)
+                                 first=first_year_avpf, last=last_year_sim)
         return P_longit
 
 

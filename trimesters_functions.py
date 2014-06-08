@@ -90,7 +90,7 @@ def imput_sali_avpf(data, code, P_longit, compare_destinie):
     if sal_for_avpf.array.all() == 0:
         # TODO: frquency warning, cette manière de calculer les trimestres avpf ne fonctionne qu'avec des tables annuelles
         avpf = P_longit.common.avpf
-        sal_for_avpf.array = multiply(avpf_selection.array, 12*avpf)
+        sal_for_avpf.array = 12*multiply(avpf_selection.array, avpf)
         if compare_destinie == True:
             smic_long = P_longit.common.smic_proj
             sal_for_avpf.array = multiply(avpf_selection.array, smic_long)
