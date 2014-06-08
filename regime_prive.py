@@ -36,8 +36,7 @@ class RegimePrive(RegimeBase):
         plafond = self.P_longit.common.plaf_ss
         revalo = self.P_longit.prive.RG.revalo 
 
-        import pdb
-        pdb.set_trace()
+        revalo = array(revalo)
         for i in range(1, len(revalo)) :
             revalo[:i] *= revalo[i]
             
