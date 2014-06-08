@@ -7,7 +7,7 @@ from Regimes.Fonction_publique import FonctionPublique
 from Regimes.Regimes_complementaires_prive import AGIRC, ARRCO
 from Regimes.Regimes_prives import RegimeGeneral, RegimeSocialIndependants
 
-from utils_pension import load_param, build_long_values, build_long_baremes
+from utils_pension import load_param, build_long_values, scales_long_baremes
 from pension_functions import select_regime_base, sum_by_regime, update_all_regime
 first_year_sal = 1949 
 import cProfile
@@ -56,26 +56,26 @@ class PensionSimulation(object):
         last_year_sim = yearleg
         # TODO: trouver une méthode plus systématique qui test le 'type' du noeud et construit le long parameter qui va bien
         P_longit.common.plaf_ss = build_long_values(P_longit.common.plaf_ss, 
-                                                 first_year=first_year_sim, last_year=last_year_sim) 
+                                                 first=first_year_sim, last=last_year_sim) 
         P_longit.prive.RG.revalo = build_long_values(P_longit.prive.RG.revalo,
-                                                  first_year=first_year_sim, last_year=last_year_sim) 
+                                                  first=first_year_sim, last=last_year_sim) 
         def _complementaire(regime):
             P = getattr(P_longit.prive.complementaire, regime)
             salref_long = P.sal_ref
             salref_long = build_long_values(salref_long,
-                                        first_year=first_year_sim, last_year=last_year_sim) 
+                                        first=first_year_sim, last=last_year_sim) 
             taux_cot_long = P.taux_cot_moy
-            taux_cot_long = build_long_baremes(taux_cot_long,
-                                               first_year=first_year_sim, last_year=last_year_sim,
-                                               scale= P_longit.common.plaf_ss)
+            taux_cot_long = build_long_values(taux_cot_long,
+                                               first=first_year_sim, last=last_year_sim)
+            taux_cot_long = scales_long_baremes(baremes=taux_cot_long, scales=P_longit.common.plaf_ss)
             return salref_long, taux_cot_long
 
         P_longit.prive.complementaire.arrco.sal_ref, P_longit.prive.complementaire.arrco.taux_cot_moy  = _complementaire('arrco')
         P_longit.prive.complementaire.agirc.sal_ref, P_longit.prive.complementaire.agirc.taux_cot_moy  = _complementaire('agirc')
         P_longit.common.smic_proj = build_long_values(param_long=P_longit.common.smic_proj,
-                                                      first_year=1972, last_year=last_year_sim) 
+                                                      first=1972, last=last_year_sim) 
         P_longit.common.avpf = build_long_values(param_long=P_longit.common.avpf, 
-                                 first_year=1972, last_year=last_year_sim)
+                                 first=1972, last=last_year_sim)
         return P_longit
 
 

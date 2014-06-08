@@ -4,6 +4,7 @@ import calendar
 import collections
 import pdb
 import datetime as dt
+from datetime import datetime
 
 from numpy import array, ones, zeros
 from pandas import DataFrame
@@ -22,41 +23,39 @@ def substract_months(sourcedate, months):
     day = min(sourcedate.day,calendar.monthrange(year,month)[1])
     return dt.date(year,month,day)
 
-def build_long_values(param_long, first_year, last_year):   
+def build_long_values(param_long, first, last, time_scale='year'):   
     ''' Cette fonction permet de traduire les paramètres longitudinaux en vecteur numpy 
     comportant une valeur par année comprise en first_year et last_year '''
-    param = DataFrame( {'year' : range(first_year, last_year), 'param' : - ones(last_year - first_year)} ) 
-    param_t = []
-    for year in range(first_year, last_year):
-        param_old = param_t
-        param_t = []
-        for key in param_long.keys():
-            if str(year) in key:
-                param_t.append(key)
-        if not param_t:
-            param_t = param_old
-        param.loc[param['year'] == year, 'param'] = param_long[param_t[0]] # Hypothèse sous-jacente : on prend la première valeur de l'année
-    return array(param['param'])
+    #TODO: Idea : return a TimeArray and use select if needed
+    param_dates = sorted(param_long.keys())
+    def _convert_date(x):
+        date = datetime.strptime(x, "%Y-%m-%d")
+        return 100*date.year + date.month
+    #TODO: convert here all param in dates   
+    param_dates_liam = [_convert_date(x) for x in param_dates]
+    param_dates_liam += [210001]
 
-def build_long_baremes(bareme_long, first_year, last_year, scale=None):   
+    if time_scale=='year':
+        list_dates = [100*x + 1  for x in range(first, last)]
+    else: 
+        #TODO: create a function...
+        raise Exception("Not implemented yet for time_scale not year")
+    
+    output = []
+    k = 0
+    for date in list_dates:
+        while param_dates_liam[k+1] < date:
+            k += 1 
+        output += [param_long[param_dates[k]]]  
+    return output
+        
+def scales_long_baremes(baremes, scales):   
     ''' Cette fonction permet de traduire les barèmes longitudinaux en dictionnaire de bareme
     comportant un barème par année comprise en first_year et last_year'''
-    baremes = collections.OrderedDict()
-    bareme_t = []
-    for year in range(first_year, last_year):
-        bareme_old = bareme_t
-        bareme_t = []
-        for key in bareme_long.keys():
-            if str(year) in key:
-                bareme_t.append(key)
-        if not bareme_t:
-            bareme_t = bareme_old
-        baremes[year] = bareme_long[bareme_t[0]]
-    if scale is not None:
-        from Param.Scales import scaleBaremes
-        assert len(scale) == len(baremes)
-        for year, val_scale in zip(baremes.keys(),scale):
-            baremes[year] = scaleBaremes(baremes[year], val_scale)
+    from Param.Scales import scaleBaremes
+    assert len(scales) == len(baremes)
+    for date in range(len(baremes)):
+        baremes[date] = scaleBaremes(baremes[date], scales[date])
     return baremes
 
 def build_salref_bareme(bareme_long, first_year, last_year, scale=None):

@@ -106,6 +106,7 @@ def compare_til_pensipp(pensipp_comparison_path, var_to_check_montant, var_to_ch
         if max(info_ind.loc[:,'sexe']) == 2:
             info_ind.loc[:,'sexe'] = info_ind.loc[:,'sexe'].replace(1,0)
             info_ind.loc[:,'sexe'] = info_ind.loc[:,'sexe'].replace(2,1)
+    
         data = PensionData.from_arrays(workstate, sali, info_ind)
         data_bounded = data.selected_dates(first=first_year_sal, last=yearsim + 1)
         simul_til = PensionSimulation(data_bounded)
