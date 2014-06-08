@@ -74,7 +74,7 @@ class PensionSimulation(object):
         P_longit.prive.complementaire.arrco.sal_ref, P_longit.prive.complementaire.arrco.taux_cot_moy  = _complementaire('arrco')
         P_longit.prive.complementaire.agirc.sal_ref, P_longit.prive.complementaire.agirc.taux_cot_moy  = _complementaire('agirc')
         P_longit.common.smic_proj = build_long_values(param_long=P_longit.common.smic_proj,
-                                                      first=1972, last=last_year_sim) 
+                                                      first=first_year_avpf, last=last_year_sim) 
         P_longit.common.avpf = build_long_values(param_long=P_longit.common.avpf, 
                                  first=first_year_avpf, last=last_year_sim)
         return P_longit
