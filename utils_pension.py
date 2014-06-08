@@ -44,8 +44,8 @@ def build_long_values(param_long, first, last, time_scale='year'):
     output = []
     k = 0
     for date in list_dates:
-        while param_dates_liam[k+1] < date:
-            k += 1 
+        while param_dates_liam[k+1] <= date:
+            k += 1
         output += [param_long[param_dates[k]]]  
     return output
         
