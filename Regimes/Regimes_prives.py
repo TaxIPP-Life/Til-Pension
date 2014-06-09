@@ -13,7 +13,7 @@ from pandas import Series
 
 from regime import compare_destinie
 from regime_prive import RegimePrive
-from utils_pension import build_long_values, build_salref_bareme, print_multi_info_numpy
+from utils_pension import build_salref_bareme, print_multi_info_numpy, _info_numpy
 from trimesters_functions import trim_ass_by_year, validation_trimestre, sali_in_regime, trim_mda, imput_sali_avpf
 
 code_avpf = 8
@@ -46,7 +46,7 @@ class RegimeGeneral(RegimePrive):
         # Allocation vieillesse des parents au foyer : nombre de trimestres attribués 
         trimesters['avpf'], wages['avpf'] = validation_trimestre(data_avpf, code_avpf, salref + 1)
         P_mda = self.P.prive.RG.mda
-        trim_maj['DA'] = trim_mda(info_ind, P_mda)*(trimesters['cot'].sum(1)>0)
+        trim_maj['DA'] = trim_mda(info_ind, P_mda)*(trimesters['cot'].sum(1)+ trimesters['ass'].sum(1)>0)
         output = {'trimesters': trimesters, 'wages': wages, 'maj': trim_maj}
         return output, to_other
 
@@ -71,7 +71,7 @@ class RegimeSocialIndependants(RegimePrive):
         salref = build_salref_bareme(self.P_longit.common, reduce_data.first_date.year, data.last_date.year + 1)
         trimesters['cot'], _ = validation_trimestre(reduce_data, self.code_regime, salref)
 
-        # TODO : pour l'instant tous les trimestres assimilés sont imputés au RG
+        #TODO : pour l'instant tous les trimestres assimilés sont imputés au RG
         #nb_trim_ass, _ = trim_ass_by_year(reduce_data, self.code_regime, compare_destinie)
         #trimesters['ass'] = nb_trim_ass 
         wages['regime'] = sali_in_regime(workstate, sali, self.code_regime)

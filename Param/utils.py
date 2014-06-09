@@ -214,8 +214,6 @@ if __name__ == '__main__':
     dates = data[u"Date d'entrée en vigueur"][1:50]
     avpf =  _francs_to_euro(np.array(avpf), 15)
     dates = np.array(dates)
-    print avpf
-    print
     from_excel_to_xml(data=avpf, description = "Assurance vieillesse des parents au foyer", code = "avpf", format = "float", data_date = dates)
     
 
