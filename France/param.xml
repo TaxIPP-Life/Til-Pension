@@ -749,9 +749,9 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 	  <VALUE valeur="770.59" deb="1990-01-01" fin="1990-12-31"/>
 	  <VALUE valeur="740.97" deb="1989-01-01" fin="1989-12-31"/>
 	  <VALUE valeur="717.26" deb="1988-01-01" fin="1988-12-31"/>
-	  <VALUE valeur="693.56" deb="1987-07-01" fin="1987-12-31"/>
+	  <VALUE valeur="693.56" deb="1987-07-01" fin="1987-12-31"/> #TODO: check ? 
 	  <VALUE valeur="693.56" deb="1987-01-01" fin="1987-06-30"/>
-	  <VALUE valeur="670.89" deb="1986-08-01" fin="1986-12-31"/>
+	  <VALUE valeur="670.89" deb="1986-08-01" fin="1986-12-31"/> #TODO: check ? 
 	  <VALUE valeur="670.89" deb="1986-01-01" fin="1986-07-31"/>
 	  <VALUE valeur="614.21" deb="1985-01-01" fin="1985-12-31"/>
 	  <VALUE valeur="563.97" deb="1984-01-01" fin="1984-12-31"/>
@@ -762,12 +762,13 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 	  <VALUE valeur="286.7" deb="1979-01-01" fin="1979-12-31"/>
 	  <VALUE valeur="253.14" deb="1978-01-01" fin="1978-12-31"/>
 	  <VALUE valeur="226.72" deb="1977-01-01" fin="1977-12-31"/>
-	  <VALUE valeur="199.5" deb="1976-10-01" fin="1976-12-31"/>
+	  <VALUE valeur="199.5" deb="1976-10-01" fin="1976-12-31"/> #TODO: check ? 
 	  <VALUE valeur="199.5" deb="1976-01-01" fin="1976-09-30"/>
 	  <VALUE valeur="169.11" deb="1975-01-01" fin="1975-12-31"/>
 	  <VALUE valeur="137.4" deb="1974-01-01" fin="1974-12-31"/>
 	  <VALUE valeur="113.62" deb="1973-01-01" fin="1973-12-31"/>
 	  <VALUE valeur="101.73" deb="1972-07-01" fin="1972-12-31"/>
+	  <VALUE valeur="0" deb="1941-01-01" fin="1972-06-30"/>
 	</CODE>
     <NODE description="Allocation aux vieux travailleurs salariés" code="avts" >
 	<CODE description= "Montant de l'allocations aux vieux travailleurs salariés (avnt 1962 : métropole plus de 5000 hab)" code="montant" format="float" longitudinal="true">

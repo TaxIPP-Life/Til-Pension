@@ -13,9 +13,6 @@ from pandas import Series
 from regime import RegimeBase, compare_destinie
 from utils_pension import _info_numpy, print_multi_info_numpy
 from trimesters_functions import nb_trim_surcote
-code_avpf = 8
-first_year_avpf = 1972
-
 
 def date_(year, month, day):
     return datetime.date(year, month, day)
@@ -39,6 +36,7 @@ class RegimePrive(RegimeBase):
         plafond = self.P_longit.common.plaf_ss
         revalo = self.P_longit.prive.RG.revalo 
 
+        revalo = array(revalo)
         for i in range(1, len(revalo)) :
             revalo[:i] *= revalo[i]
             

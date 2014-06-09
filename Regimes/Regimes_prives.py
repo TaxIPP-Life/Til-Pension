@@ -40,11 +40,11 @@ class RegimeGeneral(RegimePrive):
         trimesters['cot'], wages['cot'] = validation_trimestre(data, self.code_regime, salref)
         trimesters['ass'], _ = trim_ass_by_year(data, self.code_regime, compare_destinie)
         
-        data_avpf = data.selected_dates(first_year_avpf)
-        data_avpf.sali = imput_sali_avpf(data_avpf, code_avpf, self.P_longit, compare_destinie)
-        salref = build_salref_bareme(self.P_longit.common, data_avpf.first_date.year, data_avpf.last_date.year + 1)
+        #TODO: imput_sali_avpf should be much more upper in the code
+        data.sali = imput_sali_avpf(data, code_avpf, self.P_longit, compare_destinie)
+        salref = build_salref_bareme(self.P_longit.common, data.first_date.year, data.last_date.year + 1)
         # Allocation vieillesse des parents au foyer : nombre de trimestres attribués 
-        trimesters['avpf'], wages['avpf'] = validation_trimestre(data_avpf, code_avpf, salref + 1)
+        trimesters['avpf'], wages['avpf'] = validation_trimestre(data, code_avpf, salref + 1)
         P_mda = self.P.prive.RG.mda
         trim_maj['DA'] = trim_mda(info_ind, P_mda)*(trimesters['cot'].sum(1)+ trimesters['ass'].sum(1)>0)
         output = {'trimesters': trimesters, 'wages': wages, 'maj': trim_maj}

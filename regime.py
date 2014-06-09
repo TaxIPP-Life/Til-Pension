@@ -202,9 +202,8 @@ class RegimeComplementaires(Regime):
         nb_points = zeros(sali_plaf.shape[0])
         if last_year_sali < first_year:
             return nb_points
-        for year in range(first_year, min(last_year_sali, last_year) + 1):
-            ix_year = year - first_year
-            points_acquis = divide(taux_cot[year].calc(sali_plaf[:,ix_year]), salref[year-first_year_sal]).round(2) 
+        for ix_year in range(min(last_year_sali, last_year) - first_year + 1):
+            points_acquis = divide(taux_cot[ix_year].calc(sali_plaf[:,ix_year]), salref[ix_year]).round(2) 
             gmp = P.gmp
             #print year, taux_cot[year], sali.ix[1926 ,year *100 + 1], salref[year-first_year_sal]
             #print 'result', Series(points_acquis, index=sali.index).ix[1926]
