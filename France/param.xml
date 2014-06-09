@@ -3370,5 +3370,31 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 	  	  </CODE>
 	  	</NODE>  
    	 </NODE>
+   	 <NODE description="Retraite complémentaire de la fonction publique (depuis 2005)" code="rafp">
+     <CODE description= "Valeur d'acquisition du point RAFP (euros)" code="val_ac_point" format="float">
+		  <VALUE valeur="1.09585" deb="2014-04-01" fin="2100-12-01"/>
+		  <VALUE valeur="1.0850" deb="2013-04-01" fin="2013-12-01"/>
+		  <VALUE valeur="1.0742" deb="2012-04-01" fin="2013-03-31"/>
+		  <VALUE valeur="1.0562" deb="2011-04-01" fin="2012-03-31"/>
+		  <VALUE valeur="1.05095" deb="2010-04-01" fin="2011-03-31"/>
+		  <VALUE valeur="1.04572" deb="2009-04-01" fin="2010-03-31"/>
+		  <VALUE valeur="1.03537" deb="2008-04-01" fin="2009-03-31"/>
+		  <VALUE valeur="1.03022" deb="2007-04-01" fin="2008-03-31"/>
+		  <VALUE valeur="1.01700" deb="2006-04-01" fin="2007-03-31"/>
+		  <VALUE valeur="1" deb="2005-04-01" fin="2006-03-31"/>
+	   </CODE>
+	   <CODE description= "Valeur de service du point RAFP (euros)" code="val_ser_point" format="float">
+		  <VALUE valeur="0.04465" deb="2014-04-01" fin="2100-12-01"/>
+		  <VALUE valeur="0.04421" deb="2013-04-01" fin="2013-12-01"/>
+		  <VALUE valeur="0.04378" deb="2012-04-01" fin="2013-03-31"/>
+		  <VALUE valeur="0.04304" deb="2011-04-01" fin="2012-03-31"/>
+		  <VALUE valeur="0.04283" deb="2010-04-01" fin="2011-03-31"/>
+		  <VALUE valeur="0.04261" deb="2009-04-01" fin="2010-03-31"/>
+		  <VALUE valeur="0.04219" deb="2008-04-01" fin="2009-03-31"/>
+		  <VALUE valeur="0.04153" deb="2007-04-01" fin="2008-03-31"/>
+		  <VALUE valeur="0.04080" deb="2006-04-01" fin="2007-03-31"/>
+		  <VALUE valeur="0.04" deb="2005-04-01" fin="2006-03-31"/>
+	   </CODE>
+	 </NODE>
    </NODE>
 </NODE>
