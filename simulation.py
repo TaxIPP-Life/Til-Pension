@@ -52,7 +52,8 @@ class PensionSimulation(object):
     def long_param_builder(self, P_longit, yearleg): 
         ''' Cette fonction permet de traduire les paramètres longitudinaux en vecteur numpy 
         comportant une valeur par année comprise entre first_year_sim et last_year_sim '''
-        first_year_sim = self.data.first_date.year + (self.data.last_date.year + 1 - yearleg) 
+        duration_sim = self.data.last_date.year - self.data.first_date.year
+        first_year_sim = yearleg - 1 - duration_sim
         last_year_sim = yearleg
         # TODO: trouver une méthode plus systématique qui test le 'type' du noeud et construit le long parameter qui va bien
         for param_name in ['common.plaf_ss', 'prive.RG.revalo','common.smic_proj','common.avpf']:
