@@ -120,6 +120,9 @@ class TimeArray(object):
         initial_dates = self.dates
         array = self.array
         other_dates = other.dates
+        if initial_dates == other_dates:
+            return TimeArray(array + other.array, initial_dates)
+        
         assert array.shape[0] == other.array.shape[0] # Même nombre de lignes
         other_in_initial = [date for date in other_dates if date in initial_dates] 
         initial_in_other = [date for date in initial_dates if date in other_dates]
