@@ -151,7 +151,7 @@ class Regime(object):
                 to_check['N_CP_' + reg] = P.N_CP // 4
             except:
                 pass
-        return pension
+        return pension.fillna(0)
 
 
 class RegimeBase(Regime):
@@ -251,4 +251,5 @@ class RegimeComplementaires(Regime):
             to_check['nb_points_' + reg] = nb_points
             to_check['coeff_age_' + reg] = coeff_age
             to_check['maj_' + reg] = maj_enf
-        return val_arrco*nb_points*coeff_age + maj_enf
+        pension = val_arrco*nb_points*coeff_age + maj_enf
+        return pension.fillna(0)

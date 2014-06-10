@@ -118,10 +118,15 @@ class PensionSimulation(object):
         trimesters_wages = sum_by_regime(trimesters_wages, to_other)
         trimesters_wages = update_all_regime(trimesters_wages, dict_to_check)
         
+        pension = None
         for reg_name in base_regimes:
             reg = eval(reg_name + '()')
             reg.set_config(**config)
             pension_reg = reg.calculate_pension(data, trimesters_wages[reg_name], trimesters_wages['all_regime'], dict_to_check)
+            if pension is None:
+                pension = pension_reg
+            else: 
+                pension = pension + pension_reg
             if to_check == True:
                 dict_to_check['pension_' + reg.regime] = pension_reg
     
@@ -130,14 +135,15 @@ class PensionSimulation(object):
             reg.set_config(**config)
             regime_base = select_regime_base(trimesters_wages, reg.regime, base_to_complementaire)
             pension_reg = reg.calculate_pension(data, regime_base['trimesters'], dict_to_check)
+            pension = pension + pension_reg
             if to_check == True:
                 dict_to_check['pension_' + reg.regime] = pension_reg
-    
+
         if to_check == True:
             #pd.DataFrame(to_check).to_csv('resultat2004.csv')
             return DataFrame(dict_to_check)
         else:
-            return pension_reg # TODO: define the output
+            return pension # TODO: define the output
         
              
     def main(self, yearleg, time_step='year', to_check=False):
