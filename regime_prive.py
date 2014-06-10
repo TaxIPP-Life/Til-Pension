@@ -136,25 +136,22 @@ class RegimePrive(RegimeBase):
             nb_trim = nb_trim - nb_trim_65
             return taux_65*nb_trim_65 + taux_4trim*maximum(minimum(nb_trim,4), 0) + taux_5trim*maximum(nb_trim - 4, 0)
             
+        taux_surcote = P.surcote.taux_07
         if yearleg < 2004:
-            taux_surcote = P.surcote.taux_07
             trim_tot = self.trim_by_year.sum(axis=1)
-            return maximum(trim_tot - n_trim, 0)*taux_surcote 
-        elif yearleg < 2007:
-            return P.surcote.taux_07*nb_trim_surcote(trim_by_year_RG, date_start_surcote,
+            return taux_surcote*maximum(trim_tot - n_trim, 0) 
+        if yearleg < 2007:
+            return taux_surcote*nb_trim_surcote(trim_by_year_RG, date_start_surcote,
                                                      first_year_surcote=2003)
-        elif yearleg < 2010:
-            surcote_03 = P.surcote.taux_4trim*nb_trim_surcote(trim_by_year_RG, date_start_surcote,
-                                                              first_year_surcote=2003, last_year_surcote=2004)
-            surcote_0408 = _trimestre_surcote_0408(trim_by_year_RG, trim_by_year_tot, trim_maj, date_start_surcote, age, P.surcote)
+            
+        surcote_03 = P.surcote.taux_4trim*nb_trim_surcote(trim_by_year_RG, date_start_surcote,
+                                                          first_year_surcote=2003, last_year_surcote=2004)
+        surcote_0408 = _trimestre_surcote_0408(trim_by_year_RG, trim_by_year_tot, trim_maj, date_start_surcote, age, P.surcote)
+        if yearleg < 2010:
             return surcote_03 + surcote_0408
-        else:
-            surcote_03 = P.surcote.taux_4trim*nb_trim_surcote(trim_by_year_RG, date_start_surcote,
-                                                              first_year_surcote=2003, last_year_surcote=2004)
-            surcote_0408 = _trimestre_surcote_0408(trim_by_year_RG, trim_by_year_tot, trim_maj, date_start_surcote, age, P.surcote)
-            surcote_aft09 = P.surcote.taux*nb_trim_surcote(trim_by_year_RG, date_start_surcote,
-                                                           first_year_surcote=2009)
-            return surcote_03 + surcote_0408 + surcote_aft09   
+        surcote_aft09 = P.surcote.taux*nb_trim_surcote(trim_by_year_RG, date_start_surcote,
+                                                       first_year_surcote=2009)
+        return surcote_03 + surcote_0408 + surcote_aft09   
         
     def minimum_contributif(self, pension_RG, pension, trim_RG, trim_cot, trim):
         ''' MICO du régime général : allocation différentielle 
