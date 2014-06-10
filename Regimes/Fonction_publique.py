@@ -110,6 +110,7 @@ class FonctionPublique(RegimeBase):
         else:
             agem = data.info_ind['agem']
             trim_decote = self.nb_trim_decote(trimesters, trim_maj, agem)
+            P = reduce(getattr, self.param_name.split('.'), self.P)
             return P.decote.taux*trim_decote
         
     def _calculate_surcote(self, trim_wage_regime, trim_wage_all, date_start_surcote, age):
