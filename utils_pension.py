@@ -78,7 +78,11 @@ def build_salref_bareme(bareme_long, first_year, last_year, scale=None):
                 avts_year.append(key)
         if not avts_year:
             avts_year = avts_old
-        salmin.loc[salmin['year'] == year, 'sal'] = avts_long[avts_year[0]] 
+        try:
+            salmin.loc[salmin['year'] == year, 'sal'] = avts_long[avts_year[0]]
+        except:
+            if not avts_old:
+                salmin.loc[salmin['year'] == year, 'sal'] = 0
     #TODO: Trancher si on calcule les droits à retraites en incluant le travail à l'année de simulation pour l'instant
     #non (ex : si datesim = 2009 on considère la carrière en emploi jusqu'en 2008)
     for year in range(1972, last_year):
