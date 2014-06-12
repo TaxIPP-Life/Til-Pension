@@ -8,6 +8,7 @@ from CONFIG_compare import pensipp_comparison_path
 from simulation import PensionSimulation
 from utils_compar import calculate_age, count_enf_born, count_enf_pac
 from pension_data import PensionData
+from pension_legislation import PensionLegislation
 first_year_sal = 1949 
 
 def _child_by_age(info_child, year, id_selected):
@@ -109,8 +110,10 @@ def compare_til_pensipp(pensipp_comparison_path, var_to_check_montant, var_to_ch
     
         data = PensionData.from_arrays(workstate, sali, info_ind)
         data_bounded = data.selected_dates(first=first_year_sal, last=yearsim)
-        simul_til = PensionSimulation(data_bounded)
-        result_til_year = simul_til.profile_main(yearsim, to_check=True)
+        legislation = PensionLegislation(yearsim, data_bounded)
+        legislation.load_param()
+        simul_til = PensionSimulation(data_bounded, legislation)
+        result_til_year = simul_til.profile_main(to_check=True)
         result_til.loc[result_til_year.index, :] = result_til_year
         result_til.loc[result_til_year.index, 'yearliq'] = yearsim
 

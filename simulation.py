@@ -7,7 +7,7 @@ from Regimes.Fonction_publique import FonctionPublique
 from Regimes.Regimes_complementaires_prive import AGIRC, ARRCO
 from Regimes.Regimes_prives import RegimeGeneral, RegimeSocialIndependants
 
-from utils_pension import load_param, build_long_values, scales_long_baremes
+from France.dates_start import dates_start
 from pension_functions import select_regime_base, sum_by_regime, update_all_regime
 first_year_sal = 1949 
 import cProfile
@@ -22,89 +22,29 @@ def til_pension(sali, workstate, info_ind, time_step='year', yearsim=2009, yearl
 
 class PensionSimulation(object):
 
-    def __init__(self, data):
+    def __init__(self, data, legislation):
         self.yearsim = None
         self.data = data
         #TODO: base_to_complementaire n'est pas vraiment de la législation
-        self.legislation = dict(base_regimes = ['RegimeGeneral', 'FonctionPublique', 'RegimeSocialIndependants'],
-                                complementaire_regimes = ['ARRCO', 'AGIRC'],
-                                base_to_complementaire = {'RegimeGeneral': ['arrco', 'agirc'], 'FonctionPublique': []}
-                                )
-        self.param = None
-        
-#     def load_data_from_pieces(self, workstate, sali, info_ind):
-#         ''' generate data
-#             table are taken only since first_year_sal
-#             and until yearsim if yearsim is not None
-#             - workstate, sali: longitudinal array, or pandas DataFrame or TimeArray
-#             - info_ind : pandas DataFrame
-#             - yearsim: int
-#         '''
-#         if max(info_ind.loc[:,'sexe']) == 2:
-#             info_ind.loc[:,'sexe'] = info_ind.loc[:,'sexe'].replace(1,0)
-#             info_ind.loc[:,'sexe'] = info_ind.loc[:,'sexe'].replace(2,1)
-#         yearsim = sali.dates[-1]
-#         info_ind.loc[:,'naiss'] = build_naiss(info_ind.loc[:,'agem'], dt.date(yearsim,1,1))
-#         data = PensionData.from_arrays(workstate, sali, info_ind)
-#         data.selected_dates(first=first_year_sal, inplace=True)
-#         self.data = data
-        
-    def long_param_builder(self, P_longit, yearleg): 
-        ''' Cette fonction permet de traduire les paramètres longitudinaux en vecteur numpy 
-        comportant une valeur par année comprise entre first_year_sim et last_year_sim '''
-        duration_sim = self.data.last_date.year - self.data.first_date.year
-        first_year_sim = yearleg - 1 - duration_sim
-        last_year_sim = yearleg
-        # TODO: trouver une méthode plus systématique qui test le 'type' du noeud et construit le long parameter qui va bien
-        for param_name in ['common.plaf_ss', 'prive.RG.revalo','common.smic_proj','common.avpf']:
-            param_name = param_name.split('.')
-            param = reduce(getattr, param_name, P_longit)
-            param = build_long_values(param_long=param, first=first_year_sim, last=last_year_sim)
-            setattr(eval('P_longit.' + '.'.join(param_name[:-1])), param_name[-1], param)
+        self.legislation = legislation
 
-        for regime in complementaire_regimes:
-            regime = regime.lower()
-            P = getattr(P_longit.prive.complementaire, regime)
-            salref_long = P.sal_ref
-            salref_long = build_long_values(salref_long,
-                                        first=first_year_sim, last=last_year_sim) 
-            setattr(eval('P_longit.prive.complementaire.' + regime), 'sal_ref', salref_long)
-            taux_cot_long = P.taux_cot_moy
-            taux_cot_long = build_long_values(taux_cot_long,
-                                               first=first_year_sim, last=last_year_sim)
-            taux_cot_long = scales_long_baremes(baremes=taux_cot_long, scales=P_longit.common.plaf_ss)
-            setattr(eval('P_longit.prive.complementaire.' + regime), 'taux_cot_moy', taux_cot_long)
-            
-        return P_longit
-
-
-    def load_param(self, yearleg):
-        ''' should run after having a data'''
-        assert self.data is not None
-        path_pension = os.path.dirname(os.path.abspath(__file__))
-        param_file = path_pension + '\\France\\param.xml'
-        date_param = str(yearleg)+ '-01-01'
-        date_param = dt.datetime.strptime(date_param ,"%Y-%m-%d").date()
-        P, P_longit = load_param(param_file, self.data.info_ind, date_param)
-        P_longit = self.long_param_builder(P_longit, yearleg)
-        self.param = P, P_longit
-        self.yearleg = yearleg
-        
     def evaluate(self, time_step='year', to_check=False):
-        if self.param is None:
+        if self.legislation.param is None:
             raise Exception("you should give parameter to PensionData before to evaluate")
         dict_to_check = dict()
-        P = self.param[0]
-        P_longit = self.param[1]
+        P = self.legislation.param
+        P_longit = self.legislation.param_long
+        dates_start = self.legislation.dates_start
+        yearleg = self.legislation.date.year
         #TODO: remove yearleg
-        config = {'dateleg' : self.yearleg, 'P': P, 'P_longit': P_longit,
+        config = {'dateleg' : yearleg, 'P': P, 'P_longit': P_longit, 'datesleg_start': dates_start,
                   'time_step': time_step}
         
         data = self.data
-        leg = self.legislation
-        base_regimes = leg['base_regimes']
-        complementaire_regimes = leg['complementaire_regimes']
-        base_to_complementaire = leg['base_to_complementaire']
+        regimes = self.legislation.regimes
+        base_regimes = regimes['bases']
+        complementaire_regimes = regimes['complementaires']
+        base_to_complementaire = regimes['base_to_complementaire']
         ### get trimesters (only TimeArray with trim by year), wages (only TimeArray with wage by year) and trim_maj (only vector of majoration): 
         trimesters_wages = dict()
         to_other = dict()
@@ -145,14 +85,10 @@ class PensionSimulation(object):
         else:
             return pension # TODO: define the output
         
-             
-    def main(self, yearleg, time_step='year', to_check=False):
-        self.load_param(yearleg)
-        return self.evaluate(time_step='year', to_check=to_check)
 
-    def profile_main(self, yearleg, time_step='year', to_check=False):
+    def profile_main(self, time_step='year', to_check=False):
         prof = cProfile.Profile()
-        result =prof.runcall( self.main, *(yearleg, time_step, to_check))
-        prof.dump_stats("profile_pension" + str(yearleg))
+        result = prof.runcall(self.evaluate, *(time_step, to_check))
+        prof.dump_stats("profile_pension" + str(self.yearsim))
         return result
         
