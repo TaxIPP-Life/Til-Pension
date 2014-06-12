@@ -1,10 +1,6 @@
 # -*- coding: utf-8 -*-
 
 from pandas import DataFrame
-from Regimes.Fonction_publique import FonctionPublique
-from Regimes.Regimes_complementaires_prive import AGIRC, ARRCO
-from Regimes.Regimes_prives import RegimeGeneral, RegimeSocialIndependants
-
 from pension_functions import select_regime_base, sum_by_regime, update_all_regime
 import cProfile
 

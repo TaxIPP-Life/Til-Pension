@@ -42,7 +42,7 @@ class FonctionPublique(RegimeBase):
         P_mda = self.P.public.fp.mda
         trim_maj['DA'] = trim_mda(info_ind, P_mda)*(trim_cotises>0)
         trim_maj['5eme'] = nb_trim_bonif_5eme(trim_cotises)*(trim_cotises>0)
-        to_other['RegimeGeneral'] = {'trimesters': {'cot_FP' : trim_to_RG}, 'wages': {'sal_FP' : sal_to_RG}}
+        to_other['RG'] = {'trimesters': {'cot_FP' : trim_to_RG}, 'wages': {'sal_FP' : sal_to_RG}}
         output = {'trimesters': trimesters, 'wages': wages, 'maj': trim_maj}
         return output, to_other
         

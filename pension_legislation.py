@@ -13,6 +13,9 @@ from Param import legislationsxml_add_pension as  legislationsxml
 from openfisca_core import conv
 
 from France.dates_start import dates_start
+from Regimes.Fonction_publique import FonctionPublique
+from Regimes.Regimes_complementaires_prive import AGIRC, ARRCO
+from Regimes.Regimes_prives import RegimeGeneral, RegimeSocialIndependants
 
 def build_long_values(param_long, first, last, time_scale='year'):   
     ''' Cette fonction permet de traduire les paramètres longitudinaux en vecteur numpy 
@@ -63,9 +66,9 @@ class PensionLegislation(object):
         self.dates_start = dates_start
         self.data = data
         self.regimes = dict(
-                            bases = ['RegimeGeneral', 'FonctionPublique', 'RegimeSocialIndependants'],
-                            complementaires = ['ARRCO', 'AGIRC'],
-                            base_to_complementaire = {'RegimeGeneral': ['arrco', 'agirc'], 'FonctionPublique': []}
+                            bases = [RegimeGeneral(), FonctionPublique(), RegimeSocialIndependants()],
+                            complementaires = [ARRCO(), AGIRC()],
+                            base_to_complementaire = {'RG': ['arrco', 'agirc'], 'FP': []}
                             )
   
     def long_param_builder(self, P_longit): 
@@ -83,7 +86,7 @@ class PensionLegislation(object):
             setattr(eval('P_longit.' + '.'.join(param_name[:-1])), param_name[-1], param)
 
         for regime in self.regimes['complementaires']:
-            regime = regime.lower()
+            regime = regime.name
             P = getattr(P_longit.prive.complementaire, regime)
             salref_long = P.sal_ref
             salref_long = build_long_values(salref_long,
