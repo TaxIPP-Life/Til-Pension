@@ -47,7 +47,6 @@ class RegimePrive(RegimeBase):
         nb_best_years_to_take[years_sali < nb_best_years_to_take] = years_sali[years_sali < nb_best_years_to_take]    
             
         if plafond is not None:
-            print sal_regime.array.shape[1], len(plafond)
             assert sal_regime.array.shape[1] == len(plafond)
             sal_regime.array = minimum(sal_regime.array, plafond) 
         if revalo is not None:

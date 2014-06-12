@@ -771,7 +771,7 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 	  <VALUE valeur="0" deb="1941-01-01" fin="1972-06-30"/>
 	</CODE>
     <NODE description="Allocation aux vieux travailleurs salariés" code="avts" >
-	<CODE description= "Montant de l'allocations aux vieux travailleurs salariés (avnt 1962 : métropole plus de 5000 hab)" code="montant" format="float" longitudinal="true">
+	<CODE description= "Montant de l'allocations aux vieux travailleurs salariés (avant 1962 : métropole plus de 5000 hab)" code="montant" format="float" longitudinal="true">
 	  <VALUE valeur= "3359.8" deb="2013-04-01" fin="2100-12-01"/>
 	  <VALUE valeur= "3316.69" deb="2012-04-01" fin="2013-03-31"/>
 	  <VALUE valeur= "3248.48" deb="2011-04-01" fin="2012-03-31"/>

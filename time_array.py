@@ -56,7 +56,7 @@ class TimeArray(object):
                             if first <= dates[i] and dates[i] < last
                         ]
         dates = [dates[i] for i in array_dates]
-        if inplace == True:
+        if inplace:
             self.array = array[:,array_dates]
             self.dates = dates
         else:
