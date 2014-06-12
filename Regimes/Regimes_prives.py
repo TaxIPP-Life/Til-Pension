@@ -49,7 +49,7 @@ class RegimeGeneral(RegimePrive):
         P_mda = self.P.prive.RG.mda
         trim_maj['DA'] = trim_mda(info_ind, P_mda)*(trimesters['cot'].sum(1)+ trimesters['ass'].sum(1)>0)
         output = {'trimesters': trimesters, 'wages': wages, 'maj': trim_maj}
-        #print_multi_info_numpy([data.workstate, data.sali, trimesters['cot'], wages['cot'], trimesters['avpf'], wages['avpf']], 1882, data.info_ind.index)
+        #print_multi_info_numpy([data.workstate, data.sali, trimesters['cot'], wages['cot'], trimesters['avpf'], wages['avpf'], trimesters['ass']], 1882, data.info_ind.index)
         return output, to_other
 
 class RegimeSocialIndependants(RegimePrive):
@@ -66,17 +66,14 @@ class RegimeSocialIndependants(RegimePrive):
         trim_maj = dict()
         to_other = dict()
         
-        workstate = data.workstate
-        sali = data.sali
-        
         P = reduce(getattr, self.param_name.split('.'), self.P)
         salref = P.salref
-        trimesters['cot'], _ = validation_trimestre(data, self.code_regime, salref, name='cot')
+        trimesters['cot'], wages['cot'] = validation_trimestre(data, self.code_regime, salref, name='cot')
 
         #TODO : pour l'instant tous les trimestres assimilés sont imputés au RG
         #nb_trim_ass, _ = trim_ass_by_year(reduce_data, self.code_regime, compare_destinie)
         #trimesters['ass'] = nb_trim_ass 
-        wages['regime'] = sali_in_regime(workstate, sali, self.code_regime)
+
         P_mda = self.P.prive.RG.mda
         trim_maj['DA'] = trim_mda(data.info_ind, P_mda)*(trimesters['cot'].sum(1)>0)
         output = {'trimesters': trimesters, 'wages': wages, 'maj': trim_maj}

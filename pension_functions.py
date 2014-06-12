@@ -35,7 +35,7 @@ def attribution_mda(trimesters_wages):
     return trimesters_wages
     
 def update_all_regime(trimesters_wages, dict_to_check):
-    trim_by_year_tot = sum_from_dict({ 'regime' : trimesters_wages[regime]['trimesters']['regime'] for regime in trimesters_wages.keys()})
+    trim_by_year_tot = sum_from_dict({ regime : trimesters_wages[regime]['trimesters']['regime'] for regime in trimesters_wages.keys()})
     trimesters_wages = attribution_mda(trimesters_wages)
     maj_tot = sum([sum(trimesters_wages[regime]['maj'].values()) for regime in trimesters_wages.keys()])
     trimesters_wages['all_regime'] = {'trimesters' : {'tot' : trim_by_year_tot}, 'maj' : {'tot' : maj_tot}}

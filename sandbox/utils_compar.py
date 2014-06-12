@@ -54,7 +54,7 @@ def print_multi_info_numpy(list_timearray, ident, list_ident):
     to_print = {}
     first_shape = list_timearray[0].array.shape
     max_nb_dates = 0
-    print "Les informatons personnelles de l'individu {} sont : ".format(ident)
+    print "Les informations personnelles de l'individu {} sont : ".format(ident)
     for timearray in list_timearray:
         array = timearray.array
         assert len(array.shape) == 2
