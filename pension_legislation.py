@@ -14,6 +14,40 @@ from openfisca_core import conv
 
 from France.dates_start import dates_start
 
+def build_long_values(param_long, first, last, time_scale='year'):   
+    ''' Cette fonction permet de traduire les paramètres longitudinaux en vecteur numpy 
+    comportant une valeur par année comprise en first_year et last_year '''
+    #TODO: Idea : return a TimeArray and use select if needed
+    param_dates = sorted(param_long.keys())
+    def _convert_date(x):
+        date = dt.datetime.strptime(x, "%Y-%m-%d")
+        return 100*date.year + date.month
+    #TODO: convert here all param in dates   
+    param_dates_liam = [_convert_date(x) for x in param_dates]
+    param_dates_liam += [210001]
+
+    if time_scale=='year':
+        list_dates = [100*x + 1  for x in range(first, last)]
+    else: 
+        #TODO: create a function...
+        raise Exception("Not implemented yet for time_scale not year")
+    
+    output = []
+    k = 0
+    for date in list_dates:
+        while param_dates_liam[k+1] <= date:
+            k += 1
+        output += [param_long[param_dates[k]]]  
+    return output
+        
+def scales_long_baremes(baremes, scales):   
+    ''' Cette fonction permet de traduire les barèmes longitudinaux en dictionnaire de bareme
+    comportant un barème par année comprise en first_year et last_year'''
+    from Param.Scales import scaleBaremes
+    assert len(scales) == len(baremes)
+    for date in range(len(baremes)):
+        baremes[date] = scaleBaremes(baremes[date], scales[date])
+    return baremes
 
 class PensionLegislation(object):
     '''
@@ -130,39 +164,3 @@ class PensionLegislation(object):
         setattr(compact_legislation.prive.RG, 'salref', self.salref_RG_builder())
         self.param = compact_legislation 
         
-
-def build_long_values(param_long, first, last, time_scale='year'):   
-    ''' Cette fonction permet de traduire les paramètres longitudinaux en vecteur numpy 
-    comportant une valeur par année comprise en first_year et last_year '''
-    #TODO: Idea : return a TimeArray and use select if needed
-    param_dates = sorted(param_long.keys())
-    def _convert_date(x):
-        date = dt.datetime.strptime(x, "%Y-%m-%d")
-        return 100*date.year + date.month
-    #TODO: convert here all param in dates   
-    param_dates_liam = [_convert_date(x) for x in param_dates]
-    param_dates_liam += [210001]
-
-    if time_scale=='year':
-        list_dates = [100*x + 1  for x in range(first, last)]
-    else: 
-        #TODO: create a function...
-        raise Exception("Not implemented yet for time_scale not year")
-    
-    output = []
-    k = 0
-    for date in list_dates:
-        while param_dates_liam[k+1] <= date:
-            k += 1
-        output += [param_long[param_dates[k]]]  
-    return output
-        
-def scales_long_baremes(baremes, scales):   
-    ''' Cette fonction permet de traduire les barèmes longitudinaux en dictionnaire de bareme
-    comportant un barème par année comprise en first_year et last_year'''
-    from Param.Scales import scaleBaremes
-    assert len(scales) == len(baremes)
-    for date in range(len(baremes)):
-        baremes[date] = scaleBaremes(baremes[date], scales[date])
-    return baremes
- 
