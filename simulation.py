@@ -21,7 +21,11 @@ def til_pension(sali, workstate, info_ind, time_step='year', yearsim=2009, yearl
     cProfile.runctx( command, globals(), locals(), filename="profile_pension" + str(yearsim))
 
 class PensionSimulation(object):
-
+    ''' class qui permet de simuler un système de retraite :
+            a besoin d'une data et d'une legislation
+          La méthode evaluate renvoie un vecteur qui est le montant de pension calculé
+    '''
+        
     def __init__(self, data, legislation):
         self.yearsim = None
         self.data = data
@@ -86,7 +90,7 @@ class PensionSimulation(object):
             return pension # TODO: define the output
         
 
-    def profile_main(self, time_step='year', to_check=False):
+    def profile_evaluate(self, time_step='year', to_check=False):
         prof = cProfile.Profile()
         result = prof.runcall(self.evaluate, *(time_step, to_check))
         prof.dump_stats("profile_pension" + str(self.yearsim))
