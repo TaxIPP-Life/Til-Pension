@@ -13,7 +13,6 @@ class PensionSimulation(object):
     '''
         
     def __init__(self, data, legislation):
-        self.yearsim = None
         self.data = data
         #TODO: base_to_complementaire n'est pas vraiment de la législation
         self.legislation = legislation
@@ -76,6 +75,7 @@ class PensionSimulation(object):
     def profile_evaluate(self, time_step='year', to_check=False):
         prof = cProfile.Profile()
         result = prof.runcall(self.evaluate, *(time_step, to_check))
-        prof.dump_stats("profile_pension" + str(self.yearsim))
+        #TODO: add a suffix, like yearleg : was + str(self.yearsim)
+        prof.dump_stats("profile_pension")
         return result
         
