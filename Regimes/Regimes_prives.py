@@ -13,7 +13,7 @@ from pandas import Series
 
 from regime import compare_destinie
 from regime_prive import RegimePrive
-from utils_pension import print_multi_info_numpy, _info_numpy
+from sandbox.utils_compar import print_multi_info_numpy, _info_numpy
 from trimesters_functions import trim_ass_by_year, validation_trimestre, sali_in_regime, trim_mda, imput_sali_avpf
 
 code_avpf = 8

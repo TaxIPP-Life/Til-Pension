@@ -10,7 +10,7 @@ from pandas import Series
 
 from regime import RegimeBase, compare_destinie
 from trimesters_functions import nb_trim_surcote
-from utils_pension import print_multi_info_numpy, _info_numpy
+from sandbox.utils_compar import print_multi_info_numpy, _info_numpy
 from trimesters_functions import trim_cot_by_year_FP, nb_trim_bonif_5eme, trim_mda
 
 code_chomage = 5

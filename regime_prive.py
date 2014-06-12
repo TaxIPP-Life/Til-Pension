@@ -11,7 +11,7 @@ from numpy import maximum, minimum, array, divide, zeros, multiply
 from pandas import Series
 
 from regime import RegimeBase, compare_destinie
-from utils_pension import _info_numpy, print_multi_info_numpy
+from sandbox.utils_compar import print_multi_info_numpy, _info_numpy
 from trimesters_functions import nb_trim_surcote
 
 def date_(year, month, day):
