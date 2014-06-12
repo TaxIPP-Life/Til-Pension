@@ -46,6 +46,18 @@ class PensionData(object):
             sal = self.sali.selected_dates(first, last, date_type)
             return PensionData(wk, sal, self.info_ind)
         
+    def selected_regime(self, code_regime, inplace=False):
+        ''' Cette fonction renvoie une copie corrigée de l'objet PensionData dans lequel :
+        - tous les workstate de data.workstate qui ne figurent pas dans code_regime sont remplacés par 0
+        - tous les salaires non-associés à un workstate dans code_regime sont remplacés par 0
+        '''
+        wk_selection = self.workstate.isin([code_regime])
+        sal = self.sali.copy()
+        work = self.workstate.copy()
+        wk_regime = TimeArray(wk_selection.array*work.array, sal.dates, name='workstate_regime')
+        sal_regime = TimeArray(wk_selection.array*sal.array, sal.dates, name='sali_regime') 
+        return PensionData(wk_regime, sal_regime, self.info_ind)
+        
     def translate_frequency(self, output_frequency='month', method=None, inplace=False):
         ''' cf TimeArray '''
         if inplace:
@@ -53,6 +65,7 @@ class PensionData(object):
             self.sali.translate_frequency(output_frequency, method, inplace=True)
             self.set_dates(self.sali.dates)
         else:
+            print 'hola'
             wk = self.workstate.translate_frequency(output_frequency, method)
             sal = self.sali.translate_frequency(output_frequency, method)
             return PensionData(wk, sal, self.info_ind)
