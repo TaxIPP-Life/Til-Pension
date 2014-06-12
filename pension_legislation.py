@@ -101,12 +101,8 @@ class PensionLegislation(object):
                     smic_year.append(key)
             if not smic_year:
                 smic_year = smic_old
-            if year <= 2013 :
-                salmin.loc[salmin['year'] == year, 'sal'] = 200*smic_long[smic_year[0]]
-                if year <= 2001 :
-                    salmin.loc[salmin['year'] == year, 'sal'] = 200*smic_long[smic_year[0]]/6.5596
-            else:
-                salmin.loc[salmin['year'] == year, 'sal'] = 150*smic_long[smic_year[0]]
+            
+            salmin.loc[salmin['year'] == year, 'sal'] = self.param.prive.RG.nb_h*smic_long[smic_year[0]]
         return array(salmin['sal'])
 
 
@@ -130,11 +126,10 @@ class PensionLegislation(object):
 
         compact_legislation_long = self.long_param_builder(compact_legislation_long)
         self.param_long = compact_legislation_long
+        self.param = compact_legislation
         setattr(compact_legislation.prive.RG, 'salref', self.salref_RG_builder())
         self.param = compact_legislation 
         
-
-
 
 def build_long_values(param_long, first, last, time_scale='year'):   
     ''' Cette fonction permet de traduire les paramètres longitudinaux en vecteur numpy 
