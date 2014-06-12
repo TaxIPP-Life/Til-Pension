@@ -12,7 +12,116 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 
 <NODE description= "Retraites" code="ret">
   <NODE description="Commun à tous les régimes" code="common">
-	<CODE description="Montant du smic horaire (barème ipp)" code="smic" format="float" longitudinal="true">
+  	<CODE description="Montant du smic horaire (barèmes ipp : euros)" code="smic" format="float" longitudinal="true">
+	  <VALUE valeur="9.53" deb="2014-01-01" fin="2100-12-01"/>
+	  <VALUE valeur="9.43" deb="2013-01-01" fin="2013-12-31"/>
+	  <VALUE valeur="9.4" deb="2012-07-01" fin="2012-12-31"/>
+	  <VALUE valeur="9.22" deb="2012-01-01" fin="2012-06-30"/>
+	  <VALUE valeur="9.19" deb="2011-12-01" fin="2011-12-31"/>
+	  <VALUE valeur="9.0" deb="2011-01-01" fin="2011-11-30"/>
+	  <VALUE valeur="8.86" deb="2010-01-01" fin="2010-12-31"/>
+	  <VALUE valeur="8.82" deb="2009-07-01" fin="2009-12-31"/>
+	  <VALUE valeur="8.71" deb="2008-07-01" fin="2009-06-30"/>
+	  <VALUE valeur="8.63" deb="2008-05-01" fin="2008-06-30"/>
+	  <VALUE valeur="8.44" deb="2007-07-01" fin="2008-04-30"/>
+	  <VALUE valeur="8.27" deb="2006-07-01" fin="2007-06-30"/>
+	  <VALUE valeur="8.03" deb="2005-07-01" fin="2006-06-30"/>
+	  <VALUE valeur="7.61" deb="2004-07-01" fin="2005-06-30"/>
+	  <VALUE valeur="7.19" deb="2003-07-01" fin="2004-06-30"/>
+	  <VALUE valeur="6.83" deb="2002-07-01" fin="2003-06-30"/>
+	  <VALUE valeur="6.67" deb="2002-01-01" fin="2002-06-30"/>
+	  <VALUE valeur="6.67" deb="2001-07-01" fin="2001-12-31"/>
+	  <VALUE valeur="6.41" deb="2000-07-01" fin="2001-06-30"/>
+	  <VALUE valeur="6.21" deb="1999-07-01" fin="2000-06-30"/>
+	  <VALUE valeur="6.13" deb="1998-07-01" fin="1999-06-30"/>
+	  <VALUE valeur="6.01" deb="1997-07-01" fin="1998-06-30"/>
+	  <VALUE valeur="5.78" deb="1996-07-01" fin="1997-06-30"/>
+	  <VALUE valeur="5.75" deb="1996-05-01" fin="1996-06-30"/>
+	  <VALUE valeur="5.64" deb="1995-07-01" fin="1996-04-30"/>
+	  <VALUE valeur="5.42" deb="1994-07-01" fin="1995-06-30"/>
+	  <VALUE valeur="5.31" deb="1993-07-01" fin="1994-06-30"/>
+	  <VALUE valeur="5.19" deb="1992-07-01" fin="1993-06-30"/>
+	  <VALUE valeur="5.08" deb="1992-03-01" fin="1992-06-30"/>
+	  <VALUE valeur="4.98" deb="1991-07-01" fin="1992-02-29"/>
+	  <VALUE valeur="4.87" deb="1990-12-01" fin="1991-06-30"/>
+	  <VALUE valeur="4.77" deb="1990-07-01" fin="1990-11-30"/>
+	  <VALUE valeur="4.65" deb="1990-04-01" fin="1990-06-30"/>
+	  <VALUE valeur="4.56" deb="1989-07-01" fin="1990-03-31"/>
+	  <VALUE valeur="4.48" deb="1989-03-01" fin="1989-06-30"/>
+	  <VALUE valeur="4.38" deb="1988-07-01" fin="1989-02-28"/>
+	  <VALUE valeur="4.34" deb="1988-06-01" fin="1988-06-30"/>
+	  <VALUE valeur="4.24" deb="1987-07-01" fin="1988-05-31"/>
+	  <VALUE valeur="4.2" deb="1987-03-01" fin="1987-06-30"/>
+	  <VALUE valeur="4.1" deb="1986-07-07" fin="1987-02-28"/>
+	  <VALUE valeur="4.05" deb="1986-06-01" fin="1986-07-06"/>
+	  <VALUE valeur="3.97" deb="1985-07-01" fin="1986-05-31"/>
+	  <VALUE valeur="3.89" deb="1985-05-01" fin="1985-06-30"/>
+	  <VALUE valeur="3.8" deb="1985-04-01" fin="1985-04-30"/>
+	  <VALUE valeur="3.71" deb="1984-11-01" fin="1985-03-31"/>
+	  <VALUE valeur="3.63" deb="1984-07-01" fin="1984-10-31"/>
+	  <VALUE valeur="3.59" deb="1984-05-01" fin="1984-06-30"/>
+	  <VALUE valeur="3.47" deb="1984-01-01" fin="1984-04-30"/>
+	  <VALUE valeur="3.4" deb="1983-10-01" fin="1983-12-31"/>
+	  <VALUE valeur="3.34" deb="1983-07-01" fin="1983-09-30"/>
+	  <VALUE valeur="3.3" deb="1983-06-01" fin="1983-06-30"/>
+	  <VALUE valeur="3.2" deb="1983-03-01" fin="1983-05-31"/>
+	  <VALUE valeur="3.09" deb="1982-12-01" fin="1983-02-28"/>
+	  <VALUE valeur="2.99" deb="1982-07-01" fin="1982-11-30"/>
+	  <VALUE valeur="2.9" deb="1982-05-01" fin="1982-06-30"/>
+	  <VALUE valeur="2.84" deb="1982-03-01" fin="1982-04-30"/>
+	  <VALUE valeur="2.77" deb="1982-01-01" fin="1982-02-28"/>
+	  <VALUE valeur="2.71" deb="1981-11-01" fin="1981-12-31"/>
+	  <VALUE valeur="2.64" deb="1981-09-01" fin="1981-10-31"/>
+	  <VALUE valeur="2.55" deb="1981-06-01" fin="1981-08-31"/>
+	  <VALUE valeur="2.32" deb="1981-03-01" fin="1981-05-31"/>
+	  <VALUE valeur="2.25" deb="1980-12-01" fin="1981-02-28"/>
+	  <VALUE valeur="2.18" deb="1980-09-01" fin="1980-11-30"/>
+	  <VALUE valeur="2.13" deb="1980-07-01" fin="1980-08-31"/>
+	  <VALUE valeur="2.08" deb="1980-05-01" fin="1980-06-30"/>
+	  <VALUE valeur="2.04" deb="1980-03-01" fin="1980-04-30"/>
+	  <VALUE valeur="1.97" deb="1979-12-01" fin="1980-02-29"/>
+	  <VALUE valeur="1.89" deb="1979-09-01" fin="1979-11-30"/>
+	  <VALUE valeur="1.85" deb="1979-07-01" fin="1979-08-31"/>
+	  <VALUE valeur="1.77" deb="1979-04-01" fin="1979-06-30"/>
+	  <VALUE valeur="1.72" deb="1978-12-01" fin="1979-03-31"/>
+	  <VALUE valeur="1.69" deb="1978-09-01" fin="1978-11-30"/>
+	  <VALUE valeur="1.65" deb="1978-07-01" fin="1978-08-31"/>
+	  <VALUE valeur="1.59" deb="1978-05-01" fin="1978-06-30"/>
+	  <VALUE valeur="1.53" deb="1977-12-01" fin="1978-04-30"/>
+	  <VALUE valeur="1.49" deb="1977-10-01" fin="1977-11-30"/>
+	  <VALUE valeur="1.46" deb="1977-07-01" fin="1977-09-30"/>
+	  <VALUE valeur="1.42" deb="1977-06-01" fin="1977-06-30"/>
+	  <VALUE valeur="1.39" deb="1977-04-01" fin="1977-05-31"/>
+	  <VALUE valeur="1.36" deb="1976-12-01" fin="1977-03-31"/>
+	  <VALUE valeur="1.34" deb="1976-10-01" fin="1976-11-30"/>
+	  <VALUE valeur="1.31" deb="1976-07-01" fin="1976-09-30"/>
+	  <VALUE valeur="1.23" deb="1976-04-01" fin="1976-06-30"/>
+	  <VALUE valeur="1.2" deb="1976-01-01" fin="1976-03-31"/>
+	  <VALUE valeur="1.18" deb="1975-10-01" fin="1975-12-31"/>
+	  <VALUE valeur="1.15" deb="1975-07-01" fin="1975-09-30"/>
+	  <VALUE valeur="1.09" deb="1975-06-01" fin="1975-06-30"/>
+	  <VALUE valeur="1.06" deb="1975-03-01" fin="1975-05-31"/>
+	  <VALUE valeur="1.03" deb="1974-12-01" fin="1975-02-28"/>
+	  <VALUE valeur="1.0" deb="1974-09-01" fin="1974-11-30"/>
+	  <VALUE valeur="0.98" deb="1974-07-01" fin="1974-08-31"/>
+	  <VALUE valeur="0.91" deb="1974-05-01" fin="1974-06-30"/>
+	  <VALUE valeur="0.85" deb="1974-03-01" fin="1974-04-30"/>
+	  <VALUE valeur="0.83" deb="1973-12-01" fin="1974-02-28"/>
+	  <VALUE valeur="0.81" deb="1973-10-01" fin="1973-11-30"/>
+	  <VALUE valeur="0.79" deb="1973-07-01" fin="1973-09-30"/>
+	  <VALUE valeur="0.71" deb="1973-02-01" fin="1973-06-30"/>
+	  <VALUE valeur="0.69" deb="1972-11-01" fin="1973-01-31"/>
+	  <VALUE valeur="0.66" deb="1972-07-01" fin="1972-10-31"/>
+	  <VALUE valeur="0.63" deb="1972-05-01" fin="1972-06-30"/>
+	  <VALUE valeur="0.6" deb="1971-12-01" fin="1972-04-30"/>
+	  <VALUE valeur="0.59" deb="1971-07-01" fin="1971-11-30"/>
+	  <VALUE valeur="0.56" deb="1971-04-01" fin="1971-06-30"/>
+	  <VALUE valeur="0.55" deb="1971-01-01" fin="1971-03-31"/>
+	  <VALUE valeur="0.53" deb="1970-07-01" fin="1970-12-31"/>
+	  <VALUE valeur="0.51" deb="1970-03-01" fin="1970-06-30"/>
+	  <VALUE valeur="0.5" deb="1970-01-01" fin="1970-02-28"/>
+	</CODE>
+	<CODE description="Montant du smic horaire (barème ipp)" code="smic_fr" format="float" longitudinal="true">
 	  <VALUE valeur= "9.53" deb="2014-01-01" fin="2100-12-01"/>
 	  <VALUE valeur= "9.43" deb="2013-01-01" fin="2013-12-31"/>
 	  <VALUE valeur= "9.4" deb="2012-07-01" fin="2012-12-31"/>
@@ -1041,6 +1150,10 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
   </NODE>
   <NODE description="Retraite du secteur privé" code="prive" >
   	<NODE description="Régime général (retraites de base)" code="RG" >
+	  <CODE description="Nombre d'heures de SMIC validant un trimestre" code="nb_h" format="integer">
+		<VALUE valeur="200" deb="1945-01-01" fin="2013-12-31"/>
+		<VALUE valeur="150" deb="2014-01-01" fin="2100-12-31"/>
+  	  </CODE>
   	  <NODE description="Taux plein" code="plein" >
 	      <CODE description="Valeur du taux" code="taux" format="percent">
 			<VALUE valeur=".40" deb="1945-01-01" fin="1971-12-31"/>

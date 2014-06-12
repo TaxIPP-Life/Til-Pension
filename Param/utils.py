@@ -160,19 +160,20 @@ if __name__ == '__main__':
     #from_excel_to_xml(data = plaf_ss, description = "Plafond de la sécurité sociale", code = "plaf_ss", format = "float", data_date = dates, ascendant_date = True, format_date = 'year')
     
     smic = np.array((data['SMIC']).round(2))
-    from_excel_to_xml(data = smic, description = "SMIC horaire projeté à partir du SMPT ", code = "smic_proj", format = "float", data_date = dates, ascendant_date = True, format_date = 'year')
+    #from_excel_to_xml(data = smic, description = "SMIC horaire projeté à partir du SMPT ", code = "smic_proj", format = "float", data_date = dates, ascendant_date = True, format_date = 'year')
     
     smpt = np.array(data['SMPT '])
     #from_excel_to_xml(data = smpt, description = "SMPT - Hypothèse d'évolution selon le scénario C du COR + inflation", code = "smpt", format = "float", data_date = dates, ascendant_date = True, format_date = 'year')
-    '''
+
         # 3 -- Importation du Excel Bareme_Emploi
     xlsxfile = pd.ExcelFile('Bareme_Emploi.xlsx')
     # Paramètres généraux
     data = xlsxfile.parse('SMIC', index_col = None, header = True)
     smic =  np.array(data['Smic brut (horaire)'][:107])
+    smic = _francs_to_euro(smic,17)
     dates = np.array(data["Date d'effet"][:107])
     #from_excel_to_xml(data = smic, description = "Montant du smic horaire", code = "smic", format = "float", data_date = dates)
-    '''
+    
         # 4 --Importation des barèmes IPP retraite
     xlsxfile = pd.ExcelFile('Retraite.xlsx')
 
@@ -214,7 +215,7 @@ if __name__ == '__main__':
     dates = data[u"Date d'entrée en vigueur"][1:50]
     avpf =  _francs_to_euro(np.array(avpf), 15)
     dates = np.array(dates)
-    from_excel_to_xml(data=avpf, description = "Assurance vieillesse des parents au foyer", code = "avpf", format = "float", data_date = dates)
+    #from_excel_to_xml(data=avpf, description = "Assurance vieillesse des parents au foyer", code = "avpf", format = "float", data_date = dates)
     
 
         # 5 -- Importation des paramètres Destinie :
