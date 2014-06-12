@@ -16,10 +16,6 @@ base_regimes = ['RegimeGeneral', 'FonctionPublique', 'RegimeSocialIndependants']
 complementaire_regimes = ['ARRCO', 'AGIRC']
 base_to_complementaire = {'RegimeGeneral': ['arrco', 'agirc'], 'FonctionPublique': []}
 
-def til_pension(sali, workstate, info_ind, time_step='year', yearsim=2009, yearleg=None, example=False):
-    command = """run_pension(sali, workstate, info_ind, time_step, yearsim, yearleg, example)"""
-    cProfile.runctx( command, globals(), locals(), filename="profile_pension" + str(yearsim))
-
 class PensionSimulation(object):
     ''' class qui permet de simuler un système de retraite :
             a besoin d'une data et d'une legislation
@@ -89,7 +85,7 @@ class PensionSimulation(object):
         else:
             return pension # TODO: define the output
         
-
+        
     def profile_evaluate(self, time_step='year', to_check=False):
         prof = cProfile.Profile()
         result = prof.runcall(self.evaluate, *(time_step, to_check))
