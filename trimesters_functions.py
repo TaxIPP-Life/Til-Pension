@@ -60,39 +60,41 @@ def trim_ass_by_year(data, code, compare_destinie):
     return trim_by_year_ass, None
 
 #TODO: remove ? 
-def validation_trimestre(data, code, salref, frequency='year'):  
+def validation_trimestre(data, code, salref, frequency='year', name=''):  
     ''' FP Nombre de trimestres côtisés pour le régime général par année 
     ref : code de la sécurité sociale, article R351-9
     '''
+    name_sal = 'sali_' + name
+    name_trim = 'trim_' + name
+        
     # Selection des salaires à prendre en compte dans le décompte (mois où il y a eu côtisation au régime)
-    data.translate_frequency(output_frequency=frequency, method='sum')
-    workstate = data.workstate
-    sali = data.sali
+    data_validation = data.translate_frequency(output_frequency=frequency, method='sum')
+    workstate = data_validation.workstate
+    sal = data_validation.sali
     #selection des données du régime
     wk_selection = workstate.isin(code)
-    sal_selection = TimeArray(wk_selection.array*sali.array, sali.dates, name='temp')
+    sal_selection = TimeArray(wk_selection.array*sal.array, sal.dates, name=name_sal)
     # applique le bareme de legislation sur les salaires
     plafond = 4
     sal_annuel = sal_selection.array
     sal_annuel[isnan(sal_annuel)] = 0
     division = divide(sal_annuel, salref).astype(int)
-    trim_cot_by_year = TimeArray(minimum(division, plafond), sali.dates, 'trim_cot')
+    trim_cot_by_year = TimeArray(minimum(division, plafond), sal.dates, name=name_trim)
     return trim_cot_by_year, sal_selection
     
 def imput_sali_avpf(data, code, P_longit, compare_destinie):
     #TODO: move to an other place
-    workstate = data.workstate
-    sali = data.sali
-    wk_selection = workstate.isin([code])
-    sal_selection = TimeArray(wk_selection.array*sali.array, sali.dates, name='temp')
-    if sal_selection.array.all() == 0:
+    data_avpf = data.selected_regime(code)
+    sali_avpf = data_avpf.sali
+    if sali_avpf.array.all() == 0:
         # TODO: frquency warning, cette manière de calculer les trimestres avpf ne fonctionne qu'avec des tables annuelles
+        year_avpf = (data_avpf.workstate != 0)
         avpf = P_longit.common.avpf
-        sal_selection.array = 12*multiply(sal_selection.array, avpf)
+        sali_avpf.array = 12*multiply(year_avpf, avpf)
         if compare_destinie == True:
             smic_long = P_longit.common.smic_proj
-            sal_selection.array = multiply(sal_selection.array, smic_long)
-    return sal_selection
+            sali_avpf.array = multiply(year_avpf, smic_long)
+    return sali_avpf
 
 
 def trim_mda(info_ind, P): 
