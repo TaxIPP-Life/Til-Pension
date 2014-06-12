@@ -59,7 +59,14 @@ class PensionLegislation(object):
     - les infos individuelles contenues dans data.info_ind (pour les paramètres par génération)
     - la structure des tables sali/workstate (pour ajuster la longueur des paramètres long)
     '''
-    def __init__(self, dateleg, data, dates_start=dates_start): 
+    def __init__(self, dateleg, data, dates_start=dates_start):
+        #TODO: use all attrbutes except data in a PensionParam class
+        # example: 
+        #     duration = data.last_year - data.first_year 
+        #     self.param = PensionParam.builder(dateleg, data.info_ind, duration)
+        #  or, by anticipation: 
+        #     self.param = PensionParam.builder(dateleg, data.info_ind, duration, method)
+        #  where method give how to shift legislation from on year to an other, constant_year, constant_sequence, etc?
         self.date = DateTil(dateleg)
         self.param = None
         self.param_long = None
