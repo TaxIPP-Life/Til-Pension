@@ -23,7 +23,7 @@ class RegimeGeneral(RegimePrive):
     
     def __init__(self):
         RegimePrive.__init__(self)
-        self.regime = 'RG'
+        self.name = 'RG'
         self.code_regime = [3,4]
         self.param_name_bis = 'prive.RG'
      
@@ -56,7 +56,7 @@ class RegimeSocialIndependants(RegimePrive):
     
     def __init__(self):
         RegimePrive.__init__(self)
-        self.regime = 'RSI'
+        self.name = 'RSI'
         self.code_regime = [7]
         self.param_name_bis = 'indep.rsi'
 

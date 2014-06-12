@@ -19,7 +19,7 @@ class FonctionPublique(RegimeBase):
     
     def __init__(self):
         RegimeBase.__init__(self)
-        self.regime = 'FP'
+        self.name = 'FP'
         self.code_regime = [5,6]
         self.param_name = 'public.fp'
         

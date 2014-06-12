@@ -14,7 +14,7 @@ class AGIRC(RegimeComplementaires):
     
     def __init__(self):
         RegimeComplementaires.__init__(self)
-        self.regime = 'agirc'
+        self.name = 'agirc'
         self.code_regime = [4]
         self.param_name = 'prive.complementaire.agirc'
         self.param_RG = 'prive.RG'
@@ -63,7 +63,7 @@ class ARRCO(RegimeComplementaires):
     des salariés du secteur privé de l’industrie, du commerce, des services et de l’agriculture, cadres compris. '''
     def __init__(self):
         RegimeComplementaires.__init__(self)
-        self.regime = 'arrco'
+        self.name = 'arrco'
         self.param_name = 'prive.complementaire.arrco'
         self.param_RG = 'prive.RG'
         self.code_regime = [3,4]

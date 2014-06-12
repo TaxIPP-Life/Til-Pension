@@ -17,7 +17,7 @@ class Regime(object):
      
     def __init__(self):
         self.code_regime = None
-        self.regime = None
+        self.name = None
         self.param_name = None
     
         self.dates = None     
@@ -130,7 +130,7 @@ class Regime(object):
     
     def calculate_pension(self, data, trim_wage_regime, trim_wage_all, to_check=None):
         info_ind = data.info_ind
-        reg = self.regime
+        name = self.name
         decote = self.decote(data, trim_wage_all)
         surcote = self.surcote(data, trim_wage_regime, trim_wage_all)        
         taux = self.calculate_taux(decote, surcote)
@@ -141,15 +141,15 @@ class Regime(object):
         if to_check is not None:
             trimesters = trim_wage_regime['trimesters']
             trim_regime = trimesters['regime'].sum()
-            to_check['decote_' + self.regime] = decote*(trim_regime > 0)
-            to_check['surcote_' + self.regime] = surcote*(trim_regime > 0)
-            to_check['CP_' + reg] = cp
-            to_check['taux_' + reg] = taux*(trim_regime>0)
-            to_check['salref_' + reg] = salref
+            to_check['decote_' + name] = decote*(trim_regime > 0)
+            to_check['surcote_' + name] = surcote*(trim_regime > 0)
+            to_check['CP_' + name] = cp
+            to_check['taux_' + name] = taux*(trim_regime>0)
+            to_check['salref_' + name] = salref
             P = reduce(getattr, self.param_name.split('.'), self.P)
-            to_check['n_trim_' + reg] = P.plein.n_trim // 4
+            to_check['n_trim_' + name] = P.plein.n_trim // 4
             try:
-                to_check['N_CP_' + reg] = P.N_CP // 4
+                to_check['N_CP_' + name] = P.N_CP // 4
             except:
                 pass
         return pension.fillna(0)
@@ -194,9 +194,9 @@ class RegimeComplementaires(Regime):
         sali_plaf = self.sali_for_regime(data)
         if last_year == None:
             last_year = last_year_sali
-        regime = self.regime
+        name = self.name
         P = reduce(getattr, self.param_name.split('.'), self.P)
-        Plong_regime = getattr(self.P_longit.prive.complementaire, regime)
+        Plong_regime = getattr(self.P_longit.prive.complementaire, name)
         salref = Plong_regime.sal_ref
         taux_cot = Plong_regime.taux_cot_moy
         assert len(salref) == sali_plaf.shape[1] == len(taux_cot)
@@ -241,7 +241,7 @@ class RegimeComplementaires(Regime):
         sali = data.sali
         info_ind = data.info_ind
         
-        reg = self.regime
+        name = self.name
         P = reduce(getattr, self.param_name.split('.'), self.P)
         val_arrco = P.val_point 
         nb_points = self.nombre_points(data)
@@ -249,8 +249,8 @@ class RegimeComplementaires(Regime):
         maj_enf = self.majoration_enf(data, nb_points, coeff_age)
         
         if to_check is not None:
-            to_check['nb_points_' + reg] = nb_points
-            to_check['coeff_age_' + reg] = coeff_age
-            to_check['maj_' + reg] = maj_enf
+            to_check['nb_points_' + name] = nb_points
+            to_check['coeff_age_' + name] = coeff_age
+            to_check['maj_' + name] = maj_enf
         pension = val_arrco*nb_points*coeff_age + maj_enf
         return pension.fillna(0)
