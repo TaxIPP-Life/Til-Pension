@@ -1,20 +1,14 @@
 # -*- coding: utf-8 -*-
 
-import datetime as dt
-import os
 from pandas import DataFrame
 from Regimes.Fonction_publique import FonctionPublique
 from Regimes.Regimes_complementaires_prive import AGIRC, ARRCO
 from Regimes.Regimes_prives import RegimeGeneral, RegimeSocialIndependants
 
-from France.dates_start import dates_start
 from pension_functions import select_regime_base, sum_by_regime, update_all_regime
-first_year_sal = 1949 
 import cProfile
 
-base_regimes = ['RegimeGeneral', 'FonctionPublique', 'RegimeSocialIndependants']
-complementaire_regimes = ['ARRCO', 'AGIRC']
-base_to_complementaire = {'RegimeGeneral': ['arrco', 'agirc'], 'FonctionPublique': []}
+
 
 class PensionSimulation(object):
     ''' class qui permet de simuler un système de retraite :
