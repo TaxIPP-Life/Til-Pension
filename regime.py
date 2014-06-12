@@ -24,6 +24,7 @@ class Regime(object):
         self.time_step = None
         self.data_type = None
         self.dateleg = None
+        self.datesleg_start = None
         
         self.P = None
         self.P_longit = None
