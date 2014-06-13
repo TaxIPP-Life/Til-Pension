@@ -1787,7 +1787,20 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
           </VALEUR>
         </TRANCHE>
        </VALBYTRANCHES>
-       <VALBYTRANCHES description="Nombre de trimestres maximal prise en compte pour la proratisation, par génération" code="N_CP" format="integer">
+       <NODE description="Définition du coefficient de proratisation" code="prorat">
+       <CODE description="Plafonnement du nombre de trimestres (dispositif temporaite pour la mise en oeuvre progressive de la loi Boulin)" code="plaf" format="integer">
+       	<VALUE valeur= "170" deb="1946-01-01" fin="1971-12-01"/> #TODO: aucune valeur législative et donc très artificiel, trouver mieux!
+	  	<VALUE valeur= "128" deb="1972-01-01" fin="1972-12-01"/>
+	  	<VALUE valeur= "136" deb="1973-01-01" fin="1973-12-01"/>
+	  	<VALUE valeur= "144" deb="1974-01-01" fin="1974-12-01"/>
+       	<VALUE valeur= "170" deb="1975-01-01" fin="2100-12-01"/> #TODO: Très artificiel, trouver mieux!
+	  </CODE>
+	  <CODE description="Correction de la durée d'assurance dans le calcul du coefficient" code="dispositif">
+	  	<VALUE valeur= "0" deb="1945-01-01" fin="1947-12-01"/>
+	  	<VALUE valeur= "1" deb="1948-01-01" fin="1982-12-01"/>
+	  	<VALUE valeur= "2" deb="1983-01-01" fin="2100-12-01"/>
+	  </CODE>
+       <VALBYTRANCHES description="Nombre de trimestres maximal prise en compte pour la proratisation, par génération" code="n_trim" format="integer">
 	    <VARCONTROL>
 		  <CONTROL valeur="naiss" deb="1945-01-01" fin="2100-12-31" format="date"/>
 	    </VARCONTROL> 
@@ -1796,7 +1809,8 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
   	        <VALUE valeur="1900-01-01" deb="1945-01-01" fin="2100-12-31"/>
 		  </SEUIL>
 		  <VALEUR>
-		    <VALUE valeur="150" deb="1946-01-01" fin="2100-12-31"/>
+		  	<VALUE valeur="120" deb="1945-01-01" fin="1971-12-31"/>
+		    <VALUE valeur="150" deb="1972-01-01" fin="2100-12-31"/>
 		  </VALEUR>
 		</TRANCHE>
 		<TRANCHE code ="tranche2">
@@ -1936,8 +1950,10 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 		  </VALEUR>
 		</TRANCHE>
 	  </VALBYTRANCHES>
+	  </NODE>
 	  <CODE description="Coefficient de majoration applicable à la durée d'assurance (par trimestre supplémentaire)" code="tx_maj" format="percent">
 	  	<VALUE valeur= "0.025" deb="1983-01-01" fin="2100-12-01"/>
+	  	<VALUE valeur= "0.0" deb="1945-01-01" fin="1982-12-01"/>
 	  </CODE>
 	  <NODE description="Minimum contributif : montants rensignés annuellement et en euros" code="mico">
 	  	<CODE description= "Minimum contributif" code="entier" format="float">
