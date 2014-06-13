@@ -55,34 +55,38 @@ class RegimePrive(RegimeBase):
         salref = sal_regime.best_dates_mean(nb_best_years_to_take)
         return salref.round(2)
     
-    def assurance_corrigee(self, trim_regime, trim_tot, agem):
-        ''' 
-        Deux types de corrections :
-        - correction de 1948-1982
-        - Détermination de la durée d'assurance corrigée introduite par la réforme Boulin
-        (majoration quand départ à la retraite après 65 ans) à partir de 1983'''
-        P = reduce(getattr, self.param_name.split('.'), self.P)
-        corr1 = (P.prorat.n_trim - trim_regime)/2
-        
-        age_taux_plein = P.decote.age_null
-        trim_majo = maximum(divide(agem - age_taux_plein, 3), 0)
-        elig_majo = (trim_regime < P.prorat.n_trim)
-        corr2 = trim_regime*P.tx_maj*trim_majo*elig_majo
-        
-        return (trim_regime + corr1*(P.prorat.dispositif == 1) 
-                            + corr2*(P.prorat.dispositif == 2))
-    
     def calculate_coeff_proratisation(self, info_ind, trim_wage_regime, trim_wage_all):
         ''' Calcul du coefficient de proratisation '''
+        
+        def _assurance_corrigee(trim_regime, trim_tot, agem):
+            ''' 
+            Deux types de corrections :
+            - correction de 1948-1982
+            - Détermination de la durée d'assurance corrigée introduite par la réforme Boulin
+            (majoration quand départ à la retraite après 65 ans) à partir de 1983'''
+            P = reduce(getattr, self.param_name.split('.'), self.P)
+            
+            if P.prorat.dispositif == 1:
+                correction = (P.prorat.n_trim - trim_regime)/2
+                return trim_regime + correction
+            elif P.prorat.dispositif == 2:
+                age_taux_plein = P.decote.age_null
+                trim_majo = maximum(divide(agem - age_taux_plein, 3), 0)
+                elig_majo = (trim_regime < P.prorat.n_trim)
+                correction = trim_regime*P.tx_maj*trim_majo*elig_majo
+                return trim_regime + correction
+            else:
+                return trim_regime
+
         P =  reduce(getattr, self.param_name.split('.'), self.P)
-        yearleg = self.dateleg.year
         trim_regime = trim_wage_regime['trimesters']['regime'].sum(1) + trim_wage_regime['maj']['DA']
         trim_tot = trim_wage_all['trimesters']['tot'].sum(1) + trim_wage_all['maj']['tot']
+
         agem = info_ind['agem']
-        trim_CP = self.assurance_corrigee(trim_regime, trim_tot, agem)
-            
+        trim_CP = _assurance_corrigee(trim_regime, trim_tot, agem)
         #disposition pour montée en charge de la loi Boulin (ne s'applique qu'entre 72 et 74) :
-        trim_CP = minimum(trim_CP, P.prorat.plaf)
+        if P.prorat.application_plaf == 1:
+            trim_CP = minimum(trim_CP, P.prorat.plaf) 
         CP = minimum(1, divide(trim_CP, P.prorat.n_trim))
         return CP
     
