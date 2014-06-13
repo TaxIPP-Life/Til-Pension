@@ -106,7 +106,7 @@ class RegimePrive(RegimeBase):
             trim_decote = max(divide(age_annulation - agem, 3), 0)
         else:
             trim_decote = self.nb_trim_decote(trimesters, trim_maj, agem)
-        return P.decote.taux*trim_decote
+        return array(P.decote.taux)*trim_decote
         
     def _calculate_surcote(self, trim_wage_regime, trim_wage_all, date_start_surcote, age):
         ''' Détermination de la surcote à appliquer aux pensions.'''
@@ -150,7 +150,7 @@ class RegimePrive(RegimeBase):
             return surcote_03 + surcote_0408
         surcote_aft09 = P.surcote.taux*nb_trim_surcote(trim_by_year_RG, date_start_surcote,
                                                        first_year_surcote=2009)
-        return surcote_03 + surcote_0408 + surcote_aft09   
+        return array(surcote_03 + surcote_0408 + surcote_aft09)   
         
     def minimum_contributif(self, pension_RG, pension, trim_RG, trim_cot, trim):
         ''' MICO du régime général : allocation différentielle 

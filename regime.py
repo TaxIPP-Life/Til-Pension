@@ -99,18 +99,22 @@ class Regime(object):
 #         return TimeArray(wk_selection*sali.array, sali.dates, 'sal_regime')
     def nb_trim_decote(self, trimesters, trim_maj, agem):
         ''' Cette fonction renvoie le vecteur numpy du nombre de trimestres décotés 
-        lorsque les deux règles (d'âge et de nombre de trimestres cibles) jouent
+        Lorsque les deux règles (d'âge et de nombre de trimestres cibles) jouent
+        -> Ref : Article L351-1-2 : les bonifications de durée de services et majorations de durée d'assurance,
+        à l'exclusion de celles accordées au titre des enfants et du handicap, ne sont pas prises en compte 
+        dans la durée d'assurance tous régimes confondus pour apprécier la décote.
         '''
         P = reduce(getattr, self.param_name.split('.'), self.P)
-        age_annulation = P.decote.age_null
-        plafond = P.decote.nb_trim_max
-        n_trim = P.plein.n_trim
+        age_annulation = array(P.decote.age_null)
+        plafond = array(P.decote.nb_trim_max)
+        n_trim = array(P.plein.n_trim)
         trim_decote_age = divide(age_annulation - agem, 3)
-        trim_tot = trimesters['tot'].sum(1) + trim_maj['tot']
+        
+        trim_tot = trimesters['tot'].sum(1) + trim_maj['enf']
         trim_decote_cot = n_trim - trim_tot
         assert len(trim_decote_age) == len(trim_decote_cot)
         trim_plaf = minimum(minimum(trim_decote_age, trim_decote_cot), plafond)
-        return maximum(0, trim_plaf)
+        return array(maximum(trim_plaf, 0))
     
     def calculate_taux(self, decote, surcote):
         ''' Détérmination du taux de liquidation à appliquer à la pension 
