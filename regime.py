@@ -219,23 +219,21 @@ class RegimeComplementaires(Regime):
  
     def coefficient_age(self, agem, trim):
         ''' TODO: add surcote  pour avant 1955 '''
-        yearleg = self.dateleg.year
         P = reduce(getattr, self.param_name.split('.'), self.P)
         coef_mino = P.coef_mino
         age_annulation_decote = self.P.prive.RG.decote.age_null
         n_trim = self.P.prive.RG.plein.n_trim
         diff_age = maximum(divide(age_annulation_decote - agem, 12), 0)
         coeff_min = Series(zeros(len(agem)), index=agem.index)
-        coeff_maj = Series(zeros(len(agem)), index=agem.index)
         for nb_annees, coef_mino in coef_mino._tranches:
             coeff_min += (diff_age == nb_annees)*coef_mino
-        if yearleg <= 1955:
+        if P.dispositif_coeff == 1:
             maj_age = maximum(divide(agem - age_annulation_decote, 12), 0)
             coeff_maj = maj_age*0.05
             return coeff_min + coeff_maj
-        elif yearleg < 1983:
+        elif P.dispositif_coeff == 2:
             return coeff_min
-        elif yearleg >= 1983:
+        elif P.dispositif_coeff == 3:
             # A partir de cette date, la minoration ne s'applique que si la durée de cotisation au régime général est inférieure à celle requise pour le taux plein
             return  coeff_min*(n_trim > trim) + (n_trim <= trim)        
     
