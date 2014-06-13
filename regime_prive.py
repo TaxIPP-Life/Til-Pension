@@ -92,15 +92,14 @@ class RegimePrive(RegimeBase):
     
     def decote(self, data, trim_wage_all):
         ''' Détermination de la décote à appliquer aux pensions '''
-        yearleg = self.dateleg.year
         trimesters = trim_wage_all['trimesters']
         trim_maj = trim_wage_all['maj']
         P = reduce(getattr, self.param_name.split('.'), self.P)
         agem = data.info_ind['agem']
-        if yearleg < 1983:
+        if P.decote.dispositif == 1:
             age_annulation = P.decote.age_null
             trim_decote = max(divide(age_annulation - agem, 3), 0)
-        else:
+        elif P.decote.dispositif == 2:
             trim_decote = self.nb_trim_decote(trimesters, trim_maj, agem)
         return array(P.decote.taux)*trim_decote
         

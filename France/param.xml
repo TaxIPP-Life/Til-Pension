@@ -1350,6 +1350,13 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 		  </VALBYTRANCHES>  
 	  </NODE>
   	  <NODE description="Decote à appliquer en minoration du taux plein" code="decote">
+		  <CODE description="Introduction de l'âge dans la décote" code="dispositif" format="integer">
+		  	<VALUE valeur= "1" deb="1945-01-01" fin="1982-12-01"/>
+		  	<VALUE valeur= "2" deb="1983-01-01" fin="2100-12-01"/>
+		  </CODE>
+  	  	<CODE description="Nombre maximum de trimestres pris en compte dans la décote" code="nb_trim_max" format="integer">
+	  		<VALUE valeur="160" deb="1946-01-01" fin="2100-01-01"/>
+	  	</CODE>
   	  	<CODE description="Nombre maximum de trimestres pris en compte dans la décote" code="nb_trim_max" format="integer">
 	  		<VALUE valeur="160" deb="1946-01-01" fin="2100-01-01"/>
 	  	</CODE>

@@ -104,14 +104,14 @@ class FonctionPublique(RegimeBase):
         ''' Détermination de la décote à appliquer aux pensions '''
         trimesters = trim_wage_all['trimesters']
         trim_maj = trim_wage_all['maj']
-        yearleg = self.dateleg.year
-        if yearleg < 2006:
-            return zeros(data.info_ind.shape[0])
-        else:
+        P = reduce(getattr, self.param_name.split('.'), self.P)
+        if P.decote.nb_trim_max !=0:
             agem = data.info_ind['agem']
             trim_decote = self.nb_trim_decote(trimesters, trim_maj, agem)
             P = reduce(getattr, self.param_name.split('.'), self.P)
             return P.decote.taux*trim_decote
+        else:
+            return zeros(data.info_ind.shape[0])
         
     def _calculate_surcote(self, trim_wage_regime, trim_wage_all, date_start_surcote, age):
         ''' Détermination de la surcote à appliquer aux pensions '''
