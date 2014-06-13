@@ -127,7 +127,7 @@ def compare_til_pensipp(pensipp_comparison_path, var_to_check_montant, var_to_ch
         
         til_var = result_til.loc[:,var]
         pensipp_var = result_pensipp.loc[:,var]
-        conflict = ((til_var - pensipp_var).abs() > threshold)
+        conflict = ((til_var.abs() - pensipp_var.abs()).abs() > threshold)
         if conflict.any():
             var_conflict += [var]
             print u"Le calcul de {} pose problème pour {} personne(s) sur {}: ".format(var, sum(conflict), sum(result_til['yearliq'] == 2004))

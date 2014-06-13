@@ -139,10 +139,12 @@ class Regime(object):
         pension_brute = cp*salref*taux
         pension = self.plafond_pension(pension_brute, salref, cp, surcote)
         if to_check is not None:
+            P = reduce(getattr, self.param_name.split('.'), self.P)
+            taux_plein = P.plein.taux
             trimesters = trim_wage_regime['trimesters']
             trim_regime = trimesters['regime'].sum()
-            to_check['decote_' + name] = decote*(trim_regime > 0)
-            to_check['surcote_' + name] = surcote*(trim_regime > 0)
+            to_check['decote_' + name] = taux_plein*decote*(trim_regime > 0)
+            to_check['surcote_' + name] = taux_plein*surcote*(trim_regime > 0)
             to_check['CP_' + name] = cp
             to_check['taux_' + name] = taux*(trim_regime>0)
             to_check['salref_' + name] = salref
