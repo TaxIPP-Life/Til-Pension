@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+from numpy import array
 from pandas import DataFrame
 from pension_functions import select_regime_base, sum_by_regime, update_all_regime
 import cProfile
@@ -67,7 +67,8 @@ class PensionSimulation(object):
 
         if to_check == True:
             #pd.DataFrame(to_check).to_csv('resultat2004.csv')
-            return DataFrame(dict_to_check)
+            final_check = dict((key, array(value)) for key, value in dict_to_check.iteritems())
+            return DataFrame(final_check, index = self.data.info_ind.index)
         else:
             return pension # TODO: define the output
         
