@@ -117,25 +117,22 @@ def compare_til_pensipp(pensipp_comparison_path, var_to_check_montant, var_to_ch
         assert (id_year_in_initial == result_til_year.index).all()
         result_til.loc[result_til_year.index, :] = result_til_year
         result_til.loc[result_til_year.index, 'yearliq'] = yearsim
-        to_compare = (result_til['yearliq']!= -1)
 
     def _check_var(var, threshold, var_conflict, var_not_implemented):
         if var not in result_til.columns:
             print("La variable {} n'est pas bien implémenté dans Til".format(var))
-            var_not_implemented += [var]
+            var_not_implemented['til'] += [var]
         if var not in result_pensipp.columns:
             print("La variable {} n'est pas bien implémenté dans Pensipp".format(var))
-            var_not_implemented += [var]
+            var_not_implemented['pensipp'] += [var]
         to_compare = (result_til['yearliq']!= -1)
         til_compare = result_til.loc[to_compare,:]
         til_var = til_compare.loc[:, var].fillna(0)
         pensipp_var = result_pensipp.loc[to_compare,var].fillna(0)
         if (til_var == 0).all():
-            print("La variable {} n'est pas calculé dans Til".format(var))
-            var_not_implemented += [var]
+            var_not_implemented['til'] += [var]
         if (pensipp_var == 0).all():
-            print("La variable {} n'est pas calculé dans Pensipp".format(var))
-            var_not_implemented += [var]
+            var_not_implemented['pensipp'] += [var]
         conflict = ((til_var.abs() - pensipp_var.abs()).abs() > threshold)
         if conflict.any():
             var_conflict += [var]
@@ -148,14 +145,14 @@ def compare_til_pensipp(pensipp_comparison_path, var_to_check_montant, var_to_ch
                 }).to_string()
             #relevant_variables = relevant_variables_by_var[var]
     var_conflict = []
-    var_not_implemented = []
+    var_not_implemented = {'til':[], 'pensipp':[]}
     for var in var_to_check_montant:
         _check_var(var, threshold['montant'], var_conflict, var_not_implemented)
     for var in var_to_check_taux:
         _check_var(var, threshold['taux'], var_conflict, var_not_implemented)
     no_conflict = [variable for variable in var_to_check_montant + var_to_check_taux
-                        if variable not in var_conflict + var_not_implemented]  
-    print( u"Avec un seuil de {}, le calcul est faux pour les variables suivantes : {} \n Il est mal implémenté pour : {} \n Il ne pose aucun problème pour : {}").format(threshold, var_conflict, var_not_implemented, no_conflict)   
+                        if variable not in var_conflict + var_not_implemented.values()]  
+    print( u"Avec un seuil de {}, le calcul est faux pour les variables suivantes : {} \n Il est mal implémenté dans : \n - Til: {} \n - Pensipp : {}\n Il ne pose aucun problème pour : {}").format(threshold, var_conflict, var_not_implemented['til'], var_not_implemented['pensipp'], no_conflict)   
 
 if __name__ == '__main__':    
 
