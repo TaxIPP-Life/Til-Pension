@@ -1529,9 +1529,21 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 		    <VALUE valeur="0.025" deb="1946-01-01" fin="1982-12-31"/>
 		    <VALUE valeur="0.0" deb="1983-01-01" fin="2003-12-31"/>
 		  </CODE>
-		  <CODE description="Coefficient de majoration à appliquer au taux plein pour les trimestres avant législation 2004" code="taux_1" format="percent">
-		    <VALUE valeur="0.075" deb="2004-01-01" fin="2006-12-31"/>
+		  <CODE description="Coefficient de majoration à appliquer les trimestres" code="taux_1" format="percent">
+		    <VALUE valeur="0.0075" deb="2004-01-01" fin="2006-12-31"/>
+		    <VALUE valeur="0.0"    deb="2007-01-01" fin="2009-03-31"/>
+		    <VALUE valeur="0.0125" deb="2009-01-01" fin="2100-12-31"/>
 		  </CODE>
+		  
+		  <CODE description="Trimestres pris en compte dans le calcul de la surcote (date du trimestre)" code="phase1" format="dates">
+		    <VALUE valeur="False" deb="1946-01-01" fin="2003-12-31"/>
+		    <VALUE valeur="True"  deb="2004-01-01" fin="2008-12-31"/>
+		    <VALUE valeur="False" deb="2009-01-01" fin="2100-12-31"/>
+		  </CODE>
+		  <CODE description="Trimestres pris en compte dans le calcul de la surcote (date du trimestre)" code="phase2" format="dates">
+		    <VALUE valeur="False" deb="1946-01-01" fin="2008-12-31"/>
+		    <VALUE valeur="False" deb="2009-01-01" fin="2100-12-31"/>
+		  </CODE>		  
 		  <CODE description="Taux de la surcote pour les 4 premiers trimestres côtisés entre 01/01/2004 et 31/12/2008" code="taux_2a" format="percent">
 			<VALUE valeur="0.0075" deb="2007-01-01" fin="2100-12-31"/>
 		  </CODE> 	

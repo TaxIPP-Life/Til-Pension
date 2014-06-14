@@ -106,34 +106,12 @@ class RegimePrive(RegimeBase):
     def _calculate_surcote(self, trim_wage_regime, trim_wage_all, date_start_surcote, age):
         ''' Détermination de la surcote à appliquer aux pensions.'''
         P = reduce(getattr, self.param_name.split('.'), self.P)
-        trim_by_year_RG = trim_wage_regime['trimesters']['regime']
-        if 'maj' in trim_wage_regime.keys() :
-            trim_maj = trim_wage_regime['maj']['DA']
-        else:
-            trim_maj = 0
         trim_by_year_tot = trim_wage_all['trimesters']['tot']
-        n_trim = P.plein.n_trim
         
-        def _trimestre_surcote_0408(trim_by_year_regime, trim_by_year_tot, trim_maj, date_start_surcote, age, P): 
-            ''' Fonction permettant de déterminer la surcote associée des trimestres côtisés entre 2004 et 2008 
-            4 premiers à 0.75%, les suivants à 1% ou si plus de 65 ans à 1.25% '''
-            taux_4trim = P.taux_2a
-            taux_5trim = P.taux_2b
-            taux_65 = P.taux_2age
-            age_start_surcote = 65*12 
-            date_start_surcote_65 = self._date_start_surcote(trim_by_year_tot, trim_maj, age, age_start_surcote)
-            
-            
-            nb_trim_65 = nb_trim_surcote(trim_by_year_regime, date_start_surcote_65,
-                                         first_year_surcote=2004, last_year_surcote=2009)
-            nb_trim = nb_trim_surcote(trim_by_year_regime, date_start_surcote,
-                                         first_year_surcote=2004, last_year_surcote=2009)
-            nb_trim = nb_trim - nb_trim_65
-            return taux_65*nb_trim_65 + taux_4trim*maximum(minimum(nb_trim,4), 0) + taux_5trim*maximum(nb_trim - 4, 0)
-            
+        n_trim = P.plein.n_trim
         trim_tot = trim_by_year_tot.sum(axis=1)
-         
         surcote = P.surcote.taux_0*maximum(trim_tot - n_trim, 0) # = 0 après 1983
+                 
         
         elif P.surcote.dispositif >= 1:
                surcote = P.surcote.taux_1*nb_trim_surcote(trim_by_year_RG, date_start_surcote, first_year_surcote=2003)
@@ -144,6 +122,11 @@ class RegimePrive(RegimeBase):
             taux_5trim = P.taux_2b
             taux_65 = P.taux_2age
             age_start_surcote = 65*12 
+            
+            if 'maj' in trim_wage_regime.keys() :
+                trim_maj = trim_wage_regime['maj']['DA']
+            else:
+                trim_maj = 0 
             date_start_surcote_65 = self._date_start_surcote(trim_by_year_tot, trim_maj, age, age_start_surcote)
             
             
