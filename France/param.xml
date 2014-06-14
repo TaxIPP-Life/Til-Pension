@@ -1521,10 +1521,9 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 	  </NODE>
 	  <NODE description="Surcote à appliquer en majoration du taux plein" code="surcote">
 		  <CODE description="Dispositif de surcote" code="dispositif" format="integer">
-		    <VALUE valeur="0" deb="1946-01-01" fin="2003-12-31"/>
 		    <VALUE valeur="1" deb="2004-01-01" fin="2006-12-31"/>
-			<VALUE valeur="2" deb="2007-01-01" fin="2008-12-31"/>
-			<VALUE valeur="3" deb="2009-01-01" fin="2100-12-31"/>
+			<VALUE valeur="2" deb="2007-01-01" fin="2009-03-31"/>
+			<VALUE valeur="3" deb="2009-04-01" fin="2100-12-31"/>
 		  </CODE>
 		  <CODE description="Coefficient de majoration à appliquer au taux plein pour les trimestres avant législation 2007" code="taux_0" format="percent">
 		    <VALUE valeur="0.025" deb="1946-01-01" fin="1982-12-31"/>
