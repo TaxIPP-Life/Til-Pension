@@ -106,41 +106,35 @@ class RegimePrive(RegimeBase):
     def _calculate_surcote(self, trim_wage_regime, trim_wage_all, date_start_surcote, age):
         ''' Détermination de la surcote à appliquer aux pensions.'''
         P = reduce(getattr, self.param_name.split('.'), self.P)
+        P_long = reduce(getattr, self.param_name.split('.'), self.P_longit)
+        trim_by_year_RG = trim_wage_regime['trimesters']['regime']
         trim_by_year_tot = trim_wage_all['trimesters']['tot']
-        
+
+        # dispositif de type 0
         n_trim = P.plein.n_trim
         trim_tot = trim_by_year_tot.sum(axis=1)
-        surcote = P.surcote.taux_0*maximum(trim_tot - n_trim, 0) # = 0 après 1983
+        surcote = P.surcote.dispositif0.taux*maximum(trim_tot - n_trim, 0) # = 0 après 1983
                  
+        # dispositif de type 1
+        if P.surcote.dispositif1.taux > 0: 
+            trick = P.surcote.dispositif1.date_trick
+            trick = str(int(trick))
+            selected_dates = getattr(P_long.surcote.dispositif1, 'dates' + trick)
+            if sum(selected_dates) > 0 :
+                surcote += P.surcote.dispositif1.taux*nb_trim_surcote(trim_by_year_RG, selected_dates, date_start_surcote)
         
-        elif P.surcote.dispositif >= 1:
-               surcote = P.surcote.taux_1*nb_trim_surcote(trim_by_year_RG, date_start_surcote, first_year_surcote=2003)
-            or surcote = P.surcote.taux_1*nb_trim_surcote(trim_by_year_RG, date_start_surcote,
-                                                          first_year_surcote=2003, last_year_surcote=2004)
-        if P.surcote.dispositif >= 2:
-            taux_4trim = P.taux_2a
-            taux_5trim = P.taux_2b
-            taux_65 = P.taux_2age
-            age_start_surcote = 65*12 
+        # dispositif de type 2
+        P2 = P.surcote.dispositif2
+        if P2.taux0 > 0:
+            selected_dates = P_long.surcote.dispositif2.dates
+            basic_trim = nb_trim_surcote(trim_by_year_RG, selected_dates, date_start_surcote)
+            maj_age_trim = nb_trim_surcote(trim_by_year_RG, selected_dates, 12*P2.age_majoration)
+#             date_start_surcote_65 = self._date_start_surcote(trim_by_year_tot, trim_maj, age, age_start_surcote) #TODO: why it doesn't equal date_start_surcote ?
+            basic_trim = basic_trim - maj_age_trim
+            trim_with_majo = (basic_trim - P2.trim_majoration)*((basic_trim - P2.trim_majoration) >= 0)
+            basic_trim = basic_trim - trim_with_majo
+            surcote += P2.taux0*basic_trim + P2.taux_maj_trim*trim_with_majo + P2.taux_maj_age*maj_age_trim
             
-            if 'maj' in trim_wage_regime.keys() :
-                trim_maj = trim_wage_regime['maj']['DA']
-            else:
-                trim_maj = 0 
-            date_start_surcote_65 = self._date_start_surcote(trim_by_year_tot, trim_maj, age, age_start_surcote)
-            
-            
-            nb_trim_65 = nb_trim_surcote(trim_by_year_regime, date_start_surcote_65,
-                                         first_year_surcote=2004, last_year_surcote=2009)
-            nb_trim = nb_trim_surcote(trim_by_year_regime, date_start_surcote,
-                                         first_year_surcote=2004, last_year_surcote=2009)
-            nb_trim = nb_trim - nb_trim_65
-            dispositif = taux_65*nb_trim_65 + taux_4trim*maximum(minimum(nb_trim,4), 0) + taux_5trim*maximum(nb_trim - 4, 0)
-            surcote += dispositif
-            
-        if P.surcote.dispositif == 3:
-            surcote += P.surcote.taux_3*nb_trim_surcote(trim_by_year_RG, date_start_surcote,
-                                                       first_year_surcote=2009)
         return surcote  
         
     def minimum_contributif(self, pension_RG, pension, trim_RG, trim_cot, trim):

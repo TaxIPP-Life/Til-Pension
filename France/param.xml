@@ -1520,42 +1520,56 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 	  </VALBYTRANCHES>
 	  </NODE>
 	  <NODE description="Surcote à appliquer en majoration du taux plein" code="surcote">
-		  <CODE description="Dispositif de surcote" code="dispositif" format="integer">
-		    <VALUE valeur="1" deb="2004-01-01" fin="2006-12-31"/>
-			<VALUE valeur="2" deb="2007-01-01" fin="2009-03-31"/>
-			<VALUE valeur="3" deb="2009-04-01" fin="2100-12-31"/>
-		  </CODE>
-		  <CODE description="Coefficient de majoration à appliquer au taux plein pour les trimestres avant législation 2004" code="taux_0" format="percent">
-		    <VALUE valeur="0.025" deb="1946-01-01" fin="1982-12-31"/>
-		    <VALUE valeur="0.0" deb="1983-01-01" fin="2003-12-31"/>
-		  </CODE>
-		  <CODE description="Coefficient de majoration à appliquer les trimestres" code="taux_1" format="percent">
-		    <VALUE valeur="0.0075" deb="2004-01-01" fin="2006-12-31"/>
-		    <VALUE valeur="0.0"    deb="2007-01-01" fin="2009-03-31"/>
-		    <VALUE valeur="0.0125" deb="2009-01-01" fin="2100-12-31"/>
-		  </CODE>
-		  
-		  <CODE description="Trimestres pris en compte dans le calcul de la surcote (date du trimestre)" code="phase1" format="dates">
-		    <VALUE valeur="False" deb="1946-01-01" fin="2003-12-31"/>
-		    <VALUE valeur="True"  deb="2004-01-01" fin="2008-12-31"/>
-		    <VALUE valeur="False" deb="2009-01-01" fin="2100-12-31"/>
-		  </CODE>
-		  <CODE description="Trimestres pris en compte dans le calcul de la surcote (date du trimestre)" code="phase2" format="dates">
-		    <VALUE valeur="False" deb="1946-01-01" fin="2008-12-31"/>
-		    <VALUE valeur="False" deb="2009-01-01" fin="2100-12-31"/>
-		  </CODE>		  
-		  <CODE description="Taux de la surcote pour les 4 premiers trimestres côtisés entre 01/01/2004 et 31/12/2008" code="taux_2a" format="percent">
-			<VALUE valeur="0.0075" deb="2007-01-01" fin="2100-12-31"/>
-		  </CODE> 	
-		  <CODE description="Taux de la surcote pour trimestres supplémentaires aux 4 premiers trimestres côtisés entre 01/01/2004 et 31/12/2008" code="taux_2b" format="percent">
-			<VALUE valeur="0.01" deb="2007-01-01" fin="2100-12-31"/>
-		  </CODE> 	
-		  <CODE description="Taux de la surcote pour les plus de 65 ans, trimestres côtisés entre 01/01/2004 et 31/12/2008" code="taux_2age" format="percent">
-			<VALUE valeur="0.0125" deb="2007-01-01" fin="2100-12-31"/>
-		  </CODE> 
-		  <CODE description="Taux de la surcote pour les trimestres surcotés postérieurs aux 01/01/2009" code="taux_3" format="percent">
-			<VALUE valeur="0.0125" deb="2009-04-01" fin="2100-12-31"/>
-		  </CODE> 	
+	     <NODE description="Dispositif 0: trimestre au-delà du taux plein" code="dispositif0">
+		   <CODE description="Coefficient de majoration à appliquer au taux plein pour les trimestres avant législation 2004" code="taux" format="percent">
+			 <VALUE valeur="0.025" deb="1946-01-01" fin="1982-12-31"/>
+			 <VALUE valeur="0.0" deb="1983-01-01" fin="2100-12-31"/>   #"2003-12-31"
+		   </CODE>
+		 </NODE>
+		  <NODE description="Dispositif 1: trimestre au-delà du taux plein avec condition de date" code="dispositif1">	  
+			<CODE description="Coefficient de majoration à appliquer au taux plein" code="taux" format="percent">
+			  <VALUE valeur="0.0"    deb="1945-01-01" fin="2004-03-31"/>
+			  <VALUE valeur="0.0075" deb="2004-04-01" fin="2006-12-31"/>
+			  <VALUE valeur="0.0"    deb="2007-01-01" fin="2009-03-31"/>
+			  <VALUE valeur="0.0125" deb="2009-04-01" fin="2100-12-31"/>
+			</CODE>
+			<CODE description="Astuce pour savoir quelle période de temps prendre" code="date_trick" format="integer">
+			  <VALUE valeur="0" deb="2004-04-01" fin="2006-12-31"/>
+			  <VALUE valeur="1" deb="2009-04-01" fin="2100-12-31"/>
+			</CODE>
+			<CODE description="Trimestres pris en compte dans le calcul de la surcote (date du trimestre)" code="dates0" format="integer" longitudinal="true"> # should be Boolean
+			  <VALUE valeur="0" deb="1945-01-01" fin="2003-12-31"/>
+			  <VALUE valeur="1" deb="2004-01-01" fin="2006-12-31"/>
+			  <VALUE valeur="0" deb="2007-01-01" fin="2100-12-31"/>
+			</CODE> 
+			<CODE description="Trimestres pris en compte dans le calcul de la surcote (date du trimestre)" code="dates1" format="integer" longitudinal="true"> # should be Boolean
+			  <VALUE valeur="0" deb="1945-01-01" fin="2008-12-31"/>
+			  <VALUE valeur="1" deb="2009-01-01" fin="2100-12-31"/>
+			</CODE> 
+	    </NODE> 
+		  <NODE description="Dispositif 2: trimestre au-delà du taux plein avec condition d'age et de date" code="dispositif2">	  
+			<CODE description="Coefficient de majoration à appliquer au taux plein pour les trimestres avant législation 2004" code="taux0" format="percent">
+			  <VALUE valeur="0.0"    deb="1945-01-01" fin="2006-12-31"/>
+			  <VALUE valeur="0.0075" deb="2007-01-01" fin="2100-12-31"/>
+			</CODE>
+			<CODE description="Coefficient de majoration à appliquer à partir du 5ème trimestre supplementaire" code="taux_maj_trim" format="percent">
+			  <VALUE valeur="0.01" deb="2007-01-01" fin="2100-12-31"/>
+			</CODE>
+			<CODE description="trimestre d'application de la sur-surcote = 5ème trimestre supplementaire" code="trim_majoration" format="integer">
+			  <VALUE valeur="4" deb="2007-01-01" fin="2100-12-31"/>
+			</CODE>
+			<CODE description="Coefficient de majoration à appliquer au taux plein pour les trimestres après 65 ans" code="taux_maj_age" format="percent">
+			  <VALUE valeur="0.0125" deb="2007-01-01" fin="2100-12-31"/>
+			</CODE>
+			<CODE description="age d'application de la sur-surcote = 65 ans" code="age_majoration" format="integer">
+			  <VALUE valeur="65" deb="2007-01-01" fin="2100-12-31"/>
+			</CODE>
+			<CODE description="Trimestres pris en compte dans le calcul de la surcote (date du trimestre)" code="dates" format="integer" longitudinal="true"> # should be Boolean
+			  <VALUE valeur="0" deb="1945-01-01" fin="2004-12-31"/>
+			  <VALUE valeur="1" deb="2004-01-01" fin="2008-12-31"/>
+			  <VALUE valeur="0" deb="2009-01-01" fin="2100-12-31"/>
+			</CODE> 
+	    </NODE> 
 	  </NODE>
   	  <CODE description="Age limite de départ à la retraite (en mois)" code="age_max" format="integer">
 		<VALUE valeur="840" deb="2010-01-01" fin="2100-12-31"/>
@@ -2934,7 +2948,7 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 	</NODE>
   </NODE>
   <NODE description="Retraite du secteur public" code="public">
-  	<NODE description="Retraite de base de la fonction publique" code="fp">
+     <NODE description="Retraite de base de la fonction publique" code="fp">
   		<NODE description="Taux plein" code="plein" >
 	      <CODE description="Valeur du taux" code="taux" format="percent">
 			<VALUE valeur=".75" deb="1949-01-01" fin="2100-12-31"/>
@@ -3092,6 +3106,10 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
   	  	<CODE description="Nombre maximum de trimestres pris en compte dans la surcote" code="nb_trim_max" format="integer">
   		  <VALUE valeur="20" deb="2004-01-01" fin="2100-01-01"/>
   	  	</CODE>
+		<CODE description="Trimestres pris en compte dans le calcul de la surcote (date du trimestre)" code="dates" format="integer" longitudinal="true"> # should be Boolean
+		  <VALUE valeur="0" deb="1945-01-01" fin="2003-12-31"/>
+		  <VALUE valeur="1" deb="2004-01-01" fin="2100-12-31"/>
+		</CODE>  	  	
 	</NODE>
    	<NODE description="Décote de la fonction publique" code="decote">
    		<CODE description="Nombre maximum de trimestres pris en compte dans la décote" code="nb_trim_max" format="integer">

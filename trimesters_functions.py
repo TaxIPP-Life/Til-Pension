@@ -120,22 +120,17 @@ def nb_trim_bonif_5eme(trim):
     return array(bonif_5eme*super_actif)
 
 
-def nb_trim_surcote(trim_by_year, date_start_surcote, first_year_surcote=None, last_year_surcote=None):
+def nb_trim_surcote(trim_by_year, selected_dates, date_start_surcote):
     ''' Cette fonction renvoie le vecteur numpy du nombre de trimestres surcotés entre la first_year_surcote et la last_year_surcote grâce à :
     - la table du nombre de trimestre comptablisé au sein du régime par année : trim_by_year.array
     - le vecteur des dates (format yyyymm) à partir desquelles les individus surcote (détermination sur cotisations tout régime confondu)
     '''
-    trim_selected = trim_by_year.selected_dates(first=first_year_surcote, last=last_year_surcote)
-    yearmax = max(trim_selected.dates)
-    yearmin = min(date_start_surcote) 
-    # Possible dates for surcote :
-    dates_surcote = [date for date in trim_selected.dates
-                      if date >= yearmin]
-    nb_trim = zeros(len(date_start_surcote))
-    for date in dates_surcote:
-        to_keep = where(greater(date, date_start_surcote))[0]
-        ix_date = trim_selected.dates.index(yearmax)
-        if to_keep.any():
-            nb_trim[to_keep] += trim_selected.array[to_keep, ix_date]
+    assert trim_by_year.array.shape[1] == len(selected_dates)
+    nb_trim = zeros(trim_by_year.array.shape[0])
+    for i in range(len(selected_dates)):
+        if selected_dates[i] == 1:
+            date = trim_by_year.dates[i]
+            to_keep = greater(date, date_start_surcote)
+            nb_trim += trim_by_year.array[:,i]*to_keep
     return nb_trim
 

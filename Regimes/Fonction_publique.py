@@ -121,10 +121,11 @@ class FonctionPublique(RegimeBase):
             return age*0
         else:
             P = reduce(getattr, self.param_name.split('.'), self.P)
+            P_long = reduce(getattr, self.param_name.split('.'), self.P_longit)
             taux_surcote = P.surcote.taux
             plafond = P.surcote.nb_trim_max
-            trim_surcote = nb_trim_surcote(trimesters['regime'], date_start_surcote,
-                                                  first_year_surcote=2004)
+            selected_date = P_long.surcote.dates
+            trim_surcote = nb_trim_surcote(trimesters['regime'], selected_date, date_start_surcote)
             trim_surcote = minimum(trim_surcote, plafond)
             return taux_surcote*trim_surcote
         
