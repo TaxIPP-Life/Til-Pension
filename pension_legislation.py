@@ -52,14 +52,9 @@ def scales_long_baremes(baremes, scales):
         baremes[date] = scaleBaremes(baremes[date], scales[date])
     return baremes
 
-class PensionLegislation(object):
-    '''
-    Class à envoyer à Simulation de Til-pension qui contient les informations sur la législations. Elle tient compte de:
-    - la date de législation demandée (sélection adéquate des paramètres)
-    - les infos individuelles contenues dans data.info_ind (pour les paramètres par génération)
-    - la structure des tables sali/workstate (pour ajuster la longueur des paramètres long)
-    '''
-    def __init__(self, dateleg, data, dates_start=dates_start):
+class PensionParam(object):
+    
+    def __init__(self, dateleg, data):
         #TODO: use all attrbutes except data in a PensionParam class
         # example: 
         #     duration = data.last_year - data.first_year 
@@ -70,19 +65,59 @@ class PensionLegislation(object):
         self.date = DateTil(dateleg)
         self.param = None
         self.param_long = None
-        self.dates_start = dates_start
-        self.data = data
+
+#         def load_param(self):
+#             ''' should run after having a data '''
+        assert data is not None
+        path_pension = os.path.dirname(os.path.abspath(__file__))
+        param_file = path_pension + '\\France\\param.xml'
+        
+        ''' It's a simplification of an (old) openfisca program '''
+        legislation_tree = ElementTree.parse(param_file)
+        legislation_xml_json = conv.check(legislationsxml.xml_legislation_to_json)(legislation_tree.getroot(),
+                                                                                   state = conv.default_state)
+        legislation_xml_json, _ = legislationsxml.validate_node_xml_json(legislation_xml_json,
+                                                                         state = conv.default_state)
+        _, legislation_json = legislationsxml.transform_node_xml_json_to_json(legislation_xml_json)
+        
+        dated_legislation_json = legislations.generate_dated_legislation_json(legislation_json, self.date.datetime)
+        compact_legislation = legislations.compact_dated_node_json(dated_legislation_json, data.info_ind) #here is where data is needed
+        self.param = compact_legislation
+        
+        long_dated_legislation_json = legislations.generate_long_legislation_json(legislation_json, self.date.datetime)
+        compact_legislation_long = legislations.compact_long_dated_node_json(long_dated_legislation_json)
+        self.param_long = compact_legislation_long
+
+
+class PensionLegislation(object):
+    '''
+    Class à envoyer à Simulation de Til-pension qui contient toutes les informations sur la législations. Elle tient compte de:
+    - la date de législation demandée (sélection adéquate des paramètres)
+    - les infos individuelles contenues dans data.info_ind (pour les paramètres par génération)
+    - la structure des tables sali/workstate (pour ajuster la longueur des paramètres long)
+    '''
+    def __init__(self, param):
+        #TODO: use all attrbutes except data in a PensionParam class
+        # example: 
+        #     duration = data.last_year - data.first_year 
+        #     self.param = PensionParam.builder(dateleg, data.info_ind, duration)
+        #  or, by anticipation: 
+        #     self.param = PensionParam.builder(dateleg, data.info_ind, duration, method)
+        #  where method give how to shift legislation from on year to an other, constant_year, constant_sequence, etc?
+        self.param = param
         self.regimes = dict(
                             bases = [RegimeGeneral(), FonctionPublique(), RegimeSocialIndependants()],
                             complementaires = [ARRCO(), AGIRC()],
                             base_to_complementaire = {'RG': ['arrco', 'agirc'], 'FP': []}
                             )
-  
-    def long_param_builder(self, P_longit): 
+        self.date = param.date
+
+            
+    def long_param_builder(self, duration_sim): 
         ''' Cette fonction permet de traduire les paramètres longitudinaux en vecteur numpy 
         comportant une valeur par année comprise entre first_year_sim et last_year_sim '''
         yearleg = self.date.year
-        duration_sim = self.data.last_date.year - self.data.first_date.year
+        P_longit = self.param.param_long
         first_year_sim = yearleg - 1 - duration_sim
         last_year_sim = yearleg
         # TODO: trouver une méthode plus systématique qui test le 'type' du noeud et construit le long parameter qui va bien
@@ -109,14 +144,14 @@ class PensionLegislation(object):
             
         return P_longit
     
-    def salref_RG_builder(self):
+    def salref_RG_builder(self, duration):
         '''
         salaire trimestriel de référence minimum pour le régime général
         Rq : Toute la série chronologique est exprimé en euros
         '''
-        first_year = self.data.first_date.year
-        last_year = self.data.last_date.year + 1
-        year_avts_to_smic = self.dates_start['avts_to_smic']
+        last_year = self.param.date.year
+        first_year = last_year - duration - 1
+        year_avts_to_smic = 1972 #TODO remove
         assert first_year <=  year_avts_to_smic
         assert last_year >  year_avts_to_smic
         salmin = DataFrame({'year': range(first_year, last_year), 'sal': -ones(last_year - first_year)} ) 
@@ -148,31 +183,7 @@ class PensionLegislation(object):
             if not smic_year:
                 smic_year = smic_old
             
-            salmin.loc[salmin['year'] == year, 'sal'] = self.param.prive.RG.nb_h*smic_long[smic_year[0]]
-        return array(salmin['sal'])
+            salmin.loc[salmin['year'] == year, 'sal'] = self.param.param.prive.RG.nb_h*smic_long[smic_year[0]]
+        return array(salmin['sal'])  
 
-
-    def load_param(self):
-        ''' should run after having a data'''
-        assert self.data is not None
-        path_pension = os.path.dirname(os.path.abspath(__file__))
-        param_file = path_pension + '\\France\\param.xml'
-        
-        ''' It's a simplification of an (old) openfisca program '''
-        legislation_tree = ElementTree.parse(param_file)
-        legislation_xml_json = conv.check(legislationsxml.xml_legislation_to_json)(legislation_tree.getroot(),
-                                                                                   state = conv.default_state)
-        legislation_xml_json, _ = legislationsxml.validate_node_xml_json(legislation_xml_json,
-                                                                         state = conv.default_state)
-        _, legislation_json = legislationsxml.transform_node_xml_json_to_json(legislation_xml_json)
-        dated_legislation_json = legislations.generate_dated_legislation_json(legislation_json, self.date.datetime)
-        compact_legislation = legislations.compact_dated_node_json(dated_legislation_json, self.data.info_ind)
-        long_dated_legislation_json = legislations.generate_long_legislation_json(legislation_json, self.date.datetime)
-        compact_legislation_long = legislations.compact_long_dated_node_json(long_dated_legislation_json)
-
-        compact_legislation_long = self.long_param_builder(compact_legislation_long)
-        self.param_long = compact_legislation_long
-        self.param = compact_legislation
-        setattr(compact_legislation.prive.RG, 'salref', self.salref_RG_builder())
-        self.param = compact_legislation 
         

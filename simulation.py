@@ -16,18 +16,22 @@ class PensionSimulation(object):
         self.data = data
         #TODO: base_to_complementaire n'est pas vraiment de la législation
         self.legislation = legislation
-
+        
+        #adapt longitudinal parameter to data
+        duration_sim = data.last_date.year - data.first_date.year
+        self.legislation.param_long = legislation.long_param_builder(duration_sim)
+        self.legislation.param_long.prive.RG.salref = legislation.salref_RG_builder(duration_sim)      
+        self.legislation.param = legislation.param.param
+        
     def evaluate(self, time_step='year', to_check=False):
         if self.legislation.param is None:
             raise Exception("you should give parameter to PensionData before to evaluate")
         dict_to_check = dict()
         P = self.legislation.param
         P_longit = self.legislation.param_long
-        dates_start = self.legislation.dates_start
         yearleg = self.legislation.date.year
         #TODO: remove yearleg
-        config = {'dateleg' : yearleg, 'P': P, 'P_longit': P_longit, 'datesleg_start': dates_start,
-                  'time_step': time_step}
+        config = {'dateleg' : yearleg, 'P': P, 'P_longit': P_longit, 'time_step': time_step}
         
         data = self.data
         regimes = self.legislation.regimes

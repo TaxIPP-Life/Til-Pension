@@ -35,8 +35,8 @@ class RegimeGeneral(RegimePrive):
         
         info_ind = data.info_ind
         
-        P = reduce(getattr, self.param_name.split('.'), self.P)
-        salref = P.salref
+        P_long = reduce(getattr, self.param_name.split('.'), self.P_longit)
+        salref = P_long.salref
         trimesters['cot'], wages['cot'] = validation_trimestre(data, self.code_regime, salref, name='cot')
         trimesters['ass'], _ = trim_ass_by_year(data, self.code_regime, compare_destinie)
         
@@ -66,8 +66,8 @@ class RegimeSocialIndependants(RegimePrive):
         trim_maj = dict()
         to_other = dict()
         
-        P = reduce(getattr, self.param_name.split('.'), self.P)
-        salref = P.salref
+        P_long = reduce(getattr, self.param_name.split('.'), self.P_longit)
+        salref = P_long.salref
         trimesters['cot'], wages['cot'] = validation_trimestre(data, self.code_regime, salref, name='cot')
 
         #TODO : pour l'instant tous les trimestres assimilés sont imputés au RG
