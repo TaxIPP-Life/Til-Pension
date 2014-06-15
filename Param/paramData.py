@@ -102,8 +102,8 @@ class Node(object):
         return self._format
 
     def setValueFormat(self, value):
-        if not value in ('none', 'integer', 'percent'):
-            return Exception("Unknowned %s valueFormat: valueFormat can be 'none', 'integer', 'percent'" % value)
+        if not value in ('none', 'integer', 'percent', 'date'):
+            return Exception("Unknowned %s valueFormat: valueFormat can be 'none', 'integer', 'percent', 'date'" % value)
         self._format = value
     
     valueFormat = property(getValueFormat, setValueFormat)

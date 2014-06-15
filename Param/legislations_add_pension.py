@@ -77,7 +77,7 @@ def compact_dated_node_json(dated_node_json, info_ind, code = None):
         for key, value in dated_node_json['children'].iteritems():
             compact_node_dict[key] = compact_dated_node_json(value, info_ind, code = key)
         return compact_node
-    if node_type == 'Parameter':
+    if node_type == u'Parameter':
         return dated_node_json.get('value')
     elif node_type == 'Scale':
         bareme = Bareme(name = code, option = dated_node_json.get('option'))
@@ -500,13 +500,27 @@ def validate_dated_slice_json(slice, state = None):
         conv.test_isinstance(dict),
         conv.struct(
             dict(
-                base = validate_dated_value_json,
+                base = conv.pipe(
+                    validate_dated_value_json,
+                    conv.test_greater_or_equal(0),
+                    ),
+                constant_amount = validate_dated_value_json,
                 comment = conv.pipe(
                     conv.test_isinstance(basestring),
                     conv.cleanup_text,
                     ),
-                rate = validate_dated_value_json,
-                threshold = validate_dated_value_json,
+                rate = conv.pipe(
+                    validate_dated_value_json,
+                    conv.test_between(0, 1),
+                    ),
+                threshold = conv.pipe(
+                    validate_dated_value_json,
+                    conv.test_greater_or_equal(0),
+                    ),
+                 date = conv.pipe(
+                    validate_dated_value_json,
+                    conv.test_between(0, 1), #TODO: changer
+                    ),
                 ),
             constructor = collections.OrderedDict,
             drop_none_values = 'missing',

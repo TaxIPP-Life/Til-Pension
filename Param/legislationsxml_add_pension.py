@@ -59,6 +59,7 @@ xml_json_formats = (
     'float',
     'integer',
     'percent',
+    'date',
     )
 
 
@@ -78,7 +79,8 @@ def make_validate_values_xml_json_dates(require_consecutive_dates = False):
             reverse = True)
         next_value_xml_json = sorted_values_xml_json[0]
         for index, value_xml_json in enumerate(itertools.islice(sorted_values_xml_json, 1, None)):
-            next_date_str = (datetime.date(*(int(fragment) for fragment in value_xml_json['fin'].split('-'))) + datetime.timedelta(days = 1)).isoformat()
+            next_date_str = (datetime.date(*(int(fragment) for fragment in value_xml_json['fin'].split('-')))
+                + datetime.timedelta(days = 1)).isoformat()
             if require_consecutive_dates and next_date_str < next_value_xml_json['deb']:
                 errors.setdefault(index, {})['deb'] = state._(u"Dates of values are not consecutive")
             elif next_date_str > next_value_xml_json['deb']:
@@ -131,6 +133,10 @@ def transform_node_xml_json_to_json(node_xml_json, root = True):
                 child_json_by_code[child_code] = child_json
         elif key == 'code':
             pass
+        elif key == 'deb':
+            node_json['from'] = value
+        elif key == 'fin':
+            node_json['to'] = value
         elif key == 'NODE':
             for child_xml_json in value:
                 child_code, child_json = transform_node_xml_json_to_json(child_xml_json, root = False)
@@ -157,6 +163,7 @@ def transform_parameter_xml_json_to_json(parameter_xml_json):
             parameter_json[key] = dict(
                 bool = u'boolean',
                 percent = u'rate',
+                date = u'date',
                 ).get(value, value)
             if value == 'bool':
                 xml_json_value_to_json_transformer = lambda xml_json_value: bool(int(xml_json_value))
@@ -167,8 +174,18 @@ def transform_parameter_xml_json_to_json(parameter_xml_json):
         elif key == 'type':
             parameter_json['unit'] = json_unit_by_xml_json_type.get(value, value)
         elif key == 'VALUE':
-            parameter_json['values'] = [
-                transform_value_xml_json_to_json(item, xml_json_value_to_json_transformer)
+            if 'format' in parameter_xml_json:
+                if parameter_xml_json['format'] ==  'date':
+                    format = 'date'
+                elif parameter_xml_json['format'] ==  'integer':
+                    format = int
+                elif parameter_xml_json['format'] ==  'percent':
+                    format = float
+                else:
+                    format = eval(parameter_xml_json['format'])
+            else: 
+                format = float
+            parameter_json['values'] = [ transform_value_xml_json_to_json(item, format)
                 for item in value
                 ]
         else:
@@ -201,6 +218,7 @@ def transform_scale_xml_json_to_json(scale_xml_json):
     return scale_xml_json['code'], scale_json
 
 def transform_generation_xml_json_to_json(scale_xml_json):
+    # Note: update with OF ?
     comments = []
     scale_json = collections.OrderedDict()
     scale_json['@type'] = 'Generation'
@@ -286,9 +304,9 @@ def transform_value_xml_json_to_json(value_xml_json, xml_json_value_to_json_tran
                     value_json['value'] = dt.strptime(value, "%Y-%m-%d").date()
                 else :
                     value_json['value'] = xml_json_value_to_json_transformer(value)
-            except TypeError:
-                log.error(u'Invalid value: {}'.format(value))
-                raise
+            except:
+                import pdb
+                pdb.set_trace()
         else:
             value_json[key] = value
     if comments:
@@ -553,6 +571,15 @@ def validate_slice_xml_json(slice, state = None):
                     conv.test_isinstance(basestring),
                     conv.cleanup_line,
                     ),
+                MONTANT = conv.pipe(
+                    conv.test_isinstance(list),
+                    conv.uniform_sequence(
+                        validate_values_holder_xml_json,
+                        drop_none_items = True,
+                        ),
+                    conv.empty_to_none,
+                    conv.test(lambda l: len(l) == 1, error = N_(u"List must contain one and only one item")),
+                    ),
                 SEUIL = conv.pipe(
                     conv.test_isinstance(list),
                     conv.uniform_sequence(
@@ -575,7 +602,6 @@ def validate_slice_xml_json(slice, state = None):
                         ),
                     conv.empty_to_none,
                     conv.test(lambda l: len(l) == 1, error = N_(u"List must contain one and only one item")),
-                    conv.not_none,
                     ),
                 text = conv.pipe(
                     conv.test_isinstance(basestring),
@@ -586,6 +612,8 @@ def validate_slice_xml_json(slice, state = None):
             drop_none_values = 'missing',
             keep_value_order = True,
             ),
+        conv.test(lambda slice: bool(slice.get('MONTANT')) ^ bool(slice.get('TAUX')),
+            error = N_(u"Either MONTANT or TAUX must be provided")),
         )(slice, state = state)
     conv.remove_ancestor_from_state(state, slice)
     return validated_slice, errors
@@ -600,7 +628,7 @@ def validate_slices_xml_json_dates(slices, state = None):
 
     previous_slice = slices[0]
     for slice_index, slice in enumerate(itertools.islice(slices, 1, None), 1):
-        for key in ('ASSIETTE', 'SEUIL', 'TAUX'):
+        for key in ('ASSIETTE', 'MONTANT', 'SEUIL', 'TAUX'):
             valid_segments = []
             values_holder_xml_json = previous_slice.get(key)
             values_xml_json = values_holder_xml_json[0]['VALUE'] if values_holder_xml_json else []
@@ -684,9 +712,12 @@ def validate_slices_xml_json_dates(slices, state = None):
                 if rate_segment[0] <= from_date and to_date <= rate_segment[1]:
                     break
             else:
-                errors.setdefault(slice_index, {}).setdefault('SEUIL', {}).setdefault(0, {}).setdefault('VALUE',
-                    {}).setdefault(value_index, {})['deb'] = state._(u"Dates don't belong to TAUX dates")
-
+                for constant_amount_segment in constant_amount_segments:
+                    if constant_amount_segment[0] <= from_date and to_date <= constant_amount_segment[1]:
+                        break
+                else:
+                    errors.setdefault(slice_index, {}).setdefault('SEUIL', {}).setdefault(0, {}).setdefault('VALUE',
+                        {}).setdefault(value_index, {})['deb'] = state._(u"Dates don't belong to TAUX or MONTANT dates")
     return slices, errors or None
 
 
@@ -714,6 +745,12 @@ def validate_value_xml_json(value, state = None):
             conv.test_isinstance(basestring),
             conv.cleanup_line,
             conv.test_conv(conv.anything_to_float),
+            ),
+        date = conv.pipe(
+            conv.test_isinstance(basestring),
+            conv.cleanup_line,
+            #TODO: add a new conv ?
+            conv.test_conv(conv.anything_to_strict_int),
             ),
         )[container.get('format') or 'float']  # Only CODE have a "format".
     state = conv.add_ancestor_to_state(state, value)
