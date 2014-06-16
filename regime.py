@@ -141,6 +141,8 @@ class Regime(object):
         salref = self.calculate_salref(data, trim_wage_regime['wages'])
         pension_brute = cp*salref*taux
         pension = self.plafond_pension(pension_brute, salref, cp, surcote)
+        pension = pension + self.majoration_pension(data, pension)
+        # self.minimum_pension()
         if to_check is not None:
             P = reduce(getattr, self.param_name.split('.'), self.P)
             taux_plein = P.plein.taux
@@ -232,22 +234,51 @@ class RegimeComplementaires(Regime):
             return coeff_min
         elif P.dispositif_coeff == 3:
             # A partir de cette date, la minoration ne s'applique que si la durée de cotisation au régime général est inférieure à celle requise pour le taux plein
-            return  coeff_min*(n_trim > trim) + (n_trim <= trim)        
+            return  coeff_min*(n_trim > trim) + (n_trim <= trim)    
+            
+    def _majoration_enf(self, data, nb_points, coeff_age):
+        ''' Application de la majoration pour enfants à charge. Deux types de majorations peuvent s'appliquer :
+        ' pour enfant à charge au moment du départ en retraite
+        - pour enfant nés et élevés en cours de carrière (majoration sur la totalité des droits acquis)
+        C'est la plus avantageuse qui s'applique.'''
+        P = reduce(getattr, self.param_name.split('.'), self.P)
+        nb_pac = data.info_ind['nb_pac']
+        nb_born = data.info_ind['nb_born']
+        
+        # Calcul des points pour enfants à charge
+        taux_pac = P.maj_enf.pac
+        points_pac = nb_points*taux_pac*nb_pac
+        
+        # Calcul des points pour enfants nés ou élevés
+        taux_born = P.maj_enf.born
+        taux_born11 = P.maj_enf.born11
+        
+        nb_points_11 = coeff_age*self.nombre_points(data, last_year=2011)
+        nb_points12_ = coeff_age*self.nombre_points(data, first_year=2012) 
+        points_born_11 = nb_points_11*(nb_born)*taux_born11
+        points_born12_ = nb_points12_*taux_born
+        points_born = (points_born_11 + points_born12_)*(nb_born >= 3)
+        
+        # Comparaison de la situation la plus avantageuse
+        val_point = P.val_point
+        majo_born = val_point*points_born
+        majo_pac = val_point*points_pac
+
+        return maximum(majo_born, majo_pac)
     
-    def majoration_enf(self):     
+    def majoration_pension(self, data, nb_points, coeff_age):     
         raise NotImplementedError
     
     def calculate_pension(self, data, trim_base, to_check=None):
         workstate = data.workstate
         sali = data.sali
         info_ind = data.info_ind
-        
         name = self.name
         P = reduce(getattr, self.param_name.split('.'), self.P)
         val_arrco = P.val_point 
         nb_points = self.nombre_points(data)
         coeff_age = self.coefficient_age(info_ind['agem'], trim_base)
-        maj_enf = self.majoration_enf(data, nb_points, coeff_age)
+        maj_enf = self.majoration_pension(data, nb_points, coeff_age)
         
         if to_check is not None:
             to_check['nb_points_' + name] = nb_points
