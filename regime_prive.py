@@ -166,4 +166,5 @@ class RegimePrive(RegimeBase):
         pension_surcote_RG = taux_plein*salref*cp*surcote
         return minimum(pension_brute - pension_surcote_RG, taux_PSS*PSS) + pension_surcote_RG
         
-            
+    def majoration_pension(self, data, pension):
+        return 0*pension
