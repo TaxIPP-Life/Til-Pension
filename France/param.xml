@@ -1526,28 +1526,29 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 			 <VALUE valeur="0.0" deb="1983-01-01" fin="2100-12-31"/>   #"2003-12-31"
 		   </CODE>
 		 </NODE>
-		  <NODE description="Dispositif 1: trimestre au-delà du taux plein avec condition de date" code="dispositif1">	  
+		  <NODE description="Dispositif 1: trimestre au-delà du taux plein avec condition de date (taux fixe quelque soit la nature du trimestres surcoté)" code="dispositif1">	  
 			<CODE description="Coefficient de majoration à appliquer au taux plein" code="taux" format="percent">
-			  <VALUE valeur="0.0"    deb="1945-01-01" fin="2004-03-31"/>
-			  <VALUE valeur="0.0075" deb="2004-04-01" fin="2006-12-31"/>
-			  <VALUE valeur="0.0"    deb="2007-01-01" fin="2009-03-31"/>
-			  <VALUE valeur="0.0125" deb="2009-04-01" fin="2100-12-31"/>
+			  <VALUE valeur="0.0"    deb="1945-01-01" fin="2003-12-31"/>
+			  <VALUE valeur="0.0075" deb="2004-01-01" fin="2006-12-31"/>
+			  <VALUE valeur="0.0"    deb="2007-01-01" fin="2008-12-31"/>
+			  <VALUE valeur="0.0125" deb="2009-01-01" fin="2100-12-31"/>
 			</CODE>
 			<CODE description="Astuce pour savoir quelle période de temps prendre" code="date_trick" format="integer">
-			  <VALUE valeur="0" deb="2004-04-01" fin="2006-12-31"/>
-			  <VALUE valeur="1" deb="2009-04-01" fin="2100-12-31"/>
+			  <VALUE valeur="1" deb="2004-01-01" fin="2006-12-31"/>
+			  <VALUE valeur="0" deb="2007-01-01" fin="2008-12-31"/>
+			  <VALUE valeur="2" deb="2009-01-01" fin="2100-12-31"/>
 			</CODE>
-			<CODE description="Trimestres pris en compte dans le calcul de la surcote (date du trimestre)" code="dates0" format="integer" longitudinal="true"> # should be Boolean
+			<CODE description="Trimestres pris en compte dans le calcul de la surcote (date du trimestre)" code="dates1" format="integer" longitudinal="true"> # should be Boolean
 			  <VALUE valeur="0" deb="1945-01-01" fin="2003-12-31"/>
 			  <VALUE valeur="1" deb="2004-01-01" fin="2006-12-31"/>
 			  <VALUE valeur="0" deb="2007-01-01" fin="2100-12-31"/>
 			</CODE> 
-			<CODE description="Trimestres pris en compte dans le calcul de la surcote (date du trimestre)" code="dates1" format="integer" longitudinal="true"> # should be Boolean
+			<CODE description="Trimestres pris en compte dans le calcul de la surcote (date du trimestre)" code="dates2" format="integer" longitudinal="true"> # should be Boolean
 			  <VALUE valeur="0" deb="1945-01-01" fin="2008-12-31"/>
 			  <VALUE valeur="1" deb="2009-01-01" fin="2100-12-31"/>
 			</CODE> 
 	    </NODE> 
-		  <NODE description="Dispositif 2: trimestre au-delà du taux plein avec condition d'age et de date" code="dispositif2">	  
+		  <NODE description="Dispositif 2: trimestre au-delà du taux plein avec condition d'age et de nombre de trimestres" code="dispositif2">	  
 			<CODE description="Coefficient de majoration à appliquer au taux plein pour les trimestres" code="taux0" format="percent">
 			  <VALUE valeur="0.0"    deb="1945-01-01" fin="2006-12-31"/>
 			  <VALUE valeur="0.0075" deb="2007-01-01" fin="2100-12-31"/>
@@ -1565,7 +1566,7 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 			  <VALUE valeur="65" deb="2007-01-01" fin="2100-12-31"/>
 			</CODE>
 			<CODE description="Trimestres pris en compte dans le calcul de la surcote (date du trimestre)" code="dates" format="integer" longitudinal="true"> # should be Boolean
-			  <VALUE valeur="0" deb="1945-01-01" fin="2004-12-31"/>
+			  <VALUE valeur="0" deb="1945-01-01" fin="2003-12-31"/>
 			  <VALUE valeur="1" deb="2004-01-01" fin="2008-12-31"/>
 			  <VALUE valeur="0" deb="2009-01-01" fin="2100-12-31"/>
 			</CODE> 
