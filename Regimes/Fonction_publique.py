@@ -72,7 +72,6 @@ class FonctionPublique(RegimeBase):
         output : trim_by_year_FP_to_RG '''
         P = reduce(getattr, self.param_name.split('.'), self.P)
         # N_min donné en mois
-        workstate = data.workstate
         trim_cot = trim_by_year.sum(1)
         last_fp = data.workstate.last_time_in(self.code_regime)
         to_RG_actif = (3*trim_cot < P.actif.N_min)*(last_fp == self.code_actif)
@@ -129,11 +128,24 @@ class FonctionPublique(RegimeBase):
             trim_surcote = minimum(trim_surcote, plafond)
             return taux_surcote*trim_surcote
         
-    def calculate_salref(self, data, regime):
+    def calculate_salref(self, data, wages_regime = None):
         last_fp_idx = data.workstate.idx_last_time_in(self.code_regime)
         last_fp = zeros(data.sali.array.shape[0])
         last_fp[last_fp_idx[0]] = data.sali.array[last_fp_idx]
         return last_fp
+    
+    def majoration_pension(self, data, pension):
+        P = self.P.public.fp
+        nb_enf = data.info_ind['nb_born']
+        
+        def _taux_enf(nb_enf, P):
+            ''' Majoration pour avoir élevé trois enfants '''
+            taux_3enf = P.maj_3enf.taux
+            taux_supp = P.maj_3enf.taux_sup
+            return taux_3enf*(nb_enf == 3) + taux_supp*maximum(nb_enf - 3, 0)
+            
+        maj_enf = _taux_enf(nb_enf, P)*pension
+        return maj_enf
     
     def plafond_pension(self, pension_brute, salref, cp, surcote):
         return pension_brute

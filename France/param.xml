@@ -3563,6 +3563,14 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 			<VALUE valeur="0" deb="1945-01-01" fin="2100-12-31"/>
 	  	  </CODE>
 	  	</NODE>  
+   	   <NODE description="Majoration de durée de la pension à partir de trois enfants" code="maj_3enf" >
+	      <CODE description="Taux de majoration pour trois enfants" code="taux" format="float">
+			<VALUE valeur="0.10" deb="1945-01-01" fin="2100-12-31"/>
+	  	  </CODE>
+	  	  <CODE description="Taux de majoration par enfant au-delà de trois enfants" code="taux_sup" format="float">
+			<VALUE valeur="0.05" deb="1945-01-01" fin="2100-12-31"/>
+	  	  </CODE>
+	  	</NODE>
    	 </NODE>
    	 <NODE description="Retraite complémentaire de la fonction publique (depuis 2005)" code="rafp">
      <CODE description= "Valeur d'acquisition du point RAFP (euros)" code="val_ac_point" format="float">
