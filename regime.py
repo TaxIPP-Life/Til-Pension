@@ -153,10 +153,8 @@ class Regime(object):
             to_check['salref_' + name] = salref
             P = reduce(getattr, self.param_name.split('.'), self.P)
             to_check['n_trim_' + name] = P.plein.n_trim // 4
-            try:
-                to_check['N_CP_' + name] = P.N_CP // 4
-            except:
-                pass
+            if self.name == 'RG':
+                to_check['N_CP_' + name] = P.prorat.n_trim // 4
         return pension.fillna(0)
 
 

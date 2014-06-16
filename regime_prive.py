@@ -58,7 +58,7 @@ class RegimePrive(RegimeBase):
     def calculate_coeff_proratisation(self, info_ind, trim_wage_regime, trim_wage_all):
         ''' Calcul du coefficient de proratisation '''
         
-        def _assurance_corrigee(trim_regime, trim_tot, agem):
+        def _assurance_corrigee(trim_regime, agem):
             ''' 
             Deux types de corrections :
             - correction de 1948-1982
@@ -79,15 +79,14 @@ class RegimePrive(RegimeBase):
                 return trim_regime
 
         P =  reduce(getattr, self.param_name.split('.'), self.P)
-        trim_regime = trim_wage_regime['trimesters']['regime'].sum(1) + trim_wage_regime['maj']['DA']
-        trim_tot = trim_wage_all['trimesters']['tot'].sum(1) + trim_wage_all['maj']['tot']
-
+        trim_regime = trim_wage_regime['trimesters']['regime'].sum(1) 
+        trim_regime_maj = sum(trim_wage_regime['maj'].values())
         agem = info_ind['agem']
-        trim_CP = _assurance_corrigee(trim_regime, trim_tot, agem)
+        trim_regime = trim_regime_maj + trim_regime  # _assurance_corrigee(trim_regime, agem) 
         #disposition pour montée en charge de la loi Boulin (ne s'applique qu'entre 72 et 74) :
         if P.prorat.application_plaf == 1:
-            trim_CP = minimum(trim_CP, P.prorat.plaf) 
-        CP = minimum(1, divide(trim_CP, P.prorat.n_trim))
+            trim_regime = minimum(trim_regime, P.prorat.plaf) 
+        CP = minimum(1, divide(trim_regime, P.prorat.n_trim))
         return CP
     
     def decote(self, data, trim_wage_all):
@@ -148,12 +147,12 @@ class RegimePrive(RegimeBase):
         if yearleg < 2004:
             mico = P.mico.entier 
             # TODO: règle relativement complexe à implémenter de la limite de cumul (voir site CNAV)
-            return  maximum(0, mico - pension_RG)*minimum(1, divide(trim_cot, P.N_CP))
+            return  maximum(0, mico - pension_RG)*minimum(1, divide(trim_cot, P.prorat.n_trim))
         else:
             mico_entier = P.mico.entier
             mico_maj = P.mico.entier_maj
             RG_exclusif = ( pension_RG == pension) | (trim <= n_trim)
-            mico_RG = mico_entier + minimum(1, divide(trim_cot, P.N_CP))*(mico_maj - mico_entier)
+            mico_RG = mico_entier + minimum(1, divide(trim_cot, P.prorat.n_trim))*(mico_maj - mico_entier)
             mico =  mico_RG*( RG_exclusif + (1 - RG_exclusif)*divide(trim_RG, trim))
             return maximum(0, mico - pension_RG)
         
