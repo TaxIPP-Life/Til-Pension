@@ -3,8 +3,7 @@ from numpy import array
 from pandas import DataFrame
 from pension_functions import select_regime_base, sum_by_regime, update_all_regime
 import cProfile
-
-
+import logging as log
 
 class PensionSimulation(object):
     ''' class qui permet de simuler un système de retraite :
@@ -12,7 +11,7 @@ class PensionSimulation(object):
           La méthode evaluate renvoie un vecteur qui est le montant de pension calculé
     '''
         
-    def __init__(self, data, legislation):
+    def __init__(self, data, legislation, loggerlevels):
         self.data = data
         #TODO: base_to_complementaire n'est pas vraiment de la législation
         self.legislation = legislation
@@ -22,6 +21,7 @@ class PensionSimulation(object):
         self.legislation.param_long = legislation.long_param_builder(duration_sim)
         self.legislation.param_long.prive.RG.salref = legislation.salref_RG_builder(duration_sim)      
         self.legislation.param = legislation.param.param
+        self.loggerlevels = loggerlevels
         
     def evaluate(self, time_step='year', to_check=False):
         if self.legislation.param is None:
@@ -41,6 +41,9 @@ class PensionSimulation(object):
         ### get trimesters (only TimeArray with trim by year), wages (only TimeArray with wage by year) and trim_maj (only vector of majoration): 
         trimesters_wages = dict()
         to_other = dict()
+        test = self.loggerlevels['evaluate']
+        getattr(log, test)('Test du log sur les régimes de bases {}'.format(regimes['base_to_complementaire']))
+        
         for reg in base_regimes:
             reg.set_config(**config)
             trimesters_wages_regime, to_other_regime = reg.get_trimesters_wages(data)

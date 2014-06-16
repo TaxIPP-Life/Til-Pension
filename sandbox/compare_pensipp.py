@@ -83,7 +83,7 @@ def load_from_Rdata(path, to_csv=False):
             
     return info, info_child, salaire, statut, result_pensipp
 
-def compare_til_pensipp(pensipp_comparison_path, var_to_check_montant, var_to_check_taux, threshold):
+def compare_til_pensipp(pensipp_comparison_path, var_to_check_montant, var_to_check_taux, threshold, loggerlevel):
     try: 
         info, info_child, salaire, statut, result_pensipp = load_from_csv(pensipp_comparison_path)
     except:
@@ -111,7 +111,7 @@ def compare_til_pensipp(pensipp_comparison_path, var_to_check_montant, var_to_ch
         data_bounded = data.selected_dates(first=first_year_sal, last=yearsim)
         param = PensionParam(yearsim, data_bounded)
         legislation = PensionLegislation(param)
-        simul_til = PensionSimulation(data_bounded, legislation)
+        simul_til = PensionSimulation(data_bounded, legislation, loggerlevel)
         result_til_year = simul_til.profile_evaluate(to_check=True)
         id_year_in_initial = [ident for ident in result_til_year.index if ident in result_til.index] 
         assert (id_year_in_initial == result_til_year.index).all()
@@ -165,7 +165,11 @@ if __name__ == '__main__':
                          u'taux_FP'
                           ]
     threshold = {'montant' : 1, 'taux' : 0.05}
-    compare_til_pensipp(pensipp_comparison_path, var_to_check_montant, var_to_check_taux, threshold)
+    import logging
+    import sys
+    logging.basicConfig(format='%(funcName)s(%(levelname)s): %(message)s', level = logging.INFO, stream = sys.stdout)
+    loggerlevel = {'evaluate': 'info'}
+    compare_til_pensipp(pensipp_comparison_path, var_to_check_montant, var_to_check_taux, threshold, loggerlevel)
 
 #    or to have a profiler : 
 #    import cProfile
