@@ -93,7 +93,7 @@ def compact_dated_node_json(dated_node_json, info_ind, code = None):
         assert node_type == u'Generation'
         generation = Generation(name = code, option = dated_node_json.get('option'), control = dated_node_json.get('control'))
         for dated_slice_json in dated_node_json['slices']:
-            val = dated_slice_json.get('valeur')[0]['value']
+            val = dated_slice_json.get('valeur')
             threshold = dated_slice_json.get('threshold')
             if val is not None and threshold is not None:
                 generation.addTranche(threshold, val)
@@ -239,7 +239,7 @@ def generate_dated_node_json(node_json, date_str):
                 return None
             dated_node_json[key] = dated_children_json
         elif key == 'slices':
-            # Occurs when @type == 'Scale'.
+            # Occurs when @type == 'Scale' or 'Generation'
             dated_slices_json = [
                 dated_slice_json
                 for dated_slice_json in (
@@ -268,7 +268,7 @@ def generate_dated_node_json(node_json, date_str):
 def generate_dated_slice_json(slice_json, date_str):
     dated_slice_json = collections.OrderedDict()
     for key, value in slice_json.iteritems():
-        if key in ('base', 'rate', 'threshold'):
+        if key in ('base', 'rate', 'threshold', 'valeur'):
             dated_value = generate_dated_json_value(value, date_str)
             if dated_value is not None:
                 dated_slice_json[key] = dated_value
