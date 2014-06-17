@@ -20,7 +20,6 @@ class PensionSimulation(object):
         #adapt longitudinal parameter to data
         duration_sim = data.last_date.year - data.first_date.year
         self.legislation.param_long = legislation.long_param_builder(duration_sim)
-        self.legislation.param_long.prive.RG.salref = legislation.salref_RG_builder(duration_sim)      
         self.legislation.param = legislation.param.param
         
     def evaluate(self, time_step='year', to_check=False):
