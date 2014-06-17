@@ -123,6 +123,7 @@ def transform_node_xml_json_to_json(node_xml_json, root = True):
             for child_xml_json in value:
                 child_code, child_json = transform_scale_xml_json_to_json(child_xml_json)
                 child_json_by_code[child_code] = child_json
+
         elif key == 'VALBYTRANCHES':
             for child_xml_json in value:
                 child_code, child_json = transform_generation_xml_json_to_json(child_xml_json)
@@ -233,9 +234,6 @@ def transform_generation_xml_json_to_json(generation_xml_json):
                 for item in value[0]['CONTROL']
                 ]
         elif key == 'TRANCHE':
-            for item in value: print item
-#             import pdb
-#             pdb.set_trace()
             generation_json['slices'] = [
                 transform_slice2_xml_json_to_json(item)
                 for item in value
