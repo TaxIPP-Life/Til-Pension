@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
+import logging as log
+
 from datetime import date
 from numpy import maximum, array, nan_to_num, greater, divide, around, zeros, minimum
+from utils_compar import print_info
 from pandas import Series
 from time_array import TimeArray
 from datetil import DateTil
@@ -27,6 +30,7 @@ class Regime(object):
         
         self.P = None
         self.P_longit = None
+        self.logger = None
         
     def set_config(self, **kwargs):
         """
@@ -51,6 +55,12 @@ class Regime(object):
         trim_maj = trim_maj['tot']
         age_start_surcote = self._age_min_retirement(data)
         date_start_surcote = self._date_start_surcote(trim_by_year_tot, trim_maj, agem, age_start_surcote)
+        if self.logger and 'surcote' in self.logger.keys():
+            print_info(list_vectors=[date_start_surcote, age_start_surcote],
+                                    list_timearrays=[data.sali, data.workstate], 
+                                    all_ident=data.info_ind.index,
+                                    loglevel=self.logger['surcote'],
+                                    label='surcote_' + self.name)           
         return self._calculate_surcote(trim_wage_regime, trim_wage_all, date_start_surcote, agem)
     
     def _calculate_surcote(self, trimesters, date_start_surcote, age):
