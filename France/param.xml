@@ -2390,11 +2390,12 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 		 		<CODE description="Majoration pour enfant(s) à charge, par enfant" code="pac" format="percent">
 		 			<VALUE valeur="0.05" deb="1962-01-01" fin="2100-31-12"/>
 		 		</CODE>
-		 		<CODE description="Application du dispositif de plafonnement" code="application_plaf" format="integer">
-		 			<VALUE valeur="0" deb="1945-01-01" fin="2012-31-12"/>
-		 			<VALUE valeur="1" deb="2013-01-01" fin="2100-31-12"/>
-		 		</CODE>
 		 		<CODE description="Plafond de la majoration pour enfants à charge" code="plaf_pac" format="float">
+		 			<VALUE valeur="9999999" deb="1945-01-01" fin="2012-31-12"/>
+	 				<VALUE valeur="1031.15" deb="2013-04-01" fin="2100-31-12"/>
+	 			</CODE>
+		 		<CODE description="Plafond de la majoration pour enfants à charge" code="plaf_pac" format="float">
+		 			<VALUE valeur="9999999" deb="1945-01-01" fin="2012-31-12"/>
 	 				<VALUE valeur="1031.15" deb="2013-04-01" fin="2100-31-12"/>
 	 			</CODE>
 		 		<CODE description="Majoration pour enfant(s) nés ou élevés, pour 3 enfants et plus" code="born11" format="percent">

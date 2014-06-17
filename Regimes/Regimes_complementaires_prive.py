@@ -57,8 +57,7 @@ class ARRCO(RegimeComplementaires):
     def majoration_pension(self, data, nb_points, coeff_age):
         P = reduce(getattr, self.param_name.split('.'), self.P)
         maj_enf = self._majoration_enf(data, nb_points, coeff_age)
-        yearnaiss =  [date.year for date in data.info_ind['naiss']]
-        if P.maj_enf.application_plaf == 1:
-            plafond = P.maj_enf.plaf_pac
-            majo_pac = minimum(maj_enf[(yearnaiss <= 1951)], plafond)
+        plafond = P.maj_enf.plaf_pac
+        cond_naiss = [(date.year <= 1951) for date in data.info_ind['naiss']] #TODO: check cette condition
+        maj_enf = minimum(maj_enf[cond_naiss], plafond)
         return maj_enf
