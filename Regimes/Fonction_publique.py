@@ -130,3 +130,6 @@ class FonctionPublique(RegimeBase):
     
     def plafond_pension(self, pension_brute, salref, cp, surcote):
         return pension_brute
+    
+    def minimum_pension(self, trim_regime, trim_all, pension):
+        return 0*pension

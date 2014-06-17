@@ -133,7 +133,7 @@ class RegimePrive(RegimeBase):
             
         return surcote  
         
-    def minimum_contributif(self, pension_RG, pension, trim_RG, trim_cot, trim):
+    def minimum_pension(self, trimesters, trim_all, pension):
         ''' MICO du régime général : allocation différentielle 
         RQ : ASPA et minimum vieillesse sont gérés par OF
         Il est attribué quels que soient les revenus dont dispose le retraité en plus de ses pensions : loyers, revenus du capital, activité professionnelle... 
@@ -141,17 +141,20 @@ class RegimePrive(RegimeBase):
         yearleg = self.dateleg.year
         P = reduce(getattr, self.param_name.split('.'), self.P)
         n_trim = P.plein.n_trim
+        # pension_RG, pension, trim_RG, trim_cot, trim
+        trim_regime = trimesters['regime'].sum()
+        trim_tot = trim_all['tot'].sum() 
         if yearleg < 2004:
             mico = P.mico.entier 
             # TODO: règle relativement complexe à implémenter de la limite de cumul (voir site CNAV)
-            return  maximum(0, mico - pension_RG)*minimum(1, divide(trim_cot, P.prorat.n_trim))
+            return  maximum(0, mico - pension)*minimum(1, divide(trim_regime, P.prorat.n_trim))*(trim_regime>0)
         else:
             mico_entier = P.mico.entier
             mico_maj = P.mico.entier_maj
-            RG_exclusif = ( pension_RG == pension) | (trim <= n_trim)
-            mico_RG = mico_entier + minimum(1, divide(trim_cot, P.prorat.n_trim))*(mico_maj - mico_entier)
-            mico =  mico_RG*( RG_exclusif + (1 - RG_exclusif)*divide(trim_RG, trim))
-            return maximum(0, mico - pension_RG)
+            RG_exclusif = ( trim_regime == trim_tot ) | (trim_regime <= n_trim)
+            mico_regime = mico_entier + minimum(1, divide(trim_regime, P.prorat.n_trim))*(mico_maj - mico_entier)
+            mico =  mico_regime*( RG_exclusif + (1 - RG_exclusif)*divide(trim_regime, trim_tot))
+            return maximum(0, mico - pension)*(trim_regime>0)
         
     def plafond_pension(self, pension_brute, salref, cp, surcote):
         ''' plafonnement à 50% du PSS 
