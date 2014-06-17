@@ -69,7 +69,7 @@ def load_from_Rdata(path, to_csv=False):
             
     return info, info_child, salaire, statut
 
-def load_pensipp_data(pensipp_path, yearsim, first_year_sal):
+def load_pensipp_data(pensipp_path, yearsim, first_year_sal, selection_id=False):
     try: 
         info, info_child, salaire, statut = load_from_csv(pensipp_comparison_path)
     except:
@@ -79,14 +79,17 @@ def load_pensipp_data(pensipp_path, yearsim, first_year_sal):
             info.loc[:,'sexe'] = info.loc[:,'sexe'].replace(1,0)
             info.loc[:,'sexe'] = info.loc[:,'sexe'].replace(2,1)
     info.loc[:,'agem'] =  (yearsim - info['t_naiss'])*12
-    select_id = (info.loc[:,'agem'] ==  12*63)
-    id_selected = select_id[select_id == True].index
-    sali = salaire.loc[select_id, :]
-    workstate = statut.loc[select_id, :]
+    select_id_depart = (info.loc[:,'agem'] ==  12*63)
+    id_selected = select_id_depart[select_id_depart == True].index
+    if selection_id:
+        id_selected =  selection_id
+    ix_selected = [int(ident) - 1 for ident in id_selected]
+    sali = salaire.iloc[ix_selected, :]
+    workstate = statut.iloc[ix_selected, :]
     info_child = _child_by_age(info_child, yearsim, id_selected)
     nb_pac = count_enf_pac(info_child, info.index)
     nb_enf = count_enf_born(info_child, info.index)
-    info_ind = info.loc[select_id,:]
+    info_ind = info.iloc[ix_selected,:]
     info_ind.loc[:,'nb_pac'] = nb_pac
     info_ind.loc[:,'nb_born'] = nb_enf
     data = PensionData.from_arrays(workstate, sali, info_ind)
