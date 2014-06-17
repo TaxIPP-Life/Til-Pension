@@ -11,7 +11,7 @@ class PensionSimulation(object):
           La méthode evaluate renvoie un vecteur qui est le montant de pension calculé
     '''
         
-    def __init__(self, data, legislation, loggerlevels):
+    def __init__(self, data, legislation):
         self.data = data
         #TODO: base_to_complementaire n'est pas vraiment de la législation
         self.legislation = legislation
@@ -21,9 +21,8 @@ class PensionSimulation(object):
         self.legislation.param_long = legislation.long_param_builder(duration_sim)
         self.legislation.param_long.prive.RG.salref = legislation.salref_RG_builder(duration_sim)      
         self.legislation.param = legislation.param.param
-        self.loggerlevels = loggerlevels
         
-    def evaluate(self, time_step='year', to_check=False):
+    def evaluate(self, time_step='year', to_check=False, logger=False):
         if self.legislation.param is None:
             raise Exception("you should give parameter to PensionData before to evaluate")
         dict_to_check = dict()
@@ -31,7 +30,7 @@ class PensionSimulation(object):
         P_longit = self.legislation.param_long
         yearleg = self.legislation.date.year
         #TODO: remove yearleg
-        config = {'dateleg' : yearleg, 'P': P, 'P_longit': P_longit, 'time_step': time_step}
+        config = {'dateleg' : yearleg, 'P': P, 'P_longit': P_longit, 'time_step': time_step, 'logger': logger}
         
         data = self.data
         regimes = self.legislation.regimes
@@ -41,8 +40,6 @@ class PensionSimulation(object):
         ### get trimesters (only TimeArray with trim by year), wages (only TimeArray with wage by year) and trim_maj (only vector of majoration): 
         trimesters_wages = dict()
         to_other = dict()
-        test = self.loggerlevels['evaluate']
-        getattr(log, test)('Test du log sur les régimes de bases {}'.format(regimes['base_to_complementaire']))
         
         for reg in base_regimes:
             reg.set_config(**config)
@@ -80,9 +77,9 @@ class PensionSimulation(object):
             return pension # TODO: define the output
         
         
-    def profile_evaluate(self, time_step='year', to_check=False):
+    def profile_evaluate(self, time_step='year', to_check=False, logger=False):
         prof = cProfile.Profile()
-        result = prof.runcall(self.evaluate, *(time_step, to_check))
+        result = prof.runcall(self.evaluate, *(time_step, to_check, logger))
         #TODO: add a suffix, like yearleg : was + str(self.yearsim)
         prof.dump_stats("profile_pension")
         return result
