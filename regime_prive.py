@@ -1,17 +1,14 @@
 # -*- coding:utf-8 -*-
-import math
+
 from datetime import datetime
 
 import os
 parentdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.sys.path.insert(0,parentdir) 
-from time_array import TimeArray
 
-from numpy import maximum, minimum, array, divide, zeros, multiply
-from pandas import Series
+from numpy import maximum, minimum, array, divide, multiply
 
-from regime import RegimeBase, compare_destinie
-from sandbox.utils_compar import print_multi_info_numpy, _info_numpy
+from regime import RegimeBase
 from trimesters_functions import nb_trim_surcote
 
 def date_(year, month, day):

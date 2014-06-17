@@ -3,7 +3,6 @@ from numpy import array
 from pandas import DataFrame
 from pension_functions import select_regime_base, sum_by_regime, update_all_regime
 import cProfile
-import logging as log
 
 class PensionSimulation(object):
     ''' class qui permet de simuler un système de retraite :

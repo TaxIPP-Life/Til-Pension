@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from datetime import date
+
 from numpy import array, ndarray
 from pandas import DataFrame
 from time_array import TimeArray

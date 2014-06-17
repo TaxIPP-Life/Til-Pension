@@ -1,16 +1,13 @@
 # -*- coding:utf-8 -*-
 
-from collections import defaultdict
 import os
 parentdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.sys.path.insert(0,parentdir) 
 
-from numpy import maximum, minimum, array, nonzero, divide, transpose, zeros
-from pandas import Series
+from numpy import maximum, minimum, divide, zeros
 
-from regime import RegimeBase, compare_destinie
+from regime import RegimeBase
 from trimesters_functions import nb_trim_surcote
-from sandbox.utils_compar import print_multi_info_numpy, _info_numpy
 from trimesters_functions import trim_cot_by_year_FP, nb_trim_bonif_5eme, trim_mda
 
 code_chomage = 5
