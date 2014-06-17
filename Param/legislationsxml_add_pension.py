@@ -217,33 +217,36 @@ def transform_scale_xml_json_to_json(scale_xml_json):
         scale_json['comment'] = u'\n\n'.join(comments)
     return scale_xml_json['code'], scale_json
 
-def transform_generation_xml_json_to_json(scale_xml_json):
+def transform_generation_xml_json_to_json(generation_xml_json):
     # Note: update with OF ?
     comments = []
-    scale_json = collections.OrderedDict()
-    scale_json['@type'] = 'Generation'
-    for key, value in scale_xml_json.iteritems():
+    generation_json = collections.OrderedDict()
+    generation_json['@type'] = 'Generation'
+    for key, value in generation_xml_json.iteritems():
         if key == 'code':
             pass
         elif key in ('tail', 'text'):
             comments.append(value)
         elif key == 'VARCONTROL':
-            scale_json['control'] = [
+            generation_json['control'] = [
                 transform_value_xml_json_to_json(item, str)
                 for item in value[0]['CONTROL']
                 ]
         elif key == 'TRANCHE':
-            scale_json['slices'] = [
+            for item in value: print item
+#             import pdb
+#             pdb.set_trace()
+            generation_json['slices'] = [
                 transform_slice2_xml_json_to_json(item)
                 for item in value
                 ]
         elif key == 'type':
-            scale_json['unit'] = json_unit_by_xml_json_type.get(value, value)
+            generation_json['unit'] = json_unit_by_xml_json_type.get(value, value)
         else:
-            scale_json[key] = value
+            generation_json[key] = value
     if comments:
-        scale_json['comment'] = u'\n\n'.join(comments)
-    return scale_xml_json['code'], scale_json
+        generation_json['comment'] = u'\n\n'.join(comments)
+    return generation_xml_json['code'], generation_json
 
 
 def transform_slice2_xml_json_to_json(slice_xml_json):
