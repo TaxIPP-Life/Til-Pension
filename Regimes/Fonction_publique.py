@@ -114,19 +114,15 @@ class FonctionPublique(RegimeBase):
         
     def _calculate_surcote(self, trim_wage_regime, trim_wage_all, date_start_surcote, age):
         ''' Détermination de la surcote à appliquer aux pensions '''
-        yearsim = self.dateleg.year
         trimesters = trim_wage_regime['trimesters']
-        if yearsim < 2005:
-            return age*0
-        else:
-            P = reduce(getattr, self.param_name.split('.'), self.P)
-            P_long = reduce(getattr, self.param_name.split('.'), self.P_longit)
-            taux_surcote = P.surcote.taux
-            plafond = P.surcote.nb_trim_max
-            selected_date = P_long.surcote.dates
-            trim_surcote = nb_trim_surcote(trimesters['regime'], selected_date, date_start_surcote)
-            trim_surcote = minimum(trim_surcote, plafond)
-            return taux_surcote*trim_surcote
+        P = reduce(getattr, self.param_name.split('.'), self.P)
+        P_long = reduce(getattr, self.param_name.split('.'), self.P_longit)
+        taux_surcote = P.surcote.taux
+        plafond = P.surcote.nb_trim_max
+        selected_date = P_long.surcote.dates
+        trim_surcote = nb_trim_surcote(trimesters['regime'], selected_date, date_start_surcote)
+        trim_surcote = minimum(trim_surcote, plafond)
+        return taux_surcote*trim_surcote
         
     def calculate_salref(self, data, wages_regime = None):
         last_fp_idx = data.workstate.idx_last_time_in(self.code_regime)

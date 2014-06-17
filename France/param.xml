@@ -3101,6 +3101,7 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 	 </CODE>
 	<NODE description="Surcote de la fonction publique" code="surcote"> 
 	   	<CODE description="Taux surcote par trimestre supplémentaire" code="taux" format="percent">
+	   		<VALUE valeur="0.0" deb="1945-01-01" fin="2003-12-31"/>
 	   		<VALUE valeur="0.0075" deb="2004-01-01" fin="2008-12-31"/>
 	   		<VALUE valeur="0.01250" deb="2009-01-01" fin="2100-12-31"/>
 	   	</CODE>
