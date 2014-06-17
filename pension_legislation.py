@@ -177,7 +177,8 @@ class PensionLegislation(object):
         # TODO: trouver une méthode plus systématique qui test le 'type' du noeud et construit le long parameter qui va bien
         for param_name in ['common.plaf_ss', 'prive.RG.revalo','common.smic_proj','common.avpf', 
                             'prive.RG.surcote.dispositif1.dates1','prive.RG.surcote.dispositif1.dates2',
-                            'prive.RG.surcote.dispositif2.dates', 'public.fp.surcote.dates']:
+                            'prive.RG.surcote.dispositif2.dates', 'public.fp.surcote.dates',
+                            'prive.RG.salref']:
             param_name = param_name.split('.')
             param = reduce(getattr, param_name, P_longit)
             param = build_long_values(param_long=param, first=first_year_sim, last=last_year_sim)
