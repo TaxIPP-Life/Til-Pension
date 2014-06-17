@@ -127,18 +127,6 @@ class FonctionPublique(RegimeBase):
         last_fp[last_fp_idx[0]] = data.sali.array[last_fp_idx]
         return last_fp
     
-    def majoration_pension(self, data, pension):
-        P = self.P.public.fp
-        nb_enf = data.info_ind['nb_born']
-        
-        def _taux_enf(nb_enf, P):
-            ''' Majoration pour avoir élevé trois enfants '''
-            taux_3enf = P.maj_3enf.taux
-            taux_supp = P.maj_3enf.taux_sup
-            return taux_3enf*(nb_enf == 3) + taux_supp*maximum(nb_enf - 3, 0)
-            
-        maj_enf = _taux_enf(nb_enf, P)*pension
-        return maj_enf
     
     def plafond_pension(self, pension_brute, salref, cp, surcote):
         return pension_brute

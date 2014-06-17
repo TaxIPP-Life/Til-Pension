@@ -151,8 +151,10 @@ class Regime(object):
         salref = self.calculate_salref(data, trim_wage_regime['wages'])
         pension_brute = cp*salref*taux
         pension = self.plafond_pension(pension_brute, salref, cp, surcote)
-        pension = pension + self.majoration_pension(data, pension)
         # self.minimum_pension()
+        # Remarque : la majoration de pension s'applique à la pension rapportée au maximum ou au minimum
+        pension = pension + self.majoration_pension(data, pension)
+       
         if to_check is not None:
             P = reduce(getattr, self.param_name.split('.'), self.P)
             taux_plein = P.plein.taux
@@ -191,6 +193,18 @@ class RegimeBase(Regime):
     def get_trimester(self, workstate, sali):
         raise NotImplementedError
     
+    def majoration_pension(self, data, pension):
+        P = reduce(getattr, self.param_name.split('.'), self.P)
+        nb_enf = data.info_ind['nb_born']
+        
+        def _taux_enf(nb_enf, P):
+            ''' Majoration pour avoir élevé trois enfants '''
+            taux_3enf = P.maj_3enf.taux
+            taux_supp = P.maj_3enf.taux_sup
+            return taux_3enf*(nb_enf == 3) + taux_supp*maximum(nb_enf - 3, 0)
+            
+        maj_enf = _taux_enf(nb_enf, P)*pension
+        return maj_enf
 
 class RegimeComplementaires(Regime):
         

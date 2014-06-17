@@ -2070,6 +2070,14 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 			<VALUE valeur="2" deb="1972-01-01" fin="2003-12-31"/>
 			<VALUE valeur="0" deb="2004-01-01" fin="2100-12-31"/>
 	  	  </CODE>
+	  	</NODE>
+   	   <NODE description="Majoration de la pension à partir de trois enfants" code="maj_3enf" >
+	      <CODE description="Taux de majoration pour trois enfants" code="taux" format="float">
+			<VALUE valeur="0.10" deb="1945-01-01" fin="2100-12-31"/>
+	  	  </CODE>
+	  	  <CODE description="Taux de majoration par enfant au-delà de trois enfants" code="taux_sup" format="float">
+			<VALUE valeur="0.0" deb="1945-01-01" fin="2100-12-31"/>
+	  	  </CODE>
 	  	</NODE>  
     </NODE>
      <NODE description="Retraites complémentaires " code="complementaire">
@@ -3564,7 +3572,7 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 			<VALUE valeur="0" deb="1945-01-01" fin="2100-12-31"/>
 	  	  </CODE>
 	  	</NODE>  
-   	   <NODE description="Majoration de durée de la pension à partir de trois enfants" code="maj_3enf" >
+   	   <NODE description="Majoration de la pension à partir de trois enfants" code="maj_3enf" >
 	      <CODE description="Taux de majoration pour trois enfants" code="taux" format="float">
 			<VALUE valeur="0.10" deb="1945-01-01" fin="2100-12-31"/>
 	  	  </CODE>
