@@ -223,4 +223,3 @@ if __name__ == '__main__':
     legislation = PensionLegislation(param)
     legislation.salref_RG_builder(1000)
 
-    

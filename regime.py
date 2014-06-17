@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
+import logging as log
+
 from datetime import date
 from numpy import maximum, array, nan_to_num, greater, divide, around, zeros, minimum
+from utils_compar import print_info
 from pandas import Series
 from time_array import TimeArray
 from datetil import DateTil
@@ -27,6 +30,7 @@ class Regime(object):
         
         self.P = None
         self.P_longit = None
+        self.logger = None
         
     def set_config(self, **kwargs):
         """
@@ -51,6 +55,12 @@ class Regime(object):
         trim_maj = trim_maj['tot']
         age_start_surcote = self._age_min_retirement(data)
         date_start_surcote = self._date_start_surcote(trim_by_year_tot, trim_maj, agem, age_start_surcote)
+        if self.logger and 'surcote' in self.logger.keys():
+            print_info(list_vectors=[date_start_surcote, age_start_surcote],
+                                    list_timearrays=[data.sali, data.workstate], 
+                                    all_ident=data.info_ind.index,
+                                    loglevel=self.logger['surcote'],
+                                    label='surcote_' + self.name)           
         return self._calculate_surcote(trim_wage_regime, trim_wage_all, date_start_surcote, agem)
     
     def _calculate_surcote(self, trimesters, date_start_surcote, age):
@@ -143,6 +153,7 @@ class Regime(object):
         pension = self.plafond_pension(pension_brute, salref, cp, surcote)
         pension = pension + self.majoration_pension(data, pension)
         # self.minimum_pension()
+        
         if to_check is not None:
             P = reduce(getattr, self.param_name.split('.'), self.P)
             taux_plein = P.plein.taux
@@ -181,6 +192,18 @@ class RegimeBase(Regime):
     def get_trimester(self, workstate, sali):
         raise NotImplementedError
     
+    def majoration_pension(self, data, pension):
+        P = reduce(getattr, self.param_name.split('.'), self.P)
+        nb_enf = data.info_ind['nb_born']
+        
+        def _taux_enf(nb_enf, P):
+            ''' Majoration pour avoir élevé trois enfants '''
+            taux_3enf = P.maj_3enf.taux
+            taux_supp = P.maj_3enf.taux_sup
+            return taux_3enf*(nb_enf == 3) + taux_supp*maximum(nb_enf - 3, 0)
+            
+        maj_enf = _taux_enf(nb_enf, P)*pension
+        return maj_enf
 
 class RegimeComplementaires(Regime):
         
