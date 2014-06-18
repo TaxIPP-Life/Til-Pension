@@ -149,11 +149,12 @@ class Regime(object):
         taux = self.calculate_taux(decote, surcote)
         cp = self.calculate_coeff_proratisation(info_ind, trim_wage_regime, trim_wage_all)
         salref = self.calculate_salref(data, trim_wage_regime['wages'])
+        
         pension_brute = cp*salref*taux
         pension = self.plafond_pension(pension_brute, salref, cp, surcote)
-        pension = pension + self.minimum_pension(trim_wage_regime, pension)
+        pension += self.minimum_pension(trim_wage_regime, pension)
         # Remarque : la majoration de pension s'applique à la pension rapportée au maximum ou au minimum
-        pension = pension + self.majoration_pension(data, pension)
+        pension += self.majoration_pension(data, pension)
         
         if to_check is not None:
             P = reduce(getattr, self.param_name.split('.'), self.P)

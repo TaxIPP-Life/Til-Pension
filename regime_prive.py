@@ -6,7 +6,7 @@ import os
 parentdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.sys.path.insert(0,parentdir) 
 
-from numpy import maximum, minimum, array, divide, multiply
+from numpy import minimum, array, divide, multiply
 
 from regime import RegimeBase
 from trimesters_functions import nb_trim_surcote
@@ -68,7 +68,7 @@ class RegimePrive(RegimeBase):
                 return trim_regime + correction
             elif P.prorat.dispositif == 2:
                 age_taux_plein = P.decote.age_null
-                trim_majo = maximum(divide(agem - age_taux_plein, 3), 0)
+                trim_majo = divide(agem - age_taux_plein, 3)*(agem > age_taux_plein)
                 elig_majo = (trim_regime < P.prorat.n_trim)
                 correction = trim_regime*P.tx_maj*trim_majo*elig_majo
                 return trim_regime + correction
@@ -109,7 +109,7 @@ class RegimePrive(RegimeBase):
         # dispositif de type 0
         n_trim = P.plein.n_trim
         trim_tot = trim_by_year_tot.sum(axis=1)
-        surcote = P.surcote.dispositif0.taux*maximum(trim_tot - n_trim, 0) # = 0 après 1983
+        surcote = P.surcote.dispositif0.taux*(trim_tot - n_trim)*(trim_tot > n_trim)# = 0 après 1983
                  
         # dispositif de type 1
         if P.surcote.dispositif1.taux > 0: 
@@ -145,12 +145,12 @@ class RegimePrive(RegimeBase):
         if P.mico.dispositif == 0:
             # Avant le 1er janvier 1983, comparé à l'AVTS
             min_pension = self.P.common.avts
-            return maximum(0, min_pension - pension)
+            return (min_pension - pension)*(min_pension > pension)
         elif P.mico.dispositif == 1:
             # TODO: Voir comment gérer la limite de cumul relativement complexe (Doc n°5 du COR)
             trim_regime = trimesters['regime'].sum() #+ sum(trim_wages_regime['maj'].values())
             mico = P.mico.entier
-            return  maximum(0, mico - pension)*minimum(1, divide(trim_regime, P.prorat.n_trim))
+            return  (mico - pension)*(mico > pension)*minimum(1, divide(trim_regime, P.prorat.n_trim))
         elif P.mico.dispositif == 2:
             # A partir du 1er janvier 2004 les périodes cotisées interviennent (+ dispositif transitoire de 2004)
             nb_trim = P.prorat.n_trim
@@ -159,7 +159,7 @@ class RegimePrive(RegimeBase):
             mico_entier = P.mico.entier*minimum(divide(trim_regime, nb_trim), 1)
             maj = (P.mico.entier_maj - P.mico.entier)*divide(trim_cot_regime, nb_trim)
             mico = mico_entier + maj*(trim_cot_regime >= P.mico.trim_min)
-            return maximum(mico - pension,0)*(pension>0)
+            return (mico - pension)*(mico > pension)*(pension>0)
 
         
     def plafond_pension(self, pension_brute, salref, cp, surcote):
