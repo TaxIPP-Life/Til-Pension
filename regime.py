@@ -211,34 +211,26 @@ class RegimeComplementaires(Regime):
     def sali_for_regime(self, data):
         raise NotImplementedError
     
-    def nombre_points(self, data, first_year=first_year_sal, last_year=None):
+    def nombre_points(self, data):
         ''' Détermine le nombre de point à liquidation de la pension dans les régimes complémentaires (pour l'instant Ok pour ARRCO/AGIRC)
         Pour calculer ces points, il faut diviser la cotisation annuelle ouvrant des droits par le salaire de référence de l'année concernée 
         et multiplier par le taux d'acquisition des points'''
-        yearsim = data.last_date.year
-        last_year_sali = yearsim - 1
         sali_plaf = self.sali_for_regime(data)
-        if last_year == None:
-            last_year = last_year_sali
-        name = self.name
         P = reduce(getattr, self.param_name.split('.'), self.P)
-        Plong_regime = getattr(self.P_longit.prive.complementaire, name)
+        Plong_regime = getattr(self.P_longit.prive.complementaire,  self.name)
         salref = Plong_regime.sal_ref
         taux_cot = Plong_regime.taux_cot_moy
         assert len(salref) == sali_plaf.shape[1] == len(taux_cot)
-        nb_points = zeros(sali_plaf.shape[0])
-        if last_year_sali < first_year:
-            return nb_points
+        nb_points_by_year = zeros(sali_plaf.shape)
         
         gmp = P.gmp
-        for ix_year in range(min(last_year_sali, last_year) - first_year + 1):
+        for ix_year in range(sali_plaf.shape[1]):
             if salref[ix_year] > 0:
-                #Note: le round prend du temps...peut-être le négliger.
-                points_acquis = (taux_cot[ix_year].calc(sali_plaf[:,ix_year])/salref[ix_year]).round(2) 
-                #print year, taux_cot[year], sali.ix[1926 ,year *100 + 1], salref[year-first_year_sal]
-                #print 'result', Series(points_acquis, index=sali.index).ix[1926]  
-                nb_points += maximum(points_acquis, gmp)*(points_acquis > 0)
-        return nb_points
+                nb_points_by_year[:,ix_year] = (taux_cot[ix_year].calc(sali_plaf[:,ix_year])/salref[ix_year])
+
+        nb_points_by_year = nb_points_by_year.round()
+        nb_points_by_year = maximum(nb_points_by_year, gmp)*(nb_points_by_year > 0)
+        return nb_points_by_year
         
  
     def coefficient_age(self, agem, trim):
@@ -258,7 +250,7 @@ class RegimeComplementaires(Regime):
             coeff_min = coeff_min*(n_trim > trim) + (n_trim <= trim)
         return coeff_min
             
-    def _majoration_enf(self, data, nb_points, coeff_age):
+    def _majoration_enf(self, data, nb_points_by_year, coeff_age):
         ''' Application de la majoration pour enfants à charge. Deux types de majorations peuvent s'appliquer :
         ' pour enfant à charge au moment du départ en retraite
         - pour enfant nés et élevés en cours de carrière (majoration sur la totalité des droits acquis)
@@ -269,17 +261,21 @@ class RegimeComplementaires(Regime):
         
         # Calcul des points pour enfants à charge
         taux_pac = P.maj_enf.pac
-        points_pac = nb_points*taux_pac*nb_pac
+        points_pac = nb_points_by_year.sum(axis=1)*taux_pac*nb_pac
         
         # Calcul des points pour enfants nés ou élevés
         taux_born = P.maj_enf.born
         taux_born11 = P.maj_enf.born11
         
-        nb_points_11 = coeff_age*self.nombre_points(data, last_year=2011)
-        nb_points12_ = coeff_age*self.nombre_points(data, first_year=2012) 
-        points_born_11 = nb_points_11*(nb_born)*taux_born11
-        points_born12_ = nb_points12_*taux_born
-        points_born = (points_born_11 + points_born12_)*(nb_born >= 3)
+        duration = data.last_date.year - 2011 #TODO: improve it with dates
+        if duration >= 0:
+            nb_points_11 = coeff_age*nb_points_by_year[:,:(-duration)]
+            nb_points12_ = coeff_age*nb_points_by_year[:,(-duration):]
+            points_born_11 = nb_points_11*(nb_born)*taux_born11
+            points_born12_ = nb_points12_*taux_born
+            points_born = (points_born_11 + points_born12_)*(nb_born >= 3)
+        else: 
+            points_born = 0
         
         # Comparaison de la situation la plus avantageuse
         val_point = P.val_point
@@ -292,15 +288,14 @@ class RegimeComplementaires(Regime):
         raise NotImplementedError
     
     def calculate_pension(self, data, trim_base, to_check=None):
-        workstate = data.workstate
-        sali = data.sali
         info_ind = data.info_ind
         name = self.name
         P = reduce(getattr, self.param_name.split('.'), self.P)
         val_arrco = P.val_point 
-        nb_points = self.nombre_points(data)
+        nb_points_by_year = self.nombre_points(data)
+        nb_points = nb_points_by_year.sum(axis=1)
         coeff_age = self.coefficient_age(info_ind['agem'], trim_base)
-        maj_enf = self.majoration_pension(data, nb_points, coeff_age)
+        maj_enf = self.majoration_pension(data, nb_points_by_year, coeff_age)
         
         if to_check is not None:
             to_check['nb_points_' + name] = nb_points
