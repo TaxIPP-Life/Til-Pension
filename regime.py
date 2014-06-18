@@ -123,7 +123,7 @@ class Regime(object):
         trim_decote_cot = n_trim - trim_tot
         assert len(trim_decote_age) == len(trim_decote_cot)
         trim_plaf = minimum(minimum(trim_decote_age, trim_decote_cot), plafond)
-        return array(maximum(trim_plaf, 0))
+        return array(trim_plaf*(trim_plaf>0))
     
     def calculate_taux(self, decote, surcote):
         ''' Détérmination du taux de liquidation à appliquer à la pension 
@@ -215,9 +215,6 @@ class RegimeComplementaires(Regime):
         ''' Détermine le nombre de point à liquidation de la pension dans les régimes complémentaires (pour l'instant Ok pour ARRCO/AGIRC)
         Pour calculer ces points, il faut diviser la cotisation annuelle ouvrant des droits par le salaire de référence de l'année concernée 
         et multiplier par le taux d'acquisition des points'''
-        workstate = data.workstate
-        sali = data.sali
-        
         yearsim = data.last_date.year
         last_year_sali = yearsim - 1
         sali_plaf = self.sali_for_regime(data)
@@ -245,20 +242,17 @@ class RegimeComplementaires(Regime):
         P = reduce(getattr, self.param_name.split('.'), self.P)
         coef_mino = P.coef_mino
         age_annulation_decote = self.P.prive.RG.decote.age_null
-        n_trim = self.P.prive.RG.plein.n_trim
-        diff_age = maximum(divide(age_annulation_decote - agem, 12), 0)
+        diff_age = divide(age_annulation_decote - agem, 12)*(age_annulation_decote > agem)
         coeff_min = Series(zeros(len(agem)), index=agem.index)
         for nb_annees, coef_mino in coef_mino._tranches:
             coeff_min += (diff_age == nb_annees)*coef_mino
-        if P.dispositif_coeff == 1:
-            maj_age = maximum(divide(agem - age_annulation_decote, 12), 0)
-            coeff_maj = maj_age*0.05
-            return coeff_min + coeff_maj
-        elif P.dispositif_coeff == 2:
-            return coeff_min
-        elif P.dispositif_coeff == 3:
-            # A partir de cette date, la minoration ne s'applique que si la durée de cotisation au régime général est inférieure à celle requise pour le taux plein
-            return  coeff_min*(n_trim > trim) + (n_trim <= trim)    
+        
+        coeff_min += P.coeff_maj*diff_age    
+        if P.cond_taux_plein == 1:
+            # Dans ce cas, la minoration ne s'applique que si la durée de cotisation au régime général est inférieure à celle requise pour le taux plein
+            n_trim = self.P.prive.RG.plein.n_trim
+            coeff_min = coeff_min*(n_trim > trim) + (n_trim <= trim)
+        return coeff_min
             
     def _majoration_enf(self, data, nb_points, coeff_age):
         ''' Application de la majoration pour enfants à charge. Deux types de majorations peuvent s'appliquer :

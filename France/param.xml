@@ -2091,11 +2091,14 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
     </NODE>
      <NODE description="Retraites complémentaires " code="complementaire">
 	 	<NODE description="Retraites complémentaires des salariés du privés : ARCCO" code="arrco">
-	 		<CODE description="Dispositif de proratisation due à l'âge" code="dispositif_coeff" format="integer">
-				<VALUE valeur="1" deb="1945-01-01" fin="1954-12-31"/>
-			  	<VALUE valeur="2" deb="1955-01-01" fin="1982-12-31"/>
-			  	<VALUE valeur="3" deb="1983-01-01" fin="2100-12-31"/>
+	 		<CODE description="Dispositif de proratisation due à l'âge" code="cond_taux_plein" format="integer">
+				<VALUE valeur="0" deb="1945-01-01" fin="1982-12-31"/>
+			  	<VALUE valeur="1" deb="1983-01-01" fin="2100-12-31"/>
 			</CODE>
+	 		<CODE description="Dispositif de proratisation due à l'âge" code="coeff_maj" format="float">
+				<VALUE valeur="0.05" deb="1945-01-01" fin="1954-12-31"/>
+			  	<VALUE valeur="0.0" deb="1955-01-01" fin="2100-12-31"/>
+			</CODE>			
 	 		<BAREME description="Taux de cotisation minimal pour l'ARRCO" code="taux_cot" format="float" longitudinal="true">
 	 			<TRANCHE code="tranche0">
 		 			<SEUIL description= "Limite tranche 1 (à multiplier par le PSS)">
@@ -2426,11 +2429,14 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 		   </NODE>
  		</NODE>
 	 	<NODE description="Retraites complémentaires des cadres : AGIRC" code="agirc">
-	 		<CODE description="Dispositif de proratisation due à l'âge" code="dispositif_coeff" format="integer">
-				<VALUE valeur="1" deb="1945-01-01" fin="1954-12-31"/>
-			  	<VALUE valeur="2" deb="1955-01-01" fin="1982-12-31"/>
-			  	<VALUE valeur="3" deb="1983-01-01" fin="2100-12-31"/>
+	 		<CODE description="Dispositif de proratisation due à l'âge" code="cond_taux_plein" format="integer">
+				<VALUE valeur="0" deb="1945-01-01" fin="1982-12-31"/>
+			  	<VALUE valeur="1" deb="1983-01-01" fin="2100-12-31"/>
 			</CODE>
+	 		<CODE description="Dispositif de proratisation due à l'âge" code="coeff_maj" format="float">
+				<VALUE valeur="0.05" deb="1945-01-01" fin="1954-12-31"/>
+			  	<VALUE valeur="0.0" deb="1955-01-01" fin="2100-12-31"/>
+			</CODE>			
 	 		<CODE description="Garantie de point minimum" code="gmp" longitudinal="true">
 		 		<VALUE valeur="120" deb="1997-01-01" fin="2100-12-01"/>
 		 		<VALUE valeur="144" deb="1949-01-01" fin="1996-12-01"/>
