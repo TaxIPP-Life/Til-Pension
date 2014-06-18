@@ -3,7 +3,6 @@ import logging as log
 
 from datetime import date
 from numpy import maximum, array, nan_to_num, greater, divide, around, zeros, minimum
-from utils_compar import print_info
 from pandas import Series
 from time_array import TimeArray
 from datetil import DateTil

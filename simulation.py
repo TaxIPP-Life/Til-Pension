@@ -79,6 +79,6 @@ class PensionSimulation(object):
         prof = cProfile.Profile()
         result = prof.runcall(self.evaluate, *(time_step, to_check, logger))
         #TODO: add a suffix, like yearleg : was + str(self.yearsim)
-        prof.dump_stats("profile_pension")
+        prof.dump_stats("profile_pension" + str(self.legislation.date.liam))
         return result
         
