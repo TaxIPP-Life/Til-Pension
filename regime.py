@@ -229,13 +229,17 @@ class RegimeComplementaires(Regime):
         nb_points = zeros(sali_plaf.shape[0])
         if last_year_sali < first_year:
             return nb_points
+        
+        gmp = P.gmp
         for ix_year in range(min(last_year_sali, last_year) - first_year + 1):
-            points_acquis = divide(taux_cot[ix_year].calc(sali_plaf[:,ix_year]), salref[ix_year]).round(2) 
-            gmp = P.gmp
-            #print year, taux_cot[year], sali.ix[1926 ,year *100 + 1], salref[year-first_year_sal]
-            #print 'result', Series(points_acquis, index=sali.index).ix[1926]
-            nb_points += maximum(points_acquis, gmp)*(points_acquis > 0)
+            if salref[ix_year] > 0:
+                #Note: le round prend du temps...peut-être le négliger.
+                points_acquis = (taux_cot[ix_year].calc(sali_plaf[:,ix_year])/salref[ix_year]).round(2) 
+                #print year, taux_cot[year], sali.ix[1926 ,year *100 + 1], salref[year-first_year_sal]
+                #print 'result', Series(points_acquis, index=sali.index).ix[1926]  
+                nb_points += maximum(points_acquis, gmp)*(points_acquis > 0)
         return nb_points
+        
  
     def coefficient_age(self, agem, trim):
         ''' TODO: add surcote  pour avant 1955 '''
