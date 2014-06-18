@@ -50,17 +50,22 @@ def compare_til_pensipp(pensipp_comparison_path, var_to_check_montant, var_to_ch
                 "diff.": til_var[conflict].abs() - pensipp_var[conflict].abs(),
                 "year_liq": til_compare.loc[conflict, 'yearliq']
                 }).to_string()
+        return sum(conflict)
+    
             #relevant_variables = relevant_variables_by_var[var]
     var_conflict = []
     var_not_implemented = {'til':[], 'pensipp':[]}
+    taille_prob = dict()
     for var in var_to_check_montant:
-        _check_var(var, threshold['montant'], var_conflict, var_not_implemented)
+        taille_prob[var] = _check_var(var, threshold['montant'], var_conflict, var_not_implemented)
     for var in var_to_check_taux:
-        _check_var(var, threshold['taux'], var_conflict, var_not_implemented)
+        taille_prob[var] = _check_var(var, threshold['taux'], var_conflict, var_not_implemented)
     no_conflict = [variable for variable in var_to_check_montant + var_to_check_taux
-                        if variable not in var_conflict + var_not_implemented.values()]  
-    print( u"Avec un seuil de {}, le calcul est faux pour les variables suivantes : {} \n Il est mal implémenté dans : \n - Til: {} \n - Pensipp : {}\n Il ne pose aucun problème pour : {}").format(threshold, var_conflict, var_not_implemented['til'], var_not_implemented['pensipp'], no_conflict)   
+                        if variable not in var_conflict + var_not_implemented.values()] 
 
+    print( u"Avec un seuil de {}, le calcul est faux pour les variables suivantes : {} \n Il est mal implémenté dans : \n - Til: {} \n - Pensipp : {}\n Il ne pose aucun problème pour : {}").format(threshold, var_conflict, var_not_implemented['til'], var_not_implemented['pensipp'], no_conflict)   
+    for var, prob in taille_prob.iteritems():
+        print 'pour ' + var + ', on a ' + str(prob) + ' différences'
 
 if __name__ == '__main__':    
 
