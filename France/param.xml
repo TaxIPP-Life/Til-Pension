@@ -2000,6 +2000,15 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 	  	<VALUE valeur= "0.0" deb="1945-01-01" fin="1982-12-01"/>
 	  </CODE>
 	  <NODE description="Minimum contributif : montants rensignés annuellement et en euros" code="mico">
+		<CODE description="Type de dispositif assurant une pension minimale" code="dispositif" format="integer">
+			<VALUE valeur="0" deb="1945-01-01" fin="1982-12-31"/>
+			<VALUE valeur="1" deb="1983-01-01" fin="2003-12-31"/>
+			<VALUE valeur="2" deb="2004-01-01" fin="2100-12-31"/>
+		</CODE>
+		<CODE description="Dispositif assurant une pension minimale" code="trim_min" format="integer">
+			<VALUE valeur="0" deb="2004-01-01" fin="2008-12-31"/>
+			<VALUE valeur="120" deb="2009-01-01" fin="2100-12-31"/>
+		</CODE>
 	  	<CODE description= "Minimum contributif" code="entier" format="float">
 		  <VALUE valeur="7547.96" deb="2013-04-01" fin="2100-12-01"/>
 		  <VALUE valeur="7451.1" deb="2012-04-01" fin="2013-03-31"/>
