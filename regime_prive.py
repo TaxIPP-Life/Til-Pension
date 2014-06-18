@@ -148,18 +148,18 @@ class RegimePrive(RegimeBase):
             return maximum(0, min_pension - pension)
         elif P.mico.dispositif == 1:
             # TODO: Voir comment gérer la limite de cumul relativement complexe (Doc n°5 du COR)
-            trim_regime = trimesters['regime'].sum() + trimesters['maj'].sum()
+            trim_regime = trimesters['regime'].sum() #+ sum(trim_wages_regime['maj'].values())
             mico = P.mico.entier
             return  maximum(0, mico - pension)*minimum(1, divide(trim_regime, P.prorat.n_trim))
         elif P.mico.dispositif == 2:
             # A partir du 1er janvier 2004 les périodes cotisées interviennent (+ dispositif transitoire de 2004)
             nb_trim = P.prorat.n_trim
-            trim_regime = trimesters['regime'].sum() + sum(trim_wages_regime['maj'].values())
+            trim_regime = trimesters['regime'].sum() #+ sum(trim_wages_regime['maj'].values())
             trim_cot_regime = sum(trimesters[key].sum() for key in trimesters.keys() if 'cot' in key)
             mico_entier = P.mico.entier*minimum(divide(trim_regime, nb_trim), 1)
             maj = (P.mico.entier_maj - P.mico.entier)*divide(trim_cot_regime, nb_trim)
             mico = mico_entier + maj*(trim_cot_regime >= P.mico.trim_min)
-            return maximum(0, mico - pension)
+            return maximum(mico - pension,0)*(pension>0)
 
         
     def plafond_pension(self, pension_brute, salref, cp, surcote):

@@ -154,7 +154,6 @@ class Regime(object):
         pension = pension + self.minimum_pension(trim_wage_regime, pension)
         # Remarque : la majoration de pension s'applique à la pension rapportée au maximum ou au minimum
         pension = pension + self.majoration_pension(data, pension)
-        # self.minimum_pension()
         
         if to_check is not None:
             P = reduce(getattr, self.param_name.split('.'), self.P)
