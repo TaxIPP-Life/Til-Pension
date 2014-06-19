@@ -103,14 +103,14 @@ def load_pensipp_result(pensipp_path, to_csv=False):
         result_pensipp = read_table(pensipp_path + 'result_pensipp.csv', sep=',', index_col=0)
     except:
         print(" Les données sont chargées à partir du Rdata et non du csv")
-        output_pensipp = pensipp_path + 'output2.RData'
+        output_pensipp = pensipp_path + 'output3.RData'
         r.r['load'](output_pensipp)
         result_pensipp = com.load_data('output1')
-        result_pensipp.rename(columns= {'dec': 'decote_RG', 'surc': 'surcote_RG', 'taux': 'taux_RG', 'sam':'salref_RG', 'pliq_rg': 'pension_RG',
-                                         'prorat' : 'CP_RG', 'pts_ar' : 'nb_points_arrco', 'pts_ag' : 'nb_points_agirc', 'pliq_ar' :'pension_arrco',
-                                         'pliq_ag' :'pension_agirc', 'DA_rg_maj': 'DA_RG', 'taux_rg': 'taux_RG', 'pliq_fp': 'pension_FP',
-                                         'taux_fp': 'taux_FP', 'DA_fp_maj':'DA_FP', 'DA_in' : 'DA_RSI_brute', 'DA_in_maj' : 'DA_RSI',
-                                         'DAcible_rg': 'n_trim_RG', 'DAcible_fp':'n_trim_FP', 'CPcible_rg':'N_CP_RG'},
+        result_pensipp.rename(columns= {'dec_rg': 'decote_RG', 'surc_rg': 'surcote_RG', 'taux': 'taux_RG', 'sam_rg':'salref_RG', 'pliq_rg': 'pension_RG',
+                                         'prorat_rg' : 'CP_RG', 'pts_ar' : 'nb_points_arrco', 'pts_ag' : 'nb_points_agirc', 'pliq_ar' :'pension_arrco',
+                                         'pliq_ag' :'pension_agirc', 'DA_rg_maj': 'DA_RG', 'taux_rg': 'taux_RG', 'pliq_fp': 'pension_FP', 'prorat_fp': 'CP_FP',
+                                         'taux_fp': 'taux_FP', 'surc_fp': 'surcote_FP', 'dec_fp':'decote_FP', 'DA_fp_maj':'DA_FP', 'DA_in' : 'DA_RSI_brute', 'DA_in_maj' : 'DA_RSI',
+                                         'DAcible_rg': 'n_trim_RG', 'DAcible_fp':'n_trim_FP', 'CPcible_rg':'N_CP_RG', 'sam_fp':'salref_FP'},
                                         inplace = True)   
     if to_csv:
         result_pensipp.to_csv(pensipp_path + 'result_pensipp.csv', sep =',')
