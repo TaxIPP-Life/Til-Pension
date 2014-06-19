@@ -20,6 +20,9 @@ class PensionSimulation(object):
         self.legislation.param_long = legislation.long_param_builder(duration_sim)
         self.legislation.param = legislation.param.param
         
+        self.trimesters_wages = dict()
+        self.pensions = dict()
+        
     def evaluate(self, time_step='year', to_check=False, output='pension', logger=False):
         if self.legislation.param is None:
             raise Exception("you should give parameter to PensionData before to evaluate")
@@ -36,40 +39,41 @@ class PensionSimulation(object):
         complementaire_regimes = regimes['complementaires']
         base_to_complementaire = regimes['base_to_complementaire']
         ### get trimesters (only TimeArray with trim by year), wages (only TimeArray with wage by year) and trim_maj (only vector of majoration): 
-        trimesters_wages = dict()
-        to_other = dict()
-
+        
+        
+        trimesters_wages = self.trimesters_wages
         # 1 - Détermination des trimestres et des salaires cotisés, assimilés, avpf et majorés par régime
-        for reg in base_regimes:
-            reg.set_config(**config)
-            trimesters_wages_regime, to_other_regime = reg.get_trimesters_wages(data)
-            trimesters_wages[reg.name] = trimesters_wages_regime
-            to_other.update(to_other_regime)
-            
-        trimesters_wages = sum_by_regime(trimesters_wages, to_other)
-        trimesters_wages = update_all_regime(trimesters_wages, dict_to_check)
+        if len(trimesters_wages) == 0:
+            to_other = dict()
+            for reg in base_regimes:
+                reg.set_config(**config)
+                trimesters_wages_regime, to_other_regime = reg.get_trimesters_wages(data)
+                trimesters_wages[reg.name] = trimesters_wages_regime
+                to_other.update(to_other_regime)
+                
+            trimesters_wages = sum_by_regime(trimesters_wages, to_other)
+            trimesters_wages = update_all_regime(trimesters_wages, dict_to_check)
+            self.trimesters_wages = trimesters_wages
         if output == 'trimesters_wages':
             return trimesters_wages
         
         # 2 - Calcul des pensions brutes par régime (de base et complémentaire)
-        pension_brut = None
-        pensions_brut = dict()
-        for reg in base_regimes:
-            reg.set_config(**config)
-            pension_reg = reg.calculate_pension(data, trimesters_wages[reg.name], trimesters_wages['all_regime'], 
-                                                dict_to_check)
-            if pension_brut is None:
-                pension_brut = pension_reg
-            else: 
-                pension_brut += pension_reg
-            pensions_brut[reg.name] = pension_reg
-    
-        for reg in complementaire_regimes:
-            reg.set_config(**config)
-            regime_base = select_regime_base(trimesters_wages, reg.name, base_to_complementaire)
-            pension_reg = reg.calculate_pension(data, regime_base['trimesters'], dict_to_check)
-            pension_brut += pension_reg
-            pensions_brut[reg.name] = pension_reg
+        pensions = self.pensions
+        if len(pensions) == 0:
+            for reg in base_regimes:
+                reg.set_config(**config)
+                pension_reg = reg.calculate_pension(data, trimesters_wages[reg.name], trimesters_wages['all_regime'], 
+                                                    dict_to_check)
+                pensions[reg.name] = pension_reg
+        
+            for reg in complementaire_regimes:
+                reg.set_config(**config)
+                regime_base = select_regime_base(trimesters_wages, reg.name, base_to_complementaire)
+                pension_reg = reg.calculate_pension(data, regime_base['trimesters'], dict_to_check)
+                pensions[reg.name] = pension_reg
+                
+            pensions['tot'] = sum(pensions.values())
+            self.pensions = pensions
             
         # 3 - Application des minimums de pensions et majorations postérieures
         '''
@@ -84,18 +88,17 @@ class PensionSimulation(object):
         '''
             
         if to_check == True:
-
-            for key, value in pensions_brut.iteritems():
+            for key, value in self.pensions.iteritems():
                 dict_to_check['pension_' + key] = value
             final_check = dict((key, array(value)) for key, value in dict_to_check.iteritems())
             return DataFrame(final_check, index = self.data.info_ind.index)
         else:
-            return pensions_brut # TODO: define the output : for the moment a dic with pensions by regime
+            return self.pensions['tot'] # TODO: define the output : for the moment a dic with pensions by regime
         
     
-    def profile_evaluate(self, time_step='year', to_check=False, logger=False):
+    def profile_evaluate(self, time_step='year', to_check=False, output='pension', logger=False):
         prof = cProfile.Profile()
-        result = prof.runcall(self.evaluate, *(time_step, to_check, logger))
+        result = prof.runcall(self.evaluate, *(time_step, to_check, output, logger))
         #TODO: add a suffix, like yearleg : was + str(self.yearsim)
         prof.dump_stats("profile_pension" + str(self.legislation.date.liam))
         return result
