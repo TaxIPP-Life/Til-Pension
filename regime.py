@@ -6,6 +6,7 @@ from numpy import maximum, array, nan_to_num, greater, divide, around, zeros, mi
 from pandas import Series
 from time_array import TimeArray
 from datetil import DateTil
+from sandbox.utils_compar import print_info
 
 first_year_sal = 1949
 compare_destinie = True 
@@ -151,9 +152,8 @@ class Regime(object):
         
         pension_brute = cp*salref*taux
         pension = self.plafond_pension(pension_brute, salref, cp, surcote)
-        pension += self.minimum_pension(trim_wage_regime, pension)
         # Remarque : la majoration de pension s'applique à la pension rapportée au maximum ou au minimum
-        pension += self.majoration_pension(data, pension)
+        pension += self.majoration_pension(data, pension) # TODO: delete because in bonif_pension
         
         if to_check is not None:
             P = reduce(getattr, self.param_name.split('.'), self.P)
@@ -162,7 +162,7 @@ class Regime(object):
             trim_regime = trimesters['regime'].sum()
             to_check['decote_' + name] = taux_plein*decote*(trim_regime > 0)
             to_check['surcote_' + name] = taux_plein*surcote*(trim_regime > 0)
-            to_check['CP_' + name] = cp
+            to_check['CP_' + name] = cp*(trim_regime > 0)
             to_check['taux_' + name] = taux*(trim_regime>0)
             to_check['salref_' + name] = salref
             P = reduce(getattr, self.param_name.split('.'), self.P)
@@ -171,6 +171,11 @@ class Regime(object):
                 to_check['N_CP_' + name] = P.prorat.n_trim // 4
         return pension.fillna(0)
 
+    def bonif_pension(self, data, trim_wage, trim_wage_all, pension_reg, pension_all):
+        pension = pension_reg + self.minimum_pension(trim_wage, trim_wage_all, pension_reg, pension_all)
+        # Remarque : la majoration de pension s'applique à la pension rapportée au maximum ou au minimum
+        pension += self.majoration_pension(data, pension)
+        return pension
 
 class RegimeBase(Regime):
 
@@ -196,12 +201,11 @@ class RegimeBase(Regime):
     def majoration_pension(self, data, pension):
         P = reduce(getattr, self.param_name.split('.'), self.P)
         nb_enf = data.info_ind['nb_born']
-        
         def _taux_enf(nb_enf, P):
             ''' Majoration pour avoir élevé trois enfants '''
             taux_3enf = P.maj_3enf.taux
             taux_supp = P.maj_3enf.taux_sup
-            return taux_3enf*(nb_enf == 3) + taux_supp*maximum(nb_enf - 3, 0)
+            return taux_3enf*(nb_enf >= 3) + (taux_supp*maximum(nb_enf - 3, 0))
             
         maj_enf = _taux_enf(nb_enf, P)*pension
         return maj_enf
