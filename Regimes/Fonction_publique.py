@@ -9,7 +9,7 @@ from numpy import maximum, minimum, divide, zeros
 from regime import RegimeBase
 from trimesters_functions import nb_trim_surcote
 from trimesters_functions import trim_cot_by_year_FP, nb_trim_bonif_5eme, trim_mda
-
+from regime import compare_destinie
 code_chomage = 5
 
 class FonctionPublique(RegimeBase):
@@ -85,7 +85,7 @@ class FonctionPublique(RegimeBase):
         trimesters = trim_wage_regime['trimesters']
         trim_maj = trim_wage_regime['maj']
         N_CP = P.plein.n_trim
-        trim_regime = trimesters['regime'].sum(1)
+        trim_regime = trimesters['regime'].sum()
         trim_bonif_5eme = trim_maj['5eme']
         CP_5eme = minimum(divide(trim_regime + trim_bonif_5eme, N_CP), 1)
         
@@ -93,7 +93,8 @@ class FonctionPublique(RegimeBase):
         taux_bonif = P.taux_bonif
         trim_bonif_CPCM = trim_maj['DA'] # CPCM
         CP_CPCM = minimum(divide(maximum(trim_regime, N_CP) + trim_bonif_CPCM, N_CP), divide(taux_bonif, taux))
-        
+        if compare_destinie == True:
+            CP_CPCM = minimum(divide(trim_regime, N_CP),1)
         return maximum(CP_5eme, CP_CPCM)
 
     def decote(self, data, trim_wage_all):
@@ -125,7 +126,8 @@ class FonctionPublique(RegimeBase):
         last_fp_idx = data.workstate.idx_last_time_in(self.code_regime)
         last_fp = zeros(data.sali.array.shape[0])
         last_fp[last_fp_idx[0]] = data.sali.array[last_fp_idx]
-        return last_fp
+        taux_prime = data.info_ind['tauxprime']
+        return divide(last_fp, taux_prime + 1)
 
     def majoration_pension(self, data, pension):
         P = self.P.public.fp
