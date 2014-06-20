@@ -175,7 +175,12 @@ class TimeArray(object):
             return TimeArray(array, self.dates)
         
     def idx_last_time_in(self, in_what):
-        ''' Return les coordonnées de la dernière fois que l'individu a été dans l'état in_what '''       
+        ''' Retourne les coordonnées de la dernière fois que l'individu a été dans l'état in_what :
+        Il s'agit en fait de deux listes de même taille :
+        - la première renvoie les nméros des lignes (qui s'apparentent aux ident individuels) des personnes ayant au
+        moins eu un état in_what au cours de leur vie
+        - la seconde renvoit les numéros de colonnes (qui s'apparentent aux années) permetant d'identifier la dernière
+        année où l'individu est dans l'état in_what'''       
         selection = self.isin(in_what).array
         
         nrows = selection.shape[0]
@@ -199,8 +204,8 @@ class TimeArray(object):
 #             cond = subset[:,date] != 0
 #             output[not_yet_selected[cond]] = date     
 
-        selected_output = output[output != 0]
-        selected_rows = array(range(nrows))[output != 0]
+        selected_output = output[output != 0].astype(int)
+        selected_rows = array(range(nrows))[output != 0].astype(int)
         return selected_rows.tolist(), selected_output.tolist()
     
     def last_time_in(self, in_what):
