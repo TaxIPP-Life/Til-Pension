@@ -85,7 +85,7 @@ class FonctionPublique(RegimeBase):
         trimesters = trim_wage_regime['trimesters']
         trim_maj = trim_wage_regime['maj']
         N_CP = P.plein.n_trim
-        trim_regime = trimesters['regime'].sum()
+        trim_regime = trimesters['regime'].sum() 
         trim_bonif_5eme = trim_maj['5eme']
         CP_5eme = minimum(divide(trim_regime + trim_bonif_5eme, N_CP), 1)
         
@@ -94,7 +94,7 @@ class FonctionPublique(RegimeBase):
         trim_bonif_CPCM = trim_maj['DA'] # CPCM
         CP_CPCM = minimum(divide(maximum(trim_regime, N_CP) + trim_bonif_CPCM, N_CP), divide(taux_bonif, taux))
         if compare_destinie == True:
-            CP_CPCM = minimum(divide(trim_regime, N_CP),1)
+            return minimum(divide(trim_regime + trim_bonif_CPCM, N_CP),1)
         return maximum(CP_5eme, CP_CPCM)
 
     def decote(self, data, trim_wage_all):
@@ -129,18 +129,6 @@ class FonctionPublique(RegimeBase):
         taux_prime = data.info_ind['tauxprime']
         return divide(last_fp, taux_prime + 1)
 
-    def majoration_pension(self, data, pension):
-        P = self.P.public.fp
-        nb_enf = data.info_ind['nb_born']
-        
-        def _taux_enf(nb_enf, P):
-            ''' Majoration pour avoir élevé trois enfants '''
-            taux_3enf = P.maj_3enf.taux
-            taux_supp = P.maj_3enf.taux_sup
-            return taux_3enf*(nb_enf == 3) + taux_supp*maximum(nb_enf - 3, 0)
-            
-        maj_enf = _taux_enf(nb_enf, P)*pension
-        return maj_enf
     
     def plafond_pension(self, pension_brute, salref, cp, surcote):
         return pension_brute

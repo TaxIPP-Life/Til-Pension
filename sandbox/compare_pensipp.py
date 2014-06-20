@@ -71,10 +71,10 @@ if __name__ == '__main__':
     var_to_check_montant = [ u'pension_RG', u'salref_RG', u'DA_RG', u'DA_RSI', 
                             u'nb_points_arrco', u'nb_points_agirc', u'pension_arrco', u'pension_agirc',
                             u'DA_FP', u'pension_FP',
-                            u'n_trim_RG', 'N_CP_RG', 'n_trim_FP'] 
+                            u'n_trim_RG', 'N_CP_RG', 'n_trim_FP', 'salref_FP'] 
     var_to_check_taux = [u'taux_RG', u'decote_RG', u'CP_RG', u'surcote_RG',
                          u'taux_FP', u'decote_FP', u'CP_FP', u'surcote_FP']
-    threshold = {'montant' : 0.2, 'taux' : 0.005}
+    threshold = {'montant' : 1, 'taux' : 0.005}
     compare_til_pensipp(pensipp_comparison_path, var_to_check_montant, var_to_check_taux, threshold)
 
 #    or to have a profiler : 
