@@ -4,7 +4,7 @@ import datetime
 from pandas import read_table
 
 from CONFIG_compare import pensipp_comparison_path
-from utils_compar import calculate_age, count_enf_born, count_enf_pac
+from utils_compar import calculate_age, count_enf_born, count_enf_pac, count_enf_by_year
 from pension_data import PensionData
 
 
@@ -86,14 +86,20 @@ def load_pensipp_data(pensipp_path, yearsim, first_year_sal, selection_id=False)
     ix_selected = [int(ident) - 1 for ident in id_selected]
     sali = salaire.iloc[ix_selected, :]
     workstate = statut.iloc[ix_selected, :]
-    info_child = _child_by_age(info_child, yearsim, id_selected)
-    nb_pac = count_enf_pac(info_child, info.index)
-    nb_enf = count_enf_born(info_child, info.index)
+    info_child_ = _child_by_age(info_child, yearsim, id_selected)
+    nb_pac = count_enf_pac(info_child_, info.index)
+    nb_enf = count_enf_born(info_child_, info.index)
     info_ind = info.iloc[ix_selected,:]
     info_ind.loc[:,'nb_pac'] = nb_pac
     info_ind.loc[:,'nb_born'] = nb_enf
     data = PensionData.from_arrays(workstate, sali, info_ind)
     data_bounded = data.selected_dates(first=first_year_sal, last=yearsim)
+    # TODO: commun declaration for codes and names regimes
+    dict_regime = {'FP': [5,6], 'RG': [3,4], 'RSI':[7]}
+    array_enf = count_enf_by_year(data_bounded, info_child)
+    for name_reg, code_reg in dict_regime.iteritems():
+        nb_enf_regime = (array_enf*data_bounded.workstate.isin(code_reg).array).sum(1)
+        data_bounded.info_ind['nb_enf_' + name_reg] = nb_enf_regime
     return data_bounded
 
 def load_pensipp_result(pensipp_path, to_csv=False):

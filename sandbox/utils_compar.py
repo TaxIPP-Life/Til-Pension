@@ -6,7 +6,7 @@ Created on 1 juin 2014
 '''
 
 from pandas import Series, DataFrame
-from numpy import zeros, array
+from numpy import zeros, array, ones, concatenate
 import logging as log
 
 def calculate_age(birth_date, date):
@@ -39,6 +39,33 @@ def count_enf_born(info_child, index):
     nb_born= Series(zeros(len(index)), index=index)
     nb_born += info['nb_born']
     return nb_born.fillna(0)
+
+def count_enf_by_year(data, info_enf):
+    ''' Update le info_ind contenue dans Data avec le nombre d'enfant par régime '''
+    parents_id = data.info_ind.index
+    info = info_enf.loc[info_enf['id_parent'].isin(parents_id),:]
+    info['naiss_liam'] = [ datenaiss.year*100 + 1 for datenaiss in info['naiss']]
+    info.sort('id_parent')
+#     info['idx'] = info.groupby('id_parent').cumcount()
+#     info =  info.pivot(index='id_parent',columns='idx')[['naiss_liam']].fillna(-1)
+#     nb_enf_max = info.shape[1]
+#     info.columns = ['yearnaiss' + str(i) for i in range(nb_enf_max)]
+#     
+#     nb_enf =  info[info != -1 ].count(1)
+#     idx_rows = [val*ones(nb) for val, nb in zip(info['id_parent'],nb_enf)]
+#     id_row = concatenate(idx_rows)
+#     idx_col = []
+    list_ident = data.info_ind.index
+    id_par = info['id_parent']
+    id_ix = [list(list_ident).index(ident) for ident in id_par]
+    
+    list_dates = data.workstate.dates
+    datenaiss = info['naiss_liam']
+    naiss_ix = [list(list_dates).index(date) for date in datenaiss]
+    enf_by_year = zeros(data.workstate.array.shape)
+    enf_by_year[(id_ix, naiss_ix)] = 1
+    #TODO: check pb with twins
+    return enf_by_year
 
 def print_info_timearrays(list_timearrays, all_ident, label_func, loglevel="info", list_ident=None):
     ''' Cette fonction permet d'imprimer (sous format DataFrame) le déroulé individuel
@@ -104,3 +131,12 @@ def print_info_vectors(dic_vectors, all_ident, label_func, loglevel="info", list
 def print_info(dic_vectors, list_timearrays, all_ident, label, loglevel="info",list_ident=None):
     print_info_vectors(dic_vectors, all_ident, label)
     print_info_timearrays(list_timearrays, all_ident, label)
+    
+if __name__ == '__main__':  
+    a = [1,2,1,3]
+    b = [100,1,100,1]
+    test = list()
+    from numpy import ones, concatenate
+    test +=[val*ones(nb) for val, nb in zip(b,a)]
+    concatenate(test)
+    print test, concatenate(test)
