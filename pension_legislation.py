@@ -183,7 +183,7 @@ class PensionLegislation(object):
         for param_name in ['common.plaf_ss', 'prive.RG.revalo','common.smic_proj','common.avpf', 
                             'prive.RG.surcote.dispositif1.dates1','prive.RG.surcote.dispositif1.dates2',
                             'prive.RG.surcote.dispositif2.dates', 'public.fp.surcote.dates',
-                            'prive.RG.salref']:
+                            'prive.RG.salref', 'public.fp.val_point']:
             param_name = param_name.split('.')
             param = reduce(getattr, param_name, P_longit)
             param = build_long_values(param_long=param, first=first_year_sim, last=last_year_sim)

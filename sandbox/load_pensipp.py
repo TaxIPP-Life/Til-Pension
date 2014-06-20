@@ -103,7 +103,7 @@ def load_pensipp_result(pensipp_path, to_csv=False):
         result_pensipp = read_table(pensipp_path + 'result_pensipp.csv', sep=',', index_col=0)
     except:
         print(" Les données sont chargées à partir du Rdata et non du csv")
-        output_pensipp = pensipp_path + 'output3.RData'
+        output_pensipp = pensipp_path + 'output4.RData'
         r.r['load'](output_pensipp)
         result_pensipp = com.load_data('output1')
         result_pensipp.rename(columns= {'dec_rg': 'decote_RG', 'surc_rg': 'surcote_RG', 'taux': 'taux_RG', 'sam_rg':'salref_RG', 'pliq_rg': 'pension_RG',
@@ -112,6 +112,4 @@ def load_pensipp_result(pensipp_path, to_csv=False):
                                          'taux_fp': 'taux_FP', 'surc_fp': 'surcote_FP', 'dec_fp':'decote_FP', 'DA_fp_maj':'DA_FP', 'DA_in' : 'DA_RSI_brute', 'DA_in_maj' : 'DA_RSI',
                                          'DAcible_rg': 'n_trim_RG', 'DAcible_fp':'n_trim_FP', 'CPcible_rg':'N_CP_RG', 'sam_fp':'salref_FP'},
                                         inplace = True)   
-    if to_csv:
-        result_pensipp.to_csv(pensipp_path + 'result_pensipp.csv', sep =',')
     return result_pensipp

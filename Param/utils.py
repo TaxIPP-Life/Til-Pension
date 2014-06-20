@@ -165,6 +165,9 @@ if __name__ == '__main__':
     smpt = np.array(data['SMPT '])
     #from_excel_to_xml(data = smpt, description = "SMPT - Hypothèse d'évolution selon le scénario C du COR + inflation", code = "smpt", format = "float", data_date = dates, ascendant_date = True, format_date = 'year')
 
+    point_fp = np.array(data['Valeur point FP'])
+    from_excel_to_xml(data=point_fp, description="Valeur du point Fonction Publique", code="point", format="float", data_date = dates, ascendant_date=True, format_date='year')
+    print point_fp
         # 3 -- Importation du Excel Bareme_Emploi
     xlsxfile = pd.ExcelFile('Bareme_Emploi.xlsx')
     # Paramètres généraux

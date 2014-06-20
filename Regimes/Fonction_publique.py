@@ -4,7 +4,7 @@ import os
 parentdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.sys.path.insert(0,parentdir) 
 
-from numpy import maximum, minimum, divide, zeros
+from numpy import array, maximum, minimum, divide, zeros
 
 from regime import RegimeBase
 from trimesters_functions import nb_trim_surcote
@@ -127,7 +127,14 @@ class FonctionPublique(RegimeBase):
         last_fp = zeros(data.sali.array.shape[0])
         last_fp[last_fp_idx[0]] = data.sali.array[last_fp_idx]
         taux_prime = data.info_ind['tauxprime']
-        return divide(last_fp, taux_prime + 1)
+        P_long = reduce(getattr, self.param_name.split('.'), self.P_longit)
+        P = reduce(getattr, self.param_name.split('.'), self.P)
+        val_point = P_long.val_point 
+        val_point_last_fp = zeros(data.sali.array.shape[0])
+        val_point_last_fp[last_fp_idx[0]] = array([val_point[date_last] for date_last in last_fp_idx[1]])
+        val_point_t = P.val_point
+        coeff_revalo = val_point_t/val_point_last_fp
+        return last_fp*coeff_revalo/(taux_prime + 1)
 
     
     def plafond_pension(self, pension_brute, salref, cp, surcote):
