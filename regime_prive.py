@@ -10,7 +10,7 @@ from numpy import minimum, maximum, array, divide, multiply
 
 from regime import RegimeBase
 from trimesters_functions import nb_trim_surcote
-from sandbox.utils_compar import print_info
+from sandbox.compare.utils_compar import print_info
 
 def date_(year, month, day):
     return datetime.date(year, month, day)

@@ -6,7 +6,7 @@ from numpy import maximum, array, nan_to_num, greater, divide, around, zeros, mi
 from pandas import Series
 from time_array import TimeArray
 from datetil import DateTil
-from sandbox.utils_compar import print_info
+from sandbox.compare.utils_compar import print_info
 
 first_year_sal = 1949
 compare_destinie = True 
