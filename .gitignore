@@ -215,3 +215,4 @@ pip-log.txt
 
 #Mr Developer
 .mr.developer.cfg
+sandbox/scenarios/CONFIG_scenarios.py
