@@ -70,7 +70,7 @@ class PensionData(object):
             return PensionData(wk, sal, self.info_ind)
 
     @classmethod
-    def from_arrays(cls, workstate, sali, info_ind):
+    def from_arrays(cls, workstate, sali, info_ind, dates=None):
         if isinstance(sali, DataFrame):
             assert isinstance(workstate, DataFrame)
             try:
