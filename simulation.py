@@ -55,7 +55,7 @@ class PensionSimulation(object):
             trimesters_wages = update_all_regime(trimesters_wages, dict_to_check)
             self.trimesters_wages = trimesters_wages
         if output == 'trimesters_wages':
-            return trimesters_wages
+            return self.trimesters_wages
         
         # 2 - Calcul des pensions brutes par régime (de base et complémentaire)
         pensions = self.pensions
@@ -88,10 +88,11 @@ class PensionSimulation(object):
         '''
             
         if to_check == True:
+            output = DataFrame(index = self.data.info_ind.index)
             for key, value in self.pensions.iteritems():
                 dict_to_check['pension_' + key] = value
-            final_check = dict((key, array(value)) for key, value in dict_to_check.iteritems())
-            return DataFrame(final_check, index = self.data.info_ind.index)
+                output['pension_' + key] = value
+            return output
         else:
             return self.pensions['tot'] # TODO: define the output : for the moment a dic with pensions by regime
         
