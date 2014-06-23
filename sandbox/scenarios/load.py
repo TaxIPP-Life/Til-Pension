@@ -15,7 +15,10 @@ dates = [100*x + 1 for x in range(1969,2010)]
 
 sali = zeros((nb_scenarios,len(dates)))
 workstate = zeros((nb_scenarios,len(dates)))
-info_ind = DataFrame(index=range(nb_scenarios), columns=['agem','naiss','sexe','nb_enf','nb_pac','nb_enf_FP','tauxprime'])
+info_ind = DataFrame(index=range(nb_scenarios), 
+                     columns=['agem','naiss','sexe','nb_enf',
+                                'nb_pac','nb_enf_FP','nb_enf_RG','nb_enf_RSI',
+                                'tauxprime'])
 
 def load_case(i):
     file = data_scenarios_path + 'data' +str(i) + '.csv'
@@ -42,7 +45,9 @@ for i in range(nb_scenarios):
     work_i, sali_i, sexe, nb_enf = load_case(i+1) # Attention déclage dans la numérotaiton qui ne commence pas à zeros
     sali[i,:] = sali_i
     workstate[i,:] = work_i
-    info_ind.loc[i,['sexe','nb_enf','nb_pac','nb_enf_FP']] = [sexe, nb_enf, nb_enf, nb_enf]
+    info_ind.loc[i,['sexe','nb_enf','nb_pac',
+                    'nb_enf_RG','nb_enf_RSI','nb_enf_FP']] = [sexe, nb_enf, nb_enf,
+                                                                           nb_enf, nb_enf, nb_enf]
 
 #TODO: know why nbenf is often NaN and not 0.
 info_ind.fillna(0, inplace=True)
@@ -55,8 +60,8 @@ from simulation import PensionSimulation
 param = PensionParam(201001, data)
 legislation = PensionLegislation(param)
 simulation = PensionSimulation(data, legislation)
-trim = simulation.evaluate(output='trimesters_wages')
-result_til_year = simulation.evaluate(to_check=True)
+trim = simulation.profile_evaluate(output='trimesters_wages')
+result_til_year = simulation.profile_evaluate(to_check=True)
 
 pdb.set_trace()
 trim['FP']['trimesters']
