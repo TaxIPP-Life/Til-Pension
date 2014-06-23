@@ -2071,7 +2071,6 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 	  </CODE>
 	  <NODE description="Majoration de durée d'assurance pour enfant" code="mda" >
 	      <CODE description="Nombre de trimestres attribués par enfant" code="trim_per_child" format="integer">
-			<VALUE valeur="0" deb="1945-01-01" fin="1971-12-31"/>
 			<VALUE valeur="4" deb="1941-01-01" fin="1973-12-31"/>
 			<VALUE valeur="8" deb="1974-01-01" fin="2100-12-31"/>
 	  	  </CODE>
