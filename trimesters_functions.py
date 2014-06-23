@@ -97,10 +97,13 @@ def imput_sali_avpf(data, code, P_longit, compare_destinie):
     return sali_avpf
 
 
-def trim_mda(info_ind, P): 
-    ''' Majoration pour enfant à charge : nombre de trimestres acquis'''
+def trim_mda(info_ind, name_regime, P): 
+    ''' Majoration pour enfant : nombre de trimestres acquis'''
     # Rq : cette majoration n'est applicable que pour les femmes dans le RG
-    child_mother = info_ind.loc[info_ind['sexe'] == 1, 'nb_born']
+    
+    child_mother = info_ind.loc[info_ind['sexe'] == 1, 'nb_enf']
+    if name_regime == 'FP':
+        child_mother = info_ind.loc[info_ind['sexe'] == 1, 'nb_enf_' + name_regime]
     mda = Series(0, index=info_ind.index)
     # TODO: distinguer selon l'âge des enfants après 2003 
     # ligne suivante seulement if child_mother['age_enf'].min() > 16 :

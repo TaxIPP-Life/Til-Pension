@@ -46,7 +46,7 @@ class RegimeGeneral(RegimePrive):
         # Allocation vieillesse des parents au foyer : nombre de trimestres attribués 
         trimesters['avpf'], wages['avpf'] = validation_trimestre(data_avpf, code_avpf, salref, name='avpf')
         P_mda = self.P.prive.RG.mda
-        trim_maj['DA'] = trim_mda(info_ind, P_mda)*(trimesters['cot'].sum(1)+ trimesters['ass'].sum(1)>0)
+        trim_maj['DA'] = trim_mda(info_ind, self.name, P_mda)*(trimesters['cot'].sum(1)+ trimesters['ass'].sum(1)>0)
         output = {'trimesters': trimesters, 'wages': wages, 'maj': trim_maj}
         #print_multi_info_numpy([data.workstate, data.sali, trimesters['cot'], wages['cot'], trimesters['avpf'], wages['avpf'], trimesters['ass']], 1882, data.info_ind.index)
         return output, to_other
@@ -74,6 +74,6 @@ class RegimeSocialIndependants(RegimePrive):
         #trimesters['ass'] = nb_trim_ass 
 
         P_mda = self.P.prive.RG.mda
-        trim_maj['DA'] = trim_mda(data.info_ind, P_mda)*(trimesters['cot'].sum(1)>0)
+        trim_maj['DA'] = trim_mda(data.info_ind, self.name, P_mda)*(trimesters['cot'].sum(1)>0)
         output = {'trimesters': trimesters, 'wages': wages, 'maj': trim_maj}
         return output, to_other

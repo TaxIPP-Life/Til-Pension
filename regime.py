@@ -200,7 +200,7 @@ class RegimeBase(Regime):
     
     def majoration_pension(self, data, pension):
         P = reduce(getattr, self.param_name.split('.'), self.P)
-        nb_enf = data.info_ind['nb_born']
+        nb_enf = data.info_ind['nb_enf']
         def _taux_enf(nb_enf, P):
             ''' Majoration pour avoir élevé trois enfants '''
             taux_3enf = P.maj_3enf.taux
@@ -261,7 +261,7 @@ class RegimeComplementaires(Regime):
         C'est la plus avantageuse qui s'applique.'''
         P = reduce(getattr, self.param_name.split('.'), self.P)
         nb_pac = data.info_ind['nb_pac']
-        nb_born = data.info_ind['nb_born']
+        nb_born = data.info_ind['nb_enf']
         
         # Calcul des points pour enfants à charge
         taux_pac = P.maj_enf.pac
