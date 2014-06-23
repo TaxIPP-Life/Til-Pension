@@ -84,12 +84,12 @@ def print_info_timearrays(list_timearrays, all_ident, label_func, loglevel="info
     if not list_ident:
         list_ident = all_ident
 
-    def _print_info_perso(list_timearray, ident, label_func):
+    for ident in list_ident:
         getattr(log,loglevel)( "Les informations longitudinales de l'individu {} dans le calcul de {} sont : ".format(ident, label_func))
-        to_print = zeros((len(list_timearray), max_nb_dates))
+        to_print = zeros((len(list_timearrays), max_nb_dates))
         names = []
         i = 0
-        for timearray in list_timearray:
+        for timearray in list_timearrays:
             array = timearray.array
             nb_dates = array.shape[1]
             id_ix = list(list_ident).index(ident)
@@ -101,14 +101,13 @@ def print_info_timearrays(list_timearrays, all_ident, label_func, loglevel="info
             to_print[i,:] = col_to_print
             names += [timearray.name] 
             i += 1
+        import pdb
+        pdb.set_trace()
         frame_to_print = DataFrame(to_print, columns=dates_all)
         frame_to_print['names'] = names
         frame_to_print.index = frame_to_print['names']
-        getattr(log,loglevel)(frame_to_print.to_string())
-    
-    for ident in list_ident:
-        _print_info_perso(list_timearrays, ident, label_func)
-    
+        getattr(log,loglevel)(frame_to_print)
+
     
 def print_info_vectors(dic_vectors, all_ident, label_func, loglevel="info", list_ident=None):
     ''' Cette fonction permet d'imprimer (sous format DataFrame) les paramètres individuels 
@@ -116,16 +115,14 @@ def print_info_vectors(dic_vectors, all_ident, label_func, loglevel="info", list
     if not list_ident:
         list_ident=all_ident
     
-    def _print_info_perso(dic_vectors, ident, label_func):
+    for ident in list_ident:
         getattr(log,loglevel)("Les informations personnelles de l'individu {} dans le calcul de {} sont : ".format(ident, label_func))
-
         for name, vec in dic_vectors.iteritems():
             id_ix = list(list_ident).index(ident)
             val = vec[id_ix] 
-            getattr(log,loglevel)( '  - {} = {}'.format(name, val))
+            getattr(log,loglevel)('  - {} = {}'.format(name, val))
 
-    for ident in list_ident:
-        _print_info_perso(dic_vectors, ident, label_func)
+
         
 def print_info(dic_vectors, list_timearrays, all_ident, label, loglevel="info",list_ident=None):
     print_info_vectors(dic_vectors, all_ident, label)
