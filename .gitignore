@@ -189,6 +189,7 @@ $RECYCLE.BIN/
 # Files
 CONFIG_compare.py
 
+
 *.py[co]
 
 # Packages
@@ -216,3 +217,4 @@ pip-log.txt
 #Mr Developer
 .mr.developer.cfg
 sandbox/scenarios/CONFIG_scenarios.py
+sandbox/compare/CONFIG_compare.py
