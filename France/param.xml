@@ -2406,27 +2406,45 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 		 	<CODE description="Garantie de point minimum" code="gmp" longitudinal="true">
 		 		<VALUE valeur="0" deb="1949-01-01" fin="2100-12-01"/>
 		 	</CODE>
-		 	<NODE description="Majoration pour enfants à charge ou élevés" code="maj_enf">
-		 		<CODE description="Majoration pour enfant(s) à charge, par enfant" code="pac" format="percent">
-		 			<VALUE valeur="0.05" deb="1962-01-01" fin="2100-31-12"/>
-		 		</CODE>
-		 		<CODE description="Plafond de la majoration pour enfants à charge" code="plaf_pac" format="float">
-		 			<VALUE valeur="9999999" deb="1945-01-01" fin="2012-31-12"/>
-	 				<VALUE valeur="1031.15" deb="2013-04-01" fin="2100-31-12"/>
-	 			</CODE>
-		 		<CODE description="Plafond de la majoration pour enfants à charge" code="plaf_pac" format="float">
-		 			<VALUE valeur="9999999" deb="1945-01-01" fin="2012-31-12"/>
-	 				<VALUE valeur="1031.15" deb="2013-04-01" fin="2100-31-12"/>
-	 			</CODE>
-		 		<CODE description="Majoration pour enfant(s) nés ou élevés, pour 3 enfants et plus" code="born11" format="percent">
-		 			<VALUE valeur="0" deb="1945-01-01" fin="1961-31-12"/>
-		 			<VALUE valeur="0.05" deb="1962-01-01" fin="2100-31-12"/>
-		 		</CODE>
-		 		<CODE description="Majoration pour enfant(s) nés ou élevés, pour 3 enfants et plus, droits obtenu à partir de 2012" code="born" format="percent">
-	 				<VALUE valeur="0.1" deb="2012-01-01" fin="2100-31-12"/>
-	 				<VALUE valeur="0" deb="1945-01-01" fin="2011-31-12"/>
-	 			</CODE>
-		   </NODE>
+		 	<NODE description="Majoration pour enfants" code="maj_enf">
+			 		<NODE description="Enfants à charge" code="pac" >
+				 		<CODE description="Majoration pour enfant(s) à charge, par enfant" code="taux" format="percent">
+				 			<VALUE valeur="0.05" deb="1962-01-01" fin="2100-31-12"/>
+				 		</CODE>
+				 		<CODE description="Plafond de la majoration pour enfants à charge" code="plaf" format="float">
+			 				<VALUE valeur="9999999999" deb="1945-04-01" fin="2012-31-12"/>
+			 				<VALUE valeur="1028.12" deb="2013-04-01" fin="2100-31-12"/>
+			 			</CODE>
+		 			</NODE>
+		 			<NODE description="Enfants nés ou élevés" code="born" >
+					  <NODE description="Premier dispositif sur les droits acquis jusqu'en 2011 (perdure après)" code="dispositif0" >
+						<CODE description="Dates prises en compte pour le premier dispositif" code="dates" format="integer" longitudinal="true"> # should be Boolean
+						  <VALUE valeur="1" deb="1945-01-01" fin="2011-12-31"/>
+						  <VALUE valeur="0" deb="2012-01-01" fin="2100-12-31"/>
+						</CODE> 
+						<CODE description="Majoration pour enfant(s) nés ou élevés, pour 3 enfants et plus" code="taux" format="percent">
+				 			<VALUE valeur="0.0" deb="1945-01-01" fin="1961-31-12"/>
+				 			<VALUE valeur="0.05" deb="1962-01-01" fin="2100-31-12"/>
+			 			</CODE>
+				 		<CODE description="Nombre minimum d'enfants pour pouvoir bénéficier de la majoration" code="nb_enf_min" format="integer">
+				 			<VALUE valeur="3" deb="1945-01-01" fin="2100-31-12"/>
+			 			</CODE>
+			 		  </NODE>
+			 		  <NODE description="Second dispositif sur les droits acquis depuis 2012" code="dispositif1" >
+						<CODE description="Dates prises en compte pour le second dispositif" code="dates" format="integer" longitudinal="true"> # should be Boolean
+						  <VALUE valeur="0" deb="1945-01-01" fin="2011-12-31"/>
+						  <VALUE valeur="1" deb="2012-01-01" fin="2100-12-31"/>
+						</CODE> 
+				 		<CODE description="Majoration pour enfant(s) nés ou élevés, pour 3 enfants et plus, droits obtenus à partir de 2012" code="taux" format="percent">
+				 			<VALUE valeur="0" deb="1945-01-01" fin="2011-31-12"/>
+				 			<VALUE valeur="0.1" deb="2012-01-01" fin="2100-31-12"/>
+				 		</CODE>
+				 		<CODE description="Nombre minimum d'enfants pour pouvoir bénéficier de la majoration" code="nb_enf_min" format="integer">
+				 			<VALUE valeur="3" deb="1945-01-01" fin="2100-31-12"/>
+			 			</CODE>
+			 		</NODE>
+			 	  </NODE>
+			 </NODE>
  		</NODE>
 	 	<NODE description="Retraites complémentaires des cadres : AGIRC" code="agirc">
 	 		<CODE description="Dispositif de proratisation due à l'âge" code="cond_taux_plein" format="integer">
@@ -2817,20 +2835,51 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 			 		</TAUX>
 		 		</TRANCHE>
 		 	</BAREME>
-		 	<NODE description="Majoration pour enfants à charge ou élevés" code="maj_enf">
-		 		<CODE description="Majoration pour enfant(s) à charge, par enfant" code="pac" format="percent">
-		 			<VALUE valeur="0.05" deb="1962-01-01" fin="2100-31-12"/>
-		 		</CODE>
-		 		<CODE description="Plafond de la majoration pour enfants à charge" code="plaf_pac" format="float">
-	 				<VALUE valeur="1028.12" deb="2013-04-01" fin="2100-31-12"/>
-	 			</CODE>
-		 		<CODE description="Majoration pour enfant(s) nés ou élevés, par enfant pour 3 enfants et plus" code="born11" format="percent">
-		 			<VALUE valeur="0.04" deb="1962-01-01" fin="2100-31-12"/>
-		 		</CODE>
-		 		<CODE description="Majoration pour enfant(s) nés ou élevés, pour 3 enfants et plus, droits obtenus à partir de 2012" code="born" format="percent">
-		 			<VALUE valeur="0.1" deb="2012-01-01" fin="2100-31-12"/>
-		 			<VALUE valeur="0" deb="1999-01-01" fin="2011-31-12"/>
-		 		</CODE>
+		 	<NODE description="Majoration pour enfants" code="maj_enf">
+			 		<NODE description="Enfants à charge" code="pac" >
+				 		<CODE description="Majoration pour enfant(s) à charge, par enfant" code="taux" format="percent">
+				 			<VALUE valeur="0.05" deb="1962-01-01" fin="2100-31-12"/>
+				 		</CODE>
+				 		<CODE description="Plafond de la majoration pour enfants à charge" code="plaf" format="float">
+			 				<VALUE valeur="9999999999" deb="1945-04-01" fin="2012-31-12"/>
+			 				<VALUE valeur="1028.12" deb="2013-04-01" fin="2100-31-12"/>
+			 			</CODE>
+		 			</NODE>
+		 			<NODE description="Enfants nés ou élevés" code="born" >
+					  <NODE description="Premier dispositif sur les droits acquis jusqu'en 2011 (perdure après)" code="dispositif0" >
+						<CODE description="Dates prises en compte pour le premier dispositif" code="dates" format="integer" longitudinal="true"> # should be Boolean
+						  <VALUE valeur="1" deb="1945-01-01" fin="2011-12-31"/>
+						  <VALUE valeur="0" deb="2012-01-01" fin="2100-12-31"/>
+						</CODE> 
+						<CODE description="Majoration pour enfant(s) nés ou élevés, pour 3 enfants et plus" code="taux" format="percent">
+				 			<VALUE valeur="0.0" deb="1945-01-01" fin="1961-31-12"/>
+				 			<VALUE valeur="0.08" deb="1962-01-01" fin="2100-31-12"/>
+			 			</CODE>
+						<CODE description="Majoration pour enfant(s) nés ou élevés, par enfant pour 3 enfants et plus" code="taux_maj" format="percent">
+				 			<VALUE valeur="0.0" deb="1945-01-01" fin="1961-31-12"/>
+				 			<VALUE valeur="0.04" deb="1962-01-01" fin="2100-31-12"/>
+			 			</CODE>
+			 			<CODE description="Nombre minimum d'enfants pour pouvoir bénéficier de la majoration" code="nb_enf_min" format="integer">
+				 			<VALUE valeur="3" deb="1945-01-01" fin="2100-31-12"/>
+			 			</CODE>
+			 			<CODE description="Nombre d'enfants pris en compte dans la majoration" code="nb_enf_count" format="integer">
+				 			<VALUE valeur="7" deb="1945-01-01" fin="2100-31-12"/>
+			 			</CODE>
+			 		  </NODE>
+			 		  <NODE description="Second dispositif sur les droits acquis depuis 2012" code="dispositif1" >
+						<CODE description="Dates prises en compte pour le second dispositif" code="dates" format="integer" longitudinal="true"> # should be Boolean
+						  <VALUE valeur="0" deb="1945-01-01" fin="2011-12-31"/>
+						  <VALUE valeur="1" deb="2012-01-01" fin="2100-12-31"/>
+						</CODE> 
+				 		<CODE description="Majoration pour enfant(s) nés ou élevés, pour 3 enfants et plus, droits obtenus à partir de 2012" code="taux" format="percent">
+				 			<VALUE valeur="0" deb="1945-01-01" fin="2011-31-12"/>
+				 			<VALUE valeur="0.1" deb="2012-01-01" fin="2100-31-12"/>
+				 		</CODE>
+				 		<CODE description="Nombre minimum d'enfants pour pouvoir bénéficier de la majoration" code="nb_enf_min" format="integer">
+				 			<VALUE valeur="3" deb="1945-01-01" fin="2100-31-12"/>
+			 			</CODE>
+			 	  </NODE>
+		 	  </NODE>
 	 		</NODE>
 	 	</NODE> 
 	 </NODE> 

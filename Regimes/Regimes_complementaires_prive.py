@@ -4,8 +4,8 @@ import os
 parentdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.sys.path.insert(0,parentdir) 
 
-from numpy import minimum
-from regime import RegimeComplementaires
+from numpy import minimum, maximum, multiply
+from regime import RegimeComplementaires, compare_destinie
 
 
 class AGIRC(RegimeComplementaires):
@@ -25,9 +25,6 @@ class AGIRC(RegimeComplementaires):
         sali = data.sali
         return sali.array*(workstate.isin(self.code_regime).array)
         
-    def majoration_pension(self, data, nb_points, coeff_age):
-        maj_enf = self._majoration_enf(data, nb_points, coeff_age)
-        return maj_enf
         
 
 class ARRCO(RegimeComplementaires):
@@ -54,10 +51,3 @@ class ARRCO(RegimeComplementaires):
         plaf_sali = minimum(sali, nb_pss*plaf_ss)
         return sali*noncadre_selection + plaf_sali*cadre_selection
         
-    def majoration_pension(self, data, nb_points, coeff_age):
-        P = reduce(getattr, self.param_name.split('.'), self.P)
-        maj_enf = self._majoration_enf(data, nb_points, coeff_age)
-        plafond = P.maj_enf.plaf_pac
-        cond_naiss = [(date.year <= 1951) for date in data.info_ind['naiss']] #TODO: check cette condition
-        maj_enf = minimum(maj_enf[cond_naiss], plafond)
-        return maj_enf

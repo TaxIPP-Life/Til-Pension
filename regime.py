@@ -2,7 +2,7 @@
 import logging as log
 
 from datetime import date
-from numpy import maximum, array, nan_to_num, greater, divide, around, zeros, minimum
+from numpy import maximum, array, nan_to_num, greater, divide, around, zeros, minimum, multiply
 from pandas import Series
 from time_array import TimeArray
 from datetil import DateTil
@@ -66,7 +66,6 @@ class Regime(object):
     def _calculate_surcote(self, trimesters, date_start_surcote, age):
         #TODO: remove trim_by_year_tot from arguments
         raise NotImplementedError
-    
     
     def _date_start_surcote(self, trim_by_year_tot, trim_maj, agem, age_start_surcote):
         ''' Détermine la date individuelle a partir de laquelle on atteint la surcote
@@ -259,42 +258,47 @@ class RegimeComplementaires(Regime):
             coeff_min = coeff_min*(n_trim > trim) + (n_trim <= trim)
         return coeff_min
             
-    def _majoration_enf(self, data, nb_points_by_year, coeff_age):
+    def _majoration_enf(self, data, nb_points_by_year):
         ''' Application de la majoration pour enfants à charge. Deux types de majorations peuvent s'appliquer :
         ' pour enfant à charge au moment du départ en retraite
         - pour enfant nés et élevés en cours de carrière (majoration sur la totalité des droits acquis)
         C'est la plus avantageuse qui s'applique.'''
         P = reduce(getattr, self.param_name.split('.'), self.P)
+        P_long = reduce(getattr, self.param_name.split('.'), self.P_longit).maj_enf
         nb_pac = data.info_ind['nb_pac']
         nb_born = data.info_ind['nb_enf']
         
-        # Calcul des points pour enfants à charge
-        taux_pac = P.maj_enf.pac
+        # 1- Calcul des points pour enfants à charge
+        taux_pac = P.maj_enf.pac.taux
         points_pac = nb_points_by_year.sum(axis=1)*taux_pac*nb_pac
         
-        # Calcul des points pour enfants nés ou élevés
-        taux_born = P.maj_enf.born
-        taux_born11 = P.maj_enf.born11
-        
-        duration = data.last_date.year - 2011 #TODO: improve it with dates
-        if duration >= 0:
-            nb_points_11 = coeff_age*nb_points_by_year[:,:(-duration)]
-            nb_points12_ = coeff_age*nb_points_by_year[:,(-duration):]
-            points_born_11 = nb_points_11*(nb_born)*taux_born11
-            points_born12_ = nb_points12_*taux_born
-            points_born = (points_born_11 + points_born12_)*(nb_born >= 3)
-        else: 
-            points_born = 0
-        
+        # 2- Calcul des points pour enfants nés ou élevés
+
+        points_born = 0
+        for num_dispo in [0,1]:
+            P_dispositif = getattr(P.maj_enf.born, 'dispositif' + str(num_dispo))
+            selected_dates = getattr(P_long.born, 'dispositif' + str(num_dispo)).dates
+            taux_dispositif = P_dispositif.taux
+            nb_enf_min = P_dispositif.nb_enf_min
+            nb_enf_dates = multiply(nb_points_by_year,selected_dates).sum(1)
+            nb_enf_dispositif = nb_enf_dates*(nb_born >= nb_enf_min)
+            nb_points_dispositif = nb_enf_dispositif*taux_dispositif
+            if hasattr(P_dispositif, 'taux_maj'):
+                taux_maj = P_dispositif.taux_maj
+                plaf_nb = P_dispositif.nb_enf_count
+                nb_enf_maj = maximum(minimum(nb_born, plaf_nb) - nb_enf_min, 0)
+                nb_points_dispositif += nb_enf_dates*nb_enf_maj*taux_maj
+            points_born += nb_points_dispositif
+
         # Comparaison de la situation la plus avantageuse
         val_point = P.val_point
         majo_born = val_point*points_born
         majo_pac = val_point*points_pac
-
         return maximum(majo_born, majo_pac)
     
-    def majoration_pension(self, data, nb_points, coeff_age):     
-        raise NotImplementedError
+    def majoration_pension(self, data, nb_points):
+        maj_enf = self._majoration_enf(data, nb_points)
+        return maj_enf
     
     def calculate_pension(self, data, trim_base, to_check=None):
         info_ind = data.info_ind
@@ -304,11 +308,9 @@ class RegimeComplementaires(Regime):
         nb_points_by_year = self.nombre_points(data)
         nb_points = nb_points_by_year.sum(axis=1)
         coeff_age = self.coefficient_age(info_ind['agem'], trim_base)
-        maj_enf = self.majoration_pension(data, nb_points_by_year, coeff_age)
-        
         if to_check is not None:
             to_check['nb_points_' + name] = nb_points
             to_check['coeff_age_' + name] = coeff_age
-            to_check['maj_' + name] = maj_enf
-        pension = val_arrco*nb_points*coeff_age + maj_enf
-        return pension.fillna(0)
+        pension = val_arrco*nb_points
+        pension += self.majoration_pension(data, nb_points_by_year)
+        return pension*coeff_age
