@@ -88,18 +88,21 @@ def load_pensipp_data(pensipp_path, yearsim, first_year_sal, selection_id=False)
     workstate = statut.iloc[ix_selected, :]
     info_child_ = _child_by_age(info_child, yearsim, id_selected)
     nb_pac = count_enf_pac(info_child_, info.index)
-    nb_enf = count_enf_born(info_child_, info.index)
     info_ind = info.iloc[ix_selected,:]
     info_ind.loc[:,'nb_pac'] = nb_pac
-    info_ind.loc[:,'nb_born'] = nb_enf
     data = PensionData.from_arrays(workstate, sali, info_ind)
     data_bounded = data.selected_dates(first=first_year_sal, last=yearsim)
-    # TODO: commun declaration for codes and names regimes
-    dict_regime = {'FP': [5,6], 'RG': [3,4], 'RSI':[7]}
+    # TODO: commun declaration for codes and names regimes : Déclaration inapte (mais adapté à Taxipp)
+    dict_regime = {'FP': [5,6], 'RG': [3,4,1,2,9,8,0], 'RSI':[7]} #On met les inactifs/chomeurs/avpf ou préretraité au RG
     array_enf = count_enf_by_year(data_bounded, info_child)
+    nb_enf_all = 0
     for name_reg, code_reg in dict_regime.iteritems():
         nb_enf_regime = (array_enf*data_bounded.workstate.isin(code_reg).array).sum(1)
         data_bounded.info_ind['nb_enf_' + name_reg] = nb_enf_regime
+        nb_enf_all += nb_enf_regime
+    info_ind.loc[:,'nb_enf'] = nb_enf_all
+    #print sum(nb_enf_all -  info_ind.loc[:,'nb_born'])
+    #print info_ind.loc[15478, ['nb_born', 'nb_enf', 'nb_enf_RG', 'nb_enf_FP', 'nb_enf_RSI']]
     return data_bounded
 
 def load_pensipp_result(pensipp_path, to_csv=False):

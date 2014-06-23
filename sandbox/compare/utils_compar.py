@@ -8,6 +8,7 @@ Created on 1 juin 2014
 from pandas import Series, DataFrame
 from numpy import zeros, array, ones, concatenate
 import logging as log
+from itertools import groupby
 
 def calculate_age(birth_date, date):
     ''' calculate age at date thanks birthdate '''
@@ -45,25 +46,23 @@ def count_enf_by_year(data, info_enf):
     parents_id = data.info_ind.index
     info = info_enf.loc[info_enf['id_parent'].isin(parents_id),:]
     info['naiss_liam'] = [ datenaiss.year*100 + 1 for datenaiss in info['naiss']]
-    info.sort('id_parent')
-#     info['idx'] = info.groupby('id_parent').cumcount()
-#     info =  info.pivot(index='id_parent',columns='idx')[['naiss_liam']].fillna(-1)
-#     nb_enf_max = info.shape[1]
-#     info.columns = ['yearnaiss' + str(i) for i in range(nb_enf_max)]
-#     
-#     nb_enf =  info[info != -1 ].count(1)
-#     idx_rows = [val*ones(nb) for val, nb in zip(info['id_parent'],nb_enf)]
-#     id_row = concatenate(idx_rows)
-#     idx_col = []
+    info = info.sort('id_parent')
+
     list_ident = data.info_ind.index
     id_par = info['id_parent']
     id_ix = [list(list_ident).index(ident) for ident in id_par]
-    
+
     list_dates = data.workstate.dates
     datenaiss = info['naiss_liam']
     naiss_ix = [list(list_dates).index(date) for date in datenaiss]
+    list_ix = sorted([(ident, year) for ident, year in zip(id_ix, naiss_ix)])
+    
+    count_by_ix = [(i, list_ix.count(i)) for i,_ in groupby(list_ix)]
+    id_ix = [k[0][0] for k in count_by_ix]
+    year_ix = [k[0][1] for k in count_by_ix]
+    nb_enf = [k[1] for k in count_by_ix]
     enf_by_year = zeros(data.workstate.array.shape)
-    enf_by_year[(id_ix, naiss_ix)] = 1
+    enf_by_year[(id_ix, year_ix)] = array(nb_enf)
     #TODO: check pb with twins
     return enf_by_year
 
@@ -133,10 +132,11 @@ def print_info(dic_vectors, list_timearrays, all_ident, label, loglevel="info",l
     print_info_timearrays(list_timearrays, all_ident, label)
     
 if __name__ == '__main__':  
-    a = [1,2,1,3]
-    b = [100,1,100,1]
-    test = list()
-    from numpy import ones, concatenate
-    test +=[val*ones(nb) for val, nb in zip(b,a)]
-    concatenate(test)
-    print test, concatenate(test)
+    
+    # Example for count_enf_by_year
+    nb_enf = [1,2,1,1]
+    id_ix = [0,0,1,2]
+    year_ix = [1,2,0,3]
+    test = zeros((3,4))
+    test[(id_ix, year_ix)] = array(nb_enf)
+    print test
