@@ -141,6 +141,46 @@ class Regime(object):
 #         self.sal_regime = sali.array*_isin(self.workstate.array,self.code_regime)
         raise NotImplementedError
     
+
+    def bonif_pension(self, data, trim_wage_reg, trim_wage_all, pension_reg, pension_all):
+        pension = pension_reg + self.minimum_pension(trim_wage_reg, trim_wage_all, pension_reg, pension_all)
+        # Remarque : la majoration de pension s'applique à la pension rapportée au maximum ou au minimum
+        pension += self.majoration_pension(data, pension)
+        pension = self.minimum_pension(trim_wage_reg, trim_wage_all, pension_reg, pension_all)
+        return pension
+
+class RegimeBase(Regime):
+
+    def revenu_valides(self, workstate, sali, code=None): #sali, 
+        ''' Cette fonction pertmet de calculer des nombres par trimesters
+        TODO: gérer la comptabilisation des temps partiels quand variable présente'''
+        assert isinstance(workstate, TimeArray)
+        #assert isinstance(sali, TimeArray)
+        if code is None:
+            code = self.code_regime
+        wk_selection = workstate.isin(self.code_regime)
+        wk_selection.translate_frequency(output_frequency='month', inplace=True)
+        #TODO: condition not assuming sali is in year
+        sali.translate_frequency(output_frequency='month', inplace=True)
+        sali.array = around(divide(sali.array, 12), decimals=3)
+        trim = divide(wk_selection.array.sum(axis=1), 4).astype(int)
+        return trim
+    
+    def get_trimester(self, workstate, sali):
+        raise NotImplementedError
+    
+    def majoration_pension(self, data, pension):
+        P = reduce(getattr, self.param_name.split('.'), self.P)
+        nb_enf = data.info_ind['nb_enf']
+        def _taux_enf(nb_enf, P):
+            ''' Majoration pour avoir élevé trois enfants '''
+            taux_3enf = P.maj_3enf.taux
+            taux_supp = P.maj_3enf.taux_sup
+            return taux_3enf*(nb_enf >= 3) + (taux_supp*maximum(nb_enf - 3, 0))
+            
+        maj_enf = _taux_enf(nb_enf, P)*pension
+        return maj_enf
+    
     def calculate_pension(self, data, trim_wage_regime, trim_wage_all, to_check=None):
         info_ind = data.info_ind
         name = self.name
@@ -171,45 +211,6 @@ class Regime(object):
                 to_check['N_CP_' + name] = P.prorat.n_trim // 4
         return pension.fillna(0)
 
-    def bonif_pension(self, data, trim_wage, trim_wage_all, pension_reg, pension_all):
-        pension = pension_reg + self.minimum_pension(trim_wage, trim_wage_all, pension_reg, pension_all)
-        # Remarque : la majoration de pension s'applique à la pension rapportée au maximum ou au minimum
-        pension += self.majoration_pension(data, pension)
-        return pension
-
-class RegimeBase(Regime):
-
-    def revenu_valides(self, workstate, sali, code=None): #sali, 
-        ''' Cette fonction pertmet de calculer des nombres par trimesters
-        TODO: gérer la comptabilisation des temps partiels quand variable présente'''
-        assert isinstance(workstate, TimeArray)
-        #assert isinstance(sali, TimeArray)
-        if code is None:
-            code = self.code_regime
-        wk_selection = workstate.isin(self.code_regime)
-        wk_selection.translate_frequency(output_frequency='month', inplace=True)
-        #TODO: condition not assuming sali is in year
-        sali.translate_frequency(output_frequency='month', inplace=True)
-        sali.array = around(divide(sali.array, 12), decimals=3)
-        sal_selection = TimeArray(wk_selection.array*sali.array, sali.dates)
-        trim = divide(wk_selection.array.sum(axis=1), 4).astype(int)
-        return trim
-    
-    def get_trimester(self, workstate, sali):
-        raise NotImplementedError
-    
-    def majoration_pension(self, data, pension):
-        P = reduce(getattr, self.param_name.split('.'), self.P)
-        nb_enf = data.info_ind['nb_enf']
-        def _taux_enf(nb_enf, P):
-            ''' Majoration pour avoir élevé trois enfants '''
-            taux_3enf = P.maj_3enf.taux
-            taux_supp = P.maj_3enf.taux_sup
-            return taux_3enf*(nb_enf >= 3) + (taux_supp*maximum(nb_enf - 3, 0))
-            
-        maj_enf = _taux_enf(nb_enf, P)*pension
-        return maj_enf
-
 class RegimeComplementaires(Regime):
         
     def sali_for_regime(self, data):
@@ -220,23 +221,27 @@ class RegimeComplementaires(Regime):
         Pour calculer ces points, il faut diviser la cotisation annuelle ouvrant des droits par le salaire de référence de l'année concernée 
         et multiplier par le taux d'acquisition des points'''
         sali_plaf = self.sali_for_regime(data)
-        P = reduce(getattr, self.param_name.split('.'), self.P)
         Plong_regime = getattr(self.P_longit.prive.complementaire,  self.name)
         salref = Plong_regime.sal_ref
         taux_cot = Plong_regime.taux_cot_moy
         assert len(salref) == sali_plaf.shape[1] == len(taux_cot)
         nb_points_by_year = zeros(sali_plaf.shape)
-        
-        gmp = P.gmp
+
         for ix_year in range(sali_plaf.shape[1]):
             if salref[ix_year] > 0:
                 nb_points_by_year[:,ix_year] = (taux_cot[ix_year].calc(sali_plaf[:,ix_year])/salref[ix_year])
 
-        nb_points_by_year = nb_points_by_year.round()
+        nb_points_by_year = nb_points_by_year.round(2)
+        #nb_points_by_year = maximum(nb_points_by_year, gmp)*(nb_points_by_year > 0)
+        return nb_points_by_year
+        
+    def minimum_points(self, nb_points_by_year):
+        ''' Application de la garantie minimum de points '''
+        P = reduce(getattr, self.param_name.split('.'), self.P)
+        gmp = P.gmp
         nb_points_by_year = maximum(nb_points_by_year, gmp)*(nb_points_by_year > 0)
         return nb_points_by_year
         
- 
     def coefficient_age(self, agem, trim):
         ''' TODO: add surcote  pour avant 1955 '''
         P = reduce(getattr, self.param_name.split('.'), self.P)

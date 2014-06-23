@@ -61,10 +61,10 @@ def compare_til_pensipp(pensipp_comparison_path, var_to_check_montant, var_to_ch
         taille_prob[var] = _check_var(var, threshold['taux'], var_conflict, var_not_implemented)
     no_conflict = [variable for variable in var_to_check_montant + var_to_check_taux
                         if variable not in var_conflict + var_not_implemented.values()] 
-
     print( u"Avec un seuil de {}, le calcul est faux pour les variables suivantes : {} \n Il est mal implémenté dans : \n - Til: {} \n - Pensipp : {}\n Il ne pose aucun problème pour : {}").format(threshold, var_conflict, var_not_implemented['til'], var_not_implemented['pensipp'], no_conflict)   
     for var, prob in taille_prob.iteritems():
-        print 'Pour ' + var + ', on a ' + str(prob) + ' différences'
+        if prob !=0 :
+            print 'Pour ' + var + ', on a ' + str(prob) + ' différences'
 
 if __name__ == '__main__':    
 
