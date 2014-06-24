@@ -285,7 +285,10 @@ class RegimeComplementaires(Regime):
                 nb_points_enf += nb_enf_maj*taux_maj*nb_points_dates
             points_born += nb_points_enf
         # Retourne la situation la plus avantageuse
-        return maximum(points_born, points_pac)*P.val_point
+        val_point = P.val_point
+        if compare_destinie:
+            val_point = P.val_point_proj
+        return maximum(points_born, points_pac)*val_point
     
     def majoration_pension(self, data, nb_points_by_year):
         maj_enf = self._majoration_enf(data, nb_points_by_year)
@@ -298,7 +301,10 @@ class RegimeComplementaires(Regime):
         nb_points_by_year = self.nombre_points(data)
         nb_points = nb_points_by_year.sum(axis=1)
         coeff_age = self.coefficient_age(info_ind['agem'], trim_base)
-        pension = self.minimum_points(nb_points_by_year)*P.val_point 
+        val_point = P.val_point
+        if compare_destinie:
+            val_point = P.val_point_proj
+        pension = self.minimum_points(nb_points_by_year)*val_point 
         pension = pension + self.majoration_pension(data, nb_points_by_year)    
         if to_check is not None:
             to_check['nb_points_' + name] = nb_points
