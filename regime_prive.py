@@ -86,26 +86,6 @@ class RegimePrive(RegimeBase):
             trim_regime = minimum(trim_regime, P.prorat.plaf) 
         CP = minimum(1, divide(trim_regime, P.prorat.n_trim))
         return CP
-    
-    def decote(self, data, trim_wage_all):
-        ''' Détermination de la décote à appliquer aux pensions '''
-        trimesters = trim_wage_all['trimesters']
-        trim_maj = trim_wage_all['maj']
-        P = reduce(getattr, self.param_name.split('.'), self.P)
-        agem = data.info_ind['agem']
-        if P.decote.dispositif == 1:
-            age_annulation = P.decote.age_null
-            trim_decote = max(divide(age_annulation - agem, 3), 0)
-        elif P.decote.dispositif == 2:
-            trim_decote = self.nb_trim_decote(trimesters, trim_maj, agem)
-       
-        print_info(dic_vectors={'trim_tot' : trimesters['tot'].sum(), 'trim_maj':trim_maj['enf'], 'trim_decote':trim_decote, 
-                                'taux_decote': array(P.decote.taux)*trim_decote},
-                   list_timearrays=[data.sali, data.workstate], 
-                   all_ident=data.info_ind.index,
-                   loglevel='debug',
-                   label='surcote_' + self.name) 
-        return array(P.decote.taux)*trim_decote
         
     def _calculate_surcote(self, trim_wage_regime, trim_wage_all, date_start_surcote, age):
         ''' Détermination de la surcote à appliquer aux pensions.'''

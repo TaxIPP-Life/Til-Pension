@@ -44,8 +44,21 @@ class Regime(object):
             date = DateTil(kwargs['dateleg'])
             self.dateleg = date
 
-    def decote(self):
-        raise NotImplementedError
+    def decote(self, data, trim_wage_all):
+        ''' Détermination de la décote à appliquer aux pensions '''
+        trimesters = trim_wage_all['trimesters']
+        trim_maj = trim_wage_all['maj']
+        try:
+            P = reduce(getattr, self.param_RG.split('.'), self.P)
+        except:
+            P = reduce(getattr, self.param_name.split('.'), self.P)
+        agem = data.info_ind['agem']
+        if P.decote.dispositif == 1:
+            age_annulation = P.decote.age_null
+            trim_decote = max(divide(age_annulation - agem, 3), 0)
+        elif P.decote.dispositif == 2:
+            trim_decote = self.nb_trim_decote(trimesters, trim_maj, agem)
+        return trim_decote
 
     def surcote(self, data, trim_wage_regime, trim_wage_all):
         trimesters = trim_wage_all['trimesters']
@@ -101,10 +114,6 @@ class Regime(object):
         start_taux_plein_trim = self._date_start_surcote(trim_by_year_tot, trim_maj, agem)
         return minimum(start_taux_plein_age, start_taux_plein_trim)
     
-#     def sali_in_regime(self, workstate, sali):
-#         ''' Cette fonction renvoie le TimeArray ne contenant que les salaires validés avec workstate == code_regime'''
-#         wk_selection = workstate.isin(self.code_regime).array
-#         return TimeArray(wk_selection*sali.array, sali.dates, 'sal_regime')
     def nb_trim_decote(self, trimesters, trim_maj, agem):
         ''' Cette fonction renvoie le vecteur numpy du nombre de trimestres décotés 
         Lorsque les deux règles (d'âge et de nombre de trimestres cibles) jouent
@@ -112,7 +121,10 @@ class Regime(object):
         à l'exclusion de celles accordées au titre des enfants et du handicap, ne sont pas prises en compte 
         dans la durée d'assurance tous régimes confondus pour apprécier la décote.
         '''
-        P = reduce(getattr, self.param_name.split('.'), self.P)
+        try:
+            P = reduce(getattr, self.param_RG.split('.'), self.P)
+        except:
+            P = reduce(getattr, self.param_name.split('.'), self.P)
         age_annulation = array(P.decote.age_null)
         plafond = array(P.decote.nb_trim_max)
         n_trim = array(P.plein.n_trim)
@@ -183,7 +195,8 @@ class RegimeBase(Regime):
     def calculate_pension(self, data, trim_wage_regime, trim_wage_all, to_check=None):
         info_ind = data.info_ind
         name = self.name
-        decote = self.decote(data, trim_wage_all)
+        P = reduce(getattr, self.param_name.split('.'), self.P)
+        decote = P.decote.taux*self.decote(data, trim_wage_all)
         surcote = self.surcote(data, trim_wage_regime, trim_wage_all)        
         taux = self.calculate_taux(decote, surcote)
         cp = self.calculate_coeff_proratisation(info_ind, trim_wage_regime, trim_wage_all)
@@ -271,30 +284,34 @@ class RegimeComplementaires(Regime):
         
         # 2- Calcul des points pour enfants nés ou élevés
         points_born = zeros(len(nb_pac))
+        nb_enf_maj =  zeros(len(nb_pac))
         for num_dispo in [0,1]:
             P_dispositif = getattr(P.maj_enf.born, 'dispositif' + str(num_dispo))
             selected_dates = getattr(P_long.born, 'dispositif' + str(num_dispo)).dates
             taux_dispositif = P_dispositif.taux
             nb_enf_min = P_dispositif.nb_enf_min
             nb_points_dates = multiply(nb_points_by_year,selected_dates).sum(1)
-            nb_points_enf = nb_points_dates*(nb_born >= nb_enf_min)*taux_dispositif
+            nb_points_enf = nb_points_dates*taux_dispositif*(nb_born >= nb_enf_min)
             if hasattr(P_dispositif, 'taux_maj'):
                 taux_maj = P_dispositif.taux_maj
                 plaf_nb = P_dispositif.nb_enf_count
                 nb_enf_maj = maximum(minimum(nb_born, plaf_nb) - nb_enf_min, 0)
                 nb_points_enf += nb_enf_maj*taux_maj*nb_points_dates
+                
             points_born += nb_points_enf
         # Retourne la situation la plus avantageuse
         val_point = P.val_point
         if compare_destinie:
             val_point = P.val_point_proj
+        if compare_destinie:
+            return points_born*val_point
         return maximum(points_born, points_pac)*val_point
     
     def majoration_pension(self, data, nb_points_by_year):
         maj_enf = self._majoration_enf(data, nb_points_by_year)
         return maj_enf
     
-    def calculate_pension(self, data, trim_base, to_check=None):
+    def calculate_pension(self, data, trim_base, trim_wage_all, to_check=None):
         info_ind = data.info_ind
         name = self.name
         P = reduce(getattr, self.param_name.split('.'), self.P)
@@ -305,7 +322,10 @@ class RegimeComplementaires(Regime):
         if compare_destinie:
             val_point = P.val_point_proj
         pension = self.minimum_points(nb_points_by_year)*val_point 
-        pension = pension + self.majoration_pension(data, nb_points_by_year)    
+        P = reduce(getattr, self.param_name.split('.'), self.P)
+        decote = self.decote(data, trim_wage_all)*P.taux_decote
+        pension = pension + self.majoration_pension(data, nb_points_by_year)   
+        pension = (1-decote)*pension
         if to_check is not None:
             to_check['nb_points_' + name] = nb_points
             to_check['coeff_age_' + name] = coeff_age

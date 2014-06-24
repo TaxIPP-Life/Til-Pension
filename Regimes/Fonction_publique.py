@@ -106,7 +106,7 @@ class FonctionPublique(RegimeBase):
             agem = data.info_ind['agem']
             trim_decote = self.nb_trim_decote(trimesters, trim_maj, agem)
             P = reduce(getattr, self.param_name.split('.'), self.P)
-            return P.decote.taux*trim_decote
+            return trim_decote
         else:
             return zeros(data.info_ind.shape[0])
         
