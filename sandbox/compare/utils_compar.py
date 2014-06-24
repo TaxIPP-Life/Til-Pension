@@ -101,8 +101,6 @@ def print_info_timearrays(list_timearrays, all_ident, label_func, loglevel="info
             to_print[i,:] = col_to_print
             names += [timearray.name] 
             i += 1
-        import pdb
-        pdb.set_trace()
         frame_to_print = DataFrame(to_print, columns=dates_all)
         frame_to_print['names'] = names
         frame_to_print.index = frame_to_print['names']

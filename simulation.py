@@ -88,11 +88,10 @@ class PensionSimulation(object):
         '''
             
         if to_check == True:
-            output = DataFrame(index = self.data.info_ind.index)
+            output = dict_to_check
             for key, value in self.pensions.iteritems():
-                dict_to_check['pension_' + key] = value
                 output['pension_' + key] = value
-            return output
+            return DataFrame(output, index = self.data.info_ind.index)
         else:
             return self.pensions['tot'] # TODO: define the output : for the moment a dic with pensions by regime
         
