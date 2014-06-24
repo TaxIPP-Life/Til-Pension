@@ -2091,6 +2091,9 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
     </NODE>
      <NODE description="Retraites complémentaires " code="complementaire">
 	 	<NODE description="Retraites complémentaires des salariés du privés : ARCCO" code="arrco">
+	 		<CODE description="Taux de decote" code="taux_decote" format="float">
+			  	<VALUE valeur="0.01" deb="1945-01-01" fin="2100-12-31"/>
+			</CODE>
 	 		<CODE description="Dispositif de proratisation due à l'âge" code="cond_taux_plein" format="integer">
 				<VALUE valeur="0" deb="1945-01-01" fin="1982-12-31"/>
 			  	<VALUE valeur="1" deb="1983-01-01" fin="2100-12-31"/>
@@ -2594,6 +2597,9 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 			 </NODE>
  		</NODE>
 	 	<NODE description="Retraites complémentaires des cadres : AGIRC" code="agirc">
+	 		<CODE description="Taux de decote" code="taux_decote" format="float">
+			  	<VALUE valeur="0.01" deb="1945-01-01" fin="2100-12-31"/>
+			</CODE>
 	 		<CODE description="Dispositif de proratisation due à l'âge" code="cond_taux_plein" format="integer">
 				<VALUE valeur="0" deb="1945-01-01" fin="1982-12-31"/>
 			  	<VALUE valeur="1" deb="1983-01-01" fin="2100-12-31"/>
@@ -3652,6 +3658,7 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
    			<VALUE valeur="0" deb="2020-01-01" fin="2100-12-31"/>
    		</CODE>
    		<CODE description="Taux décote par trimestre manquant" code="taux" format="percent">
+   			<VALUE valeur="0.0" deb="1945-01-01" fin="2005-12-31"/>
    			<VALUE valeur="0.00125" deb="2006-01-01" fin="2006-12-31"/>
    			<VALUE valeur="0.00250" deb="2007-01-01" fin="2007-12-31"/>
    			<VALUE valeur="0.00375" deb="2008-01-01" fin="2008-12-31"/>

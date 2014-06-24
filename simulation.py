@@ -69,7 +69,8 @@ class PensionSimulation(object):
             for reg in complementaire_regimes:
                 reg.set_config(**config)
                 regime_base = select_regime_base(trimesters_wages, reg.name, base_to_complementaire)
-                pension_reg = reg.calculate_pension(data, regime_base['trimesters'], dict_to_check)
+                pension_reg = reg.calculate_pension(data, regime_base['trimesters'], trimesters_wages['all_regime'], 
+                                                    dict_to_check)
                 pensions[reg.name] = pension_reg
                 
             pensions['tot'] = sum(pensions.values())
