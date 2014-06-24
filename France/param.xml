@@ -2853,11 +2853,17 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 						</CODE> 
 						<CODE description="Majoration pour enfant(s) nés ou élevés, pour 3 enfants et plus" code="taux" format="percent">
 				 			<VALUE valeur="0.0" deb="1945-01-01" fin="1961-31-12"/>
-				 			<VALUE valeur="0.08" deb="1962-01-01" fin="2100-31-12"/>
+				 			<VALUE valeur="0.1" deb="1962-01-01" fin="1994-31-12"/>
+				 			<VALUE valeur="0.096" deb="1995-01-01" fin="1995-31-12"/>
+				 			<VALUE valeur="0.085" deb="1996-01-01" fin="1996-31-12"/>
+				 			<VALUE valeur="0.08" deb="1997-01-01" fin="2100-31-12"/>
 			 			</CODE>
 						<CODE description="Majoration pour enfant(s) nés ou élevés, par enfant pour 3 enfants et plus" code="taux_maj" format="percent">
 				 			<VALUE valeur="0.0" deb="1945-01-01" fin="1961-31-12"/>
-				 			<VALUE valeur="0.04" deb="1962-01-01" fin="2100-31-12"/>
+				 			<VALUE valeur="0.05" deb="1962-01-01" fin="1994-31-12"/>
+				 			<VALUE valeur="0.048" deb="1995-01-01" fin="1995-31-12"/>
+				 			<VALUE valeur="0.0425" deb="1996-01-01" fin="1996-31-12"/>
+				 			<VALUE valeur="0.04" deb="1997-01-01" fin="2100-31-12"/>
 			 			</CODE>
 			 			<CODE description="Nombre minimum d'enfants pour pouvoir bénéficier de la majoration" code="nb_enf_min" format="integer">
 				 			<VALUE valeur="3" deb="1945-01-01" fin="2100-31-12"/>
