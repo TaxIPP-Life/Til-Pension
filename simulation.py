@@ -4,6 +4,15 @@ from pandas import DataFrame
 from pension_functions import sum_by_regime, update_all_regime
 import cProfile
 
+def print_args(bool, list_id=None):
+    def _print_args(fn):
+        def caller(*args, **kw):
+            if bool:
+                print args
+            return fn(*args, **kw)
+        return caller
+    return _print_args
+
 class PensionSimulation(object):
     ''' class qui permet de simuler un système de retraite :
             a besoin d'une data et d'une legislation
