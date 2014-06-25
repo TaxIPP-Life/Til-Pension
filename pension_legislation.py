@@ -207,7 +207,6 @@ class PensionLegislation(object):
 
 
 if __name__ == '__main__':
-    from pandas import DataFrame
     from pension_data import PensionData
     import datetime
     

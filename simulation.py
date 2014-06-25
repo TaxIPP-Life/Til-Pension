@@ -22,7 +22,7 @@ class PensionSimulation(object):
         self.trimesters_wages = dict()
         self.pensions = dict()
         
-    def evaluate(self, time_step='year', to_check=False, output='pension', logger=False):
+    def evaluate(self, time_step='year', to_check=False, output='pension'):
         if self.legislation.param is None:
             raise Exception("you should give parameter to PensionData before to evaluate")
         dict_to_check = dict()
@@ -30,7 +30,7 @@ class PensionSimulation(object):
         P_longit = self.legislation.param_long
         yearleg = self.legislation.date.year
         #TODO: remove yearleg
-        config = {'dateleg' : yearleg, 'P': P, 'P_longit': P_longit, 'time_step': time_step, 'logger': logger}
+        config = {'dateleg' : yearleg, 'P': P, 'P_longit': P_longit, 'time_step': time_step}
         
         data = self.data
         regimes = self.legislation.regimes
@@ -96,9 +96,9 @@ class PensionSimulation(object):
             return self.pensions['tot'] # TODO: define the output : for the moment a dic with pensions by regime
         
     
-    def profile_evaluate(self, time_step='year', to_check=False, output='pension', logger=False):
+    def profile_evaluate(self, time_step='year', to_check=False, output='pension'):
         prof = cProfile.Profile()
-        result = prof.runcall(self.evaluate, *(time_step, to_check, output, logger))
+        result = prof.runcall(self.evaluate, *(time_step, to_check, output))
         #TODO: add a suffix, like yearleg : was + str(self.yearsim)
         prof.dump_stats("profile_pension" + str(self.legislation.date.liam))
         return result
