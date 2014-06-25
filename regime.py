@@ -125,6 +125,7 @@ class Regime(object):
         return pension
 
 class RegimeBase(Regime):
+    
 
     def revenu_valides(self, workstate, sali, code=None): #sali, 
         ''' Cette fonction pertmet de calculer des nombres par trimesters
@@ -189,6 +190,10 @@ class RegimeBase(Regime):
         return pension.fillna(0), trim_decote
 
 class RegimeComplementaires(Regime):
+        
+    def __init__(self):
+        Regime.__init__(self)
+        self.param_base = None
         
     def sali_for_regime(self, data):
         raise NotImplementedError

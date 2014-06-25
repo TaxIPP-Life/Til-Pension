@@ -168,7 +168,6 @@ class PensionLegislation(object):
         self.regimes = dict(
                             bases = [RegimeGeneral(), FonctionPublique(), RegimeSocialIndependants()],
                             complementaires = [ARRCO(), AGIRC()],
-                            base_to_complementaire = {'RG': ['arrco', 'agirc'], 'FP': []}
                             )
         self.date = param.date
             

@@ -12,7 +12,6 @@ class PensionSimulation(object):
         
     def __init__(self, data, legislation):
         self.data = data
-        #TODO: base_to_complementaire n'est pas vraiment de la législation
         self.legislation = legislation
         
         #adapt longitudinal parameter to data
@@ -37,11 +36,9 @@ class PensionSimulation(object):
         regimes = self.legislation.regimes
         base_regimes = regimes['bases']
         complementaire_regimes = regimes['complementaires']
-        base_to_complementaire = regimes['base_to_complementaire']
         ### get trimesters (only TimeArray with trim by year), wages (only TimeArray with wage by year) and trim_maj (only vector of majoration): 
-        
-        
         trimesters_wages = self.trimesters_wages
+        
         # 1 - Détermination des trimestres et des salaires cotisés, assimilés, avpf et majorés par régime
         if len(trimesters_wages) == 0:
             to_other = dict()
