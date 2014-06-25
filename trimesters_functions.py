@@ -135,3 +135,21 @@ def nb_trim_surcote(trim_by_year, selected_dates, date_start_surcote):
             nb_trim += trim_by_year.array[:,i]*to_keep
     return nb_trim
 
+def nb_trim_decote(trimesters, trim_maj, agem, P):
+    ''' Cette fonction renvoie le vecteur numpy du nombre de trimestres décotés 
+    Lorsque les deux règles (d'âge et de nombre de trimestres cibles) jouent
+    -> Ref : Article L351-1-2 : les bonifications de durée de services et majorations de durée d'assurance,
+    à l'exclusion de celles accordées au titre des enfants et du handicap, ne sont pas prises en compte 
+    dans la durée d'assurance tous régimes confondus pour apprécier la décote.
+    '''
+    age_annulation = array(P.decote.age_null)
+    plafond = array(P.decote.nb_trim_max)
+    n_trim = array(P.plein.n_trim)
+    trim_decote_age = divide(age_annulation - agem, 3)
+    
+    trim_tot = trimesters['tot'].sum(1) + trim_maj['enf']
+    trim_decote_cot = n_trim - trim_tot
+    assert len(trim_decote_age) == len(trim_decote_cot)
+    trim_plaf = minimum(minimum(trim_decote_age, trim_decote_cot), plafond)
+    return array(trim_plaf*(trim_plaf>0))
+

@@ -7,7 +7,7 @@ os.sys.path.insert(0,parentdir)
 from numpy import array, maximum, minimum, divide, zeros
 
 from regime import RegimeBase
-from trimesters_functions import nb_trim_surcote
+from trimesters_functions import nb_trim_surcote, nb_trim_decote
 from trimesters_functions import trim_cot_by_year_FP, nb_trim_bonif_5eme, trim_mda
 from regime import compare_destinie
 code_chomage = 5
@@ -104,8 +104,7 @@ class FonctionPublique(RegimeBase):
         P = reduce(getattr, self.param_name.split('.'), self.P)
         if P.decote.nb_trim_max !=0:
             agem = data.info_ind['agem']
-            trim_decote = self.nb_trim_decote(trimesters, trim_maj, agem)
-            P = reduce(getattr, self.param_name.split('.'), self.P)
+            trim_decote = nb_trim_decote(trimesters, trim_maj, agem, P)
             return trim_decote
         else:
             return zeros(data.info_ind.shape[0])

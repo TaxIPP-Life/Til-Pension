@@ -9,7 +9,7 @@ os.sys.path.insert(0,parentdir)
 from numpy import minimum, maximum, array, divide, multiply
 
 from regime import RegimeBase
-from trimesters_functions import nb_trim_surcote
+from trimesters_functions import nb_trim_surcote, nb_trim_decote
 from sandbox.compare.utils_compar import print_info
 
 def date_(year, month, day):
@@ -52,6 +52,23 @@ class RegimePrive(RegimeBase):
             sal_regime.array = multiply(sal_regime.array,revalo)
         salref = sal_regime.best_dates_mean(nb_best_years_to_take)
         return salref.round(2)
+    
+    def decote(self, data, trim_wage_all):
+        ''' Détermination de la décote à appliquer aux pensions '''
+        trimesters = trim_wage_all['trimesters']
+        trim_maj = trim_wage_all['maj']
+        try:
+            P = reduce(getattr, self.param_RG.split('.'), self.P)
+        except:
+            P = reduce(getattr, self.param_name.split('.'), self.P)
+        agem = data.info_ind['agem']
+        if P.decote.dispositif == 1:
+            age_annulation = P.decote.age_null
+            trim_decote = max(divide(age_annulation - agem, 3), 0)
+        elif P.decote.dispositif == 2:
+            trim_decote = nb_trim_decote(trimesters, trim_maj, agem, P)
+        return trim_decote
+    
     
     def calculate_coeff_proratisation(self, info_ind, trim_wage_regime, trim_wage_all):
         ''' Calcul du coefficient de proratisation '''

@@ -44,22 +44,6 @@ class Regime(object):
             date = DateTil(kwargs['dateleg'])
             self.dateleg = date
 
-    def decote(self, data, trim_wage_all):
-        ''' Détermination de la décote à appliquer aux pensions '''
-        trimesters = trim_wage_all['trimesters']
-        trim_maj = trim_wage_all['maj']
-        try:
-            P = reduce(getattr, self.param_RG.split('.'), self.P)
-        except:
-            P = reduce(getattr, self.param_name.split('.'), self.P)
-        agem = data.info_ind['agem']
-        if P.decote.dispositif == 1:
-            age_annulation = P.decote.age_null
-            trim_decote = max(divide(age_annulation - agem, 3), 0)
-        elif P.decote.dispositif == 2:
-            trim_decote = self.nb_trim_decote(trimesters, trim_maj, agem)
-        return trim_decote
-
     def surcote(self, data, trim_wage_regime, trim_wage_all):
         trimesters = trim_wage_all['trimesters']
         trim_maj = trim_wage_all['maj']
@@ -115,28 +99,6 @@ class Regime(object):
         # Condition sur les trimestres -> même que celle pour la surcote
         start_taux_plein_trim = self._date_start_surcote(trim_by_year_tot, trim_maj, agem)
         return minimum(start_taux_plein_age, start_taux_plein_trim)
-    
-    def nb_trim_decote(self, trimesters, trim_maj, agem):
-        ''' Cette fonction renvoie le vecteur numpy du nombre de trimestres décotés 
-        Lorsque les deux règles (d'âge et de nombre de trimestres cibles) jouent
-        -> Ref : Article L351-1-2 : les bonifications de durée de services et majorations de durée d'assurance,
-        à l'exclusion de celles accordées au titre des enfants et du handicap, ne sont pas prises en compte 
-        dans la durée d'assurance tous régimes confondus pour apprécier la décote.
-        '''
-        try:
-            P = reduce(getattr, self.param_RG.split('.'), self.P)
-        except:
-            P = reduce(getattr, self.param_name.split('.'), self.P)
-        age_annulation = array(P.decote.age_null)
-        plafond = array(P.decote.nb_trim_max)
-        n_trim = array(P.plein.n_trim)
-        trim_decote_age = divide(age_annulation - agem, 3)
-        
-        trim_tot = trimesters['tot'].sum(1) + trim_maj['enf']
-        trim_decote_cot = n_trim - trim_tot
-        assert len(trim_decote_age) == len(trim_decote_cot)
-        trim_plaf = minimum(minimum(trim_decote_age, trim_decote_cot), plafond)
-        return array(trim_plaf*(trim_plaf>0))
     
     def calculate_taux(self, decote, surcote):
         ''' Détérmination du taux de liquidation à appliquer à la pension 
@@ -198,7 +160,8 @@ class RegimeBase(Regime):
         info_ind = data.info_ind
         name = self.name
         P = reduce(getattr, self.param_name.split('.'), self.P)
-        decote = P.decote.taux*self.decote(data, trim_wage_all)
+        trim_decote = self.decote(data, trim_wage_all)
+        decote = P.decote.taux*trim_decote
         surcote = self.surcote(data, trim_wage_regime, trim_wage_all)        
         taux = self.calculate_taux(decote, surcote)
         cp = self.calculate_coeff_proratisation(info_ind, trim_wage_regime, trim_wage_all)
@@ -223,7 +186,7 @@ class RegimeBase(Regime):
             to_check['n_trim_' + name] = P.plein.n_trim / 4
             if self.name == 'RG':
                 to_check['N_CP_' + name] = P.prorat.n_trim / 4
-        return pension.fillna(0)
+        return pension.fillna(0), trim_decote
 
 class RegimeComplementaires(Regime):
         
@@ -325,9 +288,9 @@ class RegimeComplementaires(Regime):
             val_point = P.val_point_proj
         pension = self.minimum_points(nb_points_by_year)*val_point 
         P = reduce(getattr, self.param_name.split('.'), self.P)
-        decote = self.decote(data, trim_wage_all)*P.taux_decote
+        #decote = self.decote(data, trim_wage_all)*P.taux_decote
         pension = pension + self.majoration_pension(data, nb_points_by_year)   
-        pension = (1-decote)*pension
+        #pension = (1-decote)*pension
         if to_check is not None:
             to_check['nb_points_' + name] = nb_points
             to_check['coeff_age_' + name] = coeff_age
