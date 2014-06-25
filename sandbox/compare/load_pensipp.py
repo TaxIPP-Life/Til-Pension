@@ -120,5 +120,8 @@ def load_pensipp_result(pensipp_path, to_csv=False):
                                          'pliq_ag' :'pension_agirc', 'DA_rg_maj': 'DA_RG', 'taux_rg': 'taux_RG', 'pliq_fp': 'pension_FP', 'prorat_fp': 'CP_FP',
                                          'taux_fp': 'taux_FP', 'surc_fp': 'surcote_FP', 'dec_fp':'decote_FP', 'DA_fp_maj':'DA_FP', 'DA_in' : 'DA_RSI_brute', 'DA_in_maj' : 'DA_RSI',
                                          'DAcible_rg': 'n_trim_RG', 'DAcible_fp':'n_trim_FP', 'CPcible_rg':'N_CP_RG', 'sam_fp':'salref_FP'},
-                                        inplace = True)   
+                                        inplace = True)
+    if to_csv:
+        result_pensipp.to_csv(pensipp_path + 'result_pensipp.csv', sep =',')
+             
     return result_pensipp
