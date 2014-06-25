@@ -106,11 +106,11 @@ def load_pensipp_data(pensipp_path, yearsim, first_year_sal, selection_id=False)
     return data_bounded
 
 def load_pensipp_result(pensipp_path, to_csv=False):
-    import pandas.rpy.common as com
-    from rpy2 import robjects as r
     try: 
         result_pensipp = read_table(pensipp_path + 'result_pensipp.csv', sep=',', index_col=0)
     except:
+        import pandas.rpy.common as com
+        from rpy2 import robjects as r
         print(" Les données sont chargées à partir du Rdata et non du csv")
         output_pensipp = pensipp_path + 'output4.RData'
         r.r['load'](output_pensipp)

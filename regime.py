@@ -68,12 +68,14 @@ class Regime(object):
         trim_maj = trim_maj['tot']
         age_start_surcote = self._age_min_retirement(data)
         date_start_surcote = self._date_start_surcote(trim_by_year_tot, trim_maj, agem, age_start_surcote)
+        
         if self.logger and 'surcote' in self.logger.keys():
             print_info(list_vectors=[date_start_surcote, age_start_surcote],
                                     list_timearrays=[data.sali, data.workstate], 
                                     all_ident=data.info_ind.index,
                                     loglevel=self.logger['surcote'],
                                     label='surcote_' + self.name)           
+            
         return self._calculate_surcote(trim_wage_regime, trim_wage_all, date_start_surcote, agem)
     
     def _calculate_surcote(self, trimesters, date_start_surcote, age):
@@ -216,11 +218,11 @@ class RegimeBase(Regime):
             to_check['surcote_' + name] = taux_plein*surcote*(trim_regime > 0)
             to_check['CP_' + name] = cp*(trim_regime > 0)
             to_check['taux_' + name] = taux*(trim_regime>0)
-            to_check['salref_' + name] = salref
+            to_check['salref_' + name] = salref*(trim_regime>0)
             P = reduce(getattr, self.param_name.split('.'), self.P)
-            to_check['n_trim_' + name] = P.plein.n_trim // 4
+            to_check['n_trim_' + name] = P.plein.n_trim / 4
             if self.name == 'RG':
-                to_check['N_CP_' + name] = P.prorat.n_trim // 4
+                to_check['N_CP_' + name] = P.prorat.n_trim / 4
         return pension.fillna(0)
 
 class RegimeComplementaires(Regime):
