@@ -17,7 +17,7 @@ class AGIRC(RegimeComplementaires):
         self.name = 'agirc'
         self.code_regime = [4]
         self.param_name = 'prive.complementaire.agirc'
-        self.param_RG = 'prive.RG'
+        self.regime_base = 'RG'
         self.code_cadre = 4
         
     def sali_for_regime(self, data):
@@ -34,7 +34,7 @@ class ARRCO(RegimeComplementaires):
         RegimeComplementaires.__init__(self)
         self.name = 'arrco'
         self.param_name = 'prive.complementaire.arrco'
-        self.param_RG = 'prive.RG'
+        self.regime_base = 'RG'
         self.code_regime = [3,4]
         self.code_noncadre = 3
         self.code_cadre = 4
