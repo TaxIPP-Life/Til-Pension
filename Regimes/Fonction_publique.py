@@ -97,7 +97,7 @@ class FonctionPublique(RegimeBase):
             return minimum(divide(trim_regime + trim_bonif_CPCM, N_CP),1)
         return maximum(CP_5eme, CP_CPCM)
 
-    def decote(self, data, trim_wage_all):
+    def trim_decote(self, data, trim_wage_all):
         ''' Détermination de la décote à appliquer aux pensions '''
         trimesters = trim_wage_all['trimesters']
         trim_maj = trim_wage_all['maj']

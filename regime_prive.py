@@ -53,7 +53,7 @@ class RegimePrive(RegimeBase):
         salref = sal_regime.best_dates_mean(nb_best_years_to_take)
         return salref.round(2)
     
-    def decote(self, data, trim_wage_all):
+    def trim_decote(self, data, trim_wage_all):
         ''' Détermination de la décote à appliquer aux pensions '''
         trimesters = trim_wage_all['trimesters']
         trim_maj = trim_wage_all['maj']

@@ -160,7 +160,7 @@ class RegimeBase(Regime):
         info_ind = data.info_ind
         name = self.name
         P = reduce(getattr, self.param_name.split('.'), self.P)
-        trim_decote = self.decote(data, trim_wage_all)
+        trim_decote = self.trim_decote(data, trim_wage_all)
         decote = P.decote.taux*trim_decote
         surcote = self.surcote(data, trim_wage_regime, trim_wage_all)        
         taux = self.calculate_taux(decote, surcote)
