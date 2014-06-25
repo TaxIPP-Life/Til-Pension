@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from numpy import array
 from pandas import DataFrame
-from pension_functions import select_regime_base, sum_by_regime, update_all_regime
+from pension_functions import sum_by_regime, update_all_regime
 import cProfile
 
 class PensionSimulation(object):
@@ -59,17 +59,19 @@ class PensionSimulation(object):
         
         # 2 - Calcul des pensions brutes par régime (de base et complémentaire)
         pensions = self.pensions
+        trim_decote = dict()
         if len(pensions) == 0:
             for reg in base_regimes:
                 reg.set_config(**config)
-                pension_reg = reg.calculate_pension(data, trimesters_wages[reg.name], trimesters_wages['all_regime'], 
+                pension_reg, decote_reg = reg.calculate_pension(data, trimesters_wages[reg.name], trimesters_wages['all_regime'], 
                                                     dict_to_check)
+                trim_decote[reg.name] = decote_reg
                 pensions[reg.name] = pension_reg
         
             for reg in complementaire_regimes:
                 reg.set_config(**config)
-                regime_base = select_regime_base(trimesters_wages, reg.name, base_to_complementaire)
-                pension_reg = reg.calculate_pension(data, regime_base['trimesters'], trimesters_wages['all_regime'], 
+                regime_base = reg.regime_base
+                pension_reg = reg.calculate_pension(data, trimesters_wages[regime_base], trimesters_wages['all_regime'], trim_decote[regime_base],
                                                     dict_to_check)
                 pensions[reg.name] = pension_reg
                 

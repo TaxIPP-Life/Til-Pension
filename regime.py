@@ -276,7 +276,7 @@ class RegimeComplementaires(Regime):
         maj_enf = self._majoration_enf(data, nb_points_by_year)
         return maj_enf
     
-    def calculate_pension(self, data, trim_base, trim_wage_all, to_check=None):
+    def calculate_pension(self, data, trim_base, trim_wage_all, trim_decote_base, to_check=None):
         info_ind = data.info_ind
         name = self.name
         P = reduce(getattr, self.param_name.split('.'), self.P)
@@ -288,9 +288,9 @@ class RegimeComplementaires(Regime):
             val_point = P.val_point_proj
         pension = self.minimum_points(nb_points_by_year)*val_point 
         P = reduce(getattr, self.param_name.split('.'), self.P)
-        #decote = self.decote(data, trim_wage_all)*P.taux_decote
+        decote = trim_decote_base*P.taux_decote
         pension = pension + self.majoration_pension(data, nb_points_by_year)   
-        #pension = (1-decote)*pension
+        pension = (1-decote)*pension
         if to_check is not None:
             to_check['nb_points_' + name] = nb_points
             to_check['coeff_age_' + name] = coeff_age
