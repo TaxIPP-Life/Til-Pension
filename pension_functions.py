@@ -47,8 +47,3 @@ def update_all_regime(trimesters_wages, dict_to_check):
             dict_to_check['DA_' + regime] = (trimesters_wages[regime]['trimesters']['regime'].sum(1) + sum(trimesters_wages[regime]['maj'].values()))/4
     return trimesters_wages
 
-def select_regime_base(trimesters_wages, code_regime_comp, correspondance):
-    for base, comp in correspondance.iteritems():
-        if code_regime_comp in comp:
-            regime_base = base
-    return trimesters_wages[regime_base]

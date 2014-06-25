@@ -70,7 +70,7 @@ class PensionData(object):
             return PensionData(wk, sal, self.info_ind)
 
     @classmethod
-    def from_arrays(cls, workstate, sali, info_ind):
+    def from_arrays(cls, workstate, sali, info_ind, dates=None):
         if isinstance(sali, DataFrame):
             assert isinstance(workstate, DataFrame)
             try:
@@ -80,7 +80,7 @@ class PensionData(object):
                 assert len(sali) == len(info_ind)
                 sal = sali.index
                 idx = info_ind.index
-                assert all(sal[sal.isin(idx)] == idx[idx.isin(sal)])
+                assert all(sal[sal.isin(idx)] == idx[idx.isin(sal)]) #ici c'est que l'ordre change
                 print(sal[~sal.isin(idx)])
                 print(idx[~idx.isin(sal)])
                 # un décalage ?

@@ -150,9 +150,9 @@ if __name__ == '__main__':
     '''
         # 2 -- Importation du Excel ParamSociaux
     xlsxfile = pd.ExcelFile('ParamSociaux2.xls')
-    # Paramètres généraux
+    # 2.a - Paramètres généraux
     data = xlsxfile.parse('ParamGene', index_col = None, header = True)
-    dates = np.array(data['Indice Prix'].index)
+    dates = np.array(data.index)
     indice =  np.array(data['Indice Prix'])
     #from_excel_to_xml(data = indice, description = "Indice des prix", code = "ip_reval", format = "float", data_date = dates, ascendant_date = True, format_date = 'year')
     
@@ -165,6 +165,16 @@ if __name__ == '__main__':
     smpt = np.array(data['SMPT '])
     #from_excel_to_xml(data = smpt, description = "SMPT - Hypothèse d'évolution selon le scénario C du COR + inflation", code = "smpt", format = "float", data_date = dates, ascendant_date = True, format_date = 'year')
 
+    point_fp = np.array(data['Valeur point FP'])
+    #from_excel_to_xml(data=point_fp, description="Valeur du point Fonction Publique", code="point", format="float", data_date = dates, ascendant_date=True, format_date='year')
+
+    # 2.b - Régimes complémentaires
+    data = xlsxfile.parse('ParamRetrComp', index_col = None, header = True)
+    dates = np.array(data.index)
+    val_point_arrco =  np.array(data['VP UNIRS/ ARRCO en euros'])
+    #from_excel_to_xml(data = val_point_arrco, description = "Valeur du point UNIRS/ARRCO, en euros (paramètre Destinie)", code = "val_point_proj", format = "float", data_date = dates, ascendant_date = True, format_date = 'year')
+    val_point_agirc =  np.array(data['VP Agirc en euros'])
+    from_excel_to_xml(data = val_point_agirc, description = "Valeur du point AGIRC, en euros (paramètre Destinie)", code="val_point_proj", format="float", data_date=dates, ascendant_date=True, format_date='year')
         # 3 -- Importation du Excel Bareme_Emploi
     xlsxfile = pd.ExcelFile('Bareme_Emploi.xlsx')
     # Paramètres généraux

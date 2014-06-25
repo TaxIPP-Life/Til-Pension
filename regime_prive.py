@@ -6,10 +6,10 @@ import os
 parentdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.sys.path.insert(0,parentdir) 
 
-from numpy import maximum, minimum, array, divide, multiply
+from numpy import minimum, maximum, array, divide, multiply
 
 from regime import RegimeBase
-from trimesters_functions import nb_trim_surcote
+from trimesters_functions import nb_trim_surcote, nb_trim_decote
 
 def date_(year, month, day):
     return datetime.date(year, month, day)
@@ -52,6 +52,23 @@ class RegimePrive(RegimeBase):
         salref = sal_regime.best_dates_mean(nb_best_years_to_take)
         return salref.round(2)
     
+    def trim_decote(self, data, trim_wage_all):
+        ''' Détermination de la décote à appliquer aux pensions '''
+        trimesters = trim_wage_all['trimesters']
+        trim_maj = trim_wage_all['maj']
+        try:
+            P = reduce(getattr, self.param_RG.split('.'), self.P)
+        except:
+            P = reduce(getattr, self.param_name.split('.'), self.P)
+        agem = data.info_ind['agem']
+        if P.decote.dispositif == 1:
+            age_annulation = P.decote.age_null
+            trim_decote = max(divide(age_annulation - agem, 3), 0)
+        elif P.decote.dispositif == 2:
+            trim_decote = nb_trim_decote(trimesters, trim_maj, agem, P)
+        return trim_decote
+    
+    
     def calculate_coeff_proratisation(self, info_ind, trim_wage_regime, trim_wage_all):
         ''' Calcul du coefficient de proratisation '''
         
@@ -68,7 +85,7 @@ class RegimePrive(RegimeBase):
                 return trim_regime + correction
             elif P.prorat.dispositif == 2:
                 age_taux_plein = P.decote.age_null
-                trim_majo = maximum(divide(agem - age_taux_plein, 3), 0)
+                trim_majo = divide(agem - age_taux_plein, 3)*(agem > age_taux_plein)
                 elig_majo = (trim_regime < P.prorat.n_trim)
                 correction = trim_regime*P.tx_maj*trim_majo*elig_majo
                 return trim_regime + correction
@@ -85,19 +102,6 @@ class RegimePrive(RegimeBase):
             trim_regime = minimum(trim_regime, P.prorat.plaf) 
         CP = minimum(1, divide(trim_regime, P.prorat.n_trim))
         return CP
-    
-    def decote(self, data, trim_wage_all):
-        ''' Détermination de la décote à appliquer aux pensions '''
-        trimesters = trim_wage_all['trimesters']
-        trim_maj = trim_wage_all['maj']
-        P = reduce(getattr, self.param_name.split('.'), self.P)
-        agem = data.info_ind['agem']
-        if P.decote.dispositif == 1:
-            age_annulation = P.decote.age_null
-            trim_decote = max(divide(age_annulation - agem, 3), 0)
-        elif P.decote.dispositif == 2:
-            trim_decote = self.nb_trim_decote(trimesters, trim_maj, agem)
-        return array(P.decote.taux)*trim_decote
         
     def _calculate_surcote(self, trim_wage_regime, trim_wage_all, date_start_surcote, age):
         ''' Détermination de la surcote à appliquer aux pensions.'''
@@ -109,7 +113,7 @@ class RegimePrive(RegimeBase):
         # dispositif de type 0
         n_trim = P.plein.n_trim
         trim_tot = trim_by_year_tot.sum(axis=1)
-        surcote = P.surcote.dispositif0.taux*maximum(trim_tot - n_trim, 0) # = 0 après 1983
+        surcote = P.surcote.dispositif0.taux*(trim_tot - n_trim)*(trim_tot > n_trim)# = 0 après 1983
                  
         # dispositif de type 1
         if P.surcote.dispositif1.taux > 0: 
@@ -133,33 +137,34 @@ class RegimePrive(RegimeBase):
             
         return surcote  
         
-    def minimum_pension(self, trim_wages_regime, pension):
-        ''' MICO du régime général : allocation différentielle 
+    def minimum_pension(self, trim_wages_reg, trim_wages_all, pension_reg, pension_all):
+        ''' MICO du régime général : allocation différentielle
         RQ : ASPA et minimum vieillesse sont gérés par OF
-        Il est attribué quels que soient les revenus dont dispose le retraité en plus de ses pensions : loyers, revenus du capital, activité professionnelle... 
+        Il est attribué quels que soient les revenus dont dispose le retraité en plus de ses pensions : loyers, revenus du capital, activité professionnelle...
         + mécanisme de répartition si cotisations à plusieurs régimes
         TODO: coder toutes les évolutions et rebondissements 2004/2008'''
         P = reduce(getattr, self.param_name.split('.'), self.P)
         # pension_RG, pension, trim_RG, trim_cot, trim
-        trimesters = trim_wages_regime['trimesters']
+        trimesters = trim_wages_reg['trimesters']
+        trim_regime = trimesters['regime'].sum() + sum(trim_wages_reg['maj'].values())
+        coeff = minimum(1, divide(trim_regime, P.prorat.n_trim))
         if P.mico.dispositif == 0:
             # Avant le 1er janvier 1983, comparé à l'AVTS
             min_pension = self.P.common.avts
-            return maximum(0, min_pension - pension)
+            return maximum(min_pension - pension_reg,0)*coeff
         elif P.mico.dispositif == 1:
             # TODO: Voir comment gérer la limite de cumul relativement complexe (Doc n°5 du COR)
-            trim_regime = trimesters['regime'].sum() + trimesters['maj'].sum()
             mico = P.mico.entier
-            return  maximum(0, mico - pension)*minimum(1, divide(trim_regime, P.prorat.n_trim))
+            return maximum(mico - pension_reg,0)*coeff
         elif P.mico.dispositif == 2:
             # A partir du 1er janvier 2004 les périodes cotisées interviennent (+ dispositif transitoire de 2004)
             nb_trim = P.prorat.n_trim
-            trim_regime = trimesters['regime'].sum() + sum(trim_wages_regime['maj'].values())
+            trim_regime = trimesters['regime'].sum() #+ sum(trim_wages_regime['maj'].values())
             trim_cot_regime = sum(trimesters[key].sum() for key in trimesters.keys() if 'cot' in key)
             mico_entier = P.mico.entier*minimum(divide(trim_regime, nb_trim), 1)
             maj = (P.mico.entier_maj - P.mico.entier)*divide(trim_cot_regime, nb_trim)
             mico = mico_entier + maj*(trim_cot_regime >= P.mico.trim_min)
-            return maximum(0, mico - pension)
+            return (mico - pension_reg)*(mico > pension_reg)*(pension_reg>0)
 
         
     def plafond_pension(self, pension_brute, salref, cp, surcote):
@@ -171,4 +176,4 @@ class RegimePrive(RegimeBase):
         taux_PSS = P.plafond
         pension_surcote_RG = taux_plein*salref*cp*surcote
         return minimum(pension_brute - pension_surcote_RG, taux_PSS*PSS) + pension_surcote_RG
-        
+

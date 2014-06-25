@@ -4,7 +4,7 @@ import os
 parentdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.sys.path.insert(0,parentdir) 
 
-from numpy import maximum, minimum, divide
+from numpy import minimum, maximum, multiply
 from regime import RegimeComplementaires, compare_destinie
 
 
@@ -17,7 +17,7 @@ class AGIRC(RegimeComplementaires):
         self.name = 'agirc'
         self.code_regime = [4]
         self.param_name = 'prive.complementaire.agirc'
-        self.param_RG = 'prive.RG'
+        self.regime_base = 'RG'
         self.code_cadre = 4
         
     def sali_for_regime(self, data):
@@ -25,9 +25,6 @@ class AGIRC(RegimeComplementaires):
         sali = data.sali
         return sali.array*(workstate.isin(self.code_regime).array)
         
-    def majoration_pension(self, data, nb_points, coeff_age):
-        maj_enf = self._majoration_enf(data, nb_points, coeff_age)
-        return maj_enf
         
 
 class ARRCO(RegimeComplementaires):
@@ -37,7 +34,7 @@ class ARRCO(RegimeComplementaires):
         RegimeComplementaires.__init__(self)
         self.name = 'arrco'
         self.param_name = 'prive.complementaire.arrco'
-        self.param_RG = 'prive.RG'
+        self.regime_base = 'RG'
         self.code_regime = [3,4]
         self.code_noncadre = 3
         self.code_cadre = 4
@@ -54,11 +51,3 @@ class ARRCO(RegimeComplementaires):
         plaf_sali = minimum(sali, nb_pss*plaf_ss)
         return sali*noncadre_selection + plaf_sali*cadre_selection
         
-    def majoration_pension(self, data, nb_points, coeff_age):
-        P = reduce(getattr, self.param_name.split('.'), self.P)
-        maj_enf = self._majoration_enf(data, nb_points, coeff_age)
-        yearnaiss =  [date.year for date in data.info_ind['naiss']]
-        if P.maj_enf.application_plaf == 1:
-            plafond = P.maj_enf.plaf_pac
-            majo_pac = minimum(maj_enf[(yearnaiss <= 1951)], plafond)
-        return maj_enf

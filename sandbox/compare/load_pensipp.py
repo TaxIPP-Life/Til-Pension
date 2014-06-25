@@ -4,7 +4,7 @@ import datetime
 from pandas import read_table
 
 from CONFIG_compare import pensipp_comparison_path
-from utils_compar import calculate_age, count_enf_born, count_enf_pac
+from utils_compar import calculate_age, count_enf_born, count_enf_pac, count_enf_by_year
 from pension_data import PensionData
 
 
@@ -86,32 +86,39 @@ def load_pensipp_data(pensipp_path, yearsim, first_year_sal, selection_id=False)
     ix_selected = [int(ident) - 1 for ident in id_selected]
     sali = salaire.iloc[ix_selected, :]
     workstate = statut.iloc[ix_selected, :]
-    info_child = _child_by_age(info_child, yearsim, id_selected)
-    nb_pac = count_enf_pac(info_child, info.index)
-    nb_enf = count_enf_born(info_child, info.index)
+    info_child_ = _child_by_age(info_child, yearsim, id_selected)
+    nb_pac = count_enf_pac(info_child_, info.index)
     info_ind = info.iloc[ix_selected,:]
     info_ind.loc[:,'nb_pac'] = nb_pac
-    info_ind.loc[:,'nb_born'] = nb_enf
     data = PensionData.from_arrays(workstate, sali, info_ind)
     data_bounded = data.selected_dates(first=first_year_sal, last=yearsim)
+    # TODO: commun declaration for codes and names regimes : Déclaration inapte (mais adapté à Taxipp)
+    dict_regime = {'FP': [5,6], 'RG': [3,4,1,2,9,8,0], 'RSI':[7]} #On met les inactifs/chomeurs/avpf ou préretraité au RG
+    array_enf = count_enf_by_year(data_bounded, info_child)
+    nb_enf_all = 0
+    for name_reg, code_reg in dict_regime.iteritems():
+        nb_enf_regime = (array_enf*data_bounded.workstate.isin(code_reg).array).sum(1)
+        data_bounded.info_ind['nb_enf_' + name_reg] = nb_enf_regime
+        nb_enf_all += nb_enf_regime
+    info_ind.loc[:,'nb_enf'] = nb_enf_all
+    #print sum(nb_enf_all -  info_ind.loc[:,'nb_born'])
+    #print info_ind.loc[15478, ['nb_born', 'nb_enf', 'nb_enf_RG', 'nb_enf_FP', 'nb_enf_RSI']]
     return data_bounded
 
 def load_pensipp_result(pensipp_path, to_csv=False):
-    import pandas.rpy.common as com
-    from rpy2 import robjects as r
     try: 
         result_pensipp = read_table(pensipp_path + 'result_pensipp.csv', sep=',', index_col=0)
     except:
+        import pandas.rpy.common as com
+        from rpy2 import robjects as r
         print(" Les données sont chargées à partir du Rdata et non du csv")
-        output_pensipp = pensipp_path + 'output2.RData'
+        output_pensipp = pensipp_path + 'output4.RData'
         r.r['load'](output_pensipp)
         result_pensipp = com.load_data('output1')
-        result_pensipp.rename(columns= {'dec': 'decote_RG', 'surc': 'surcote_RG', 'taux': 'taux_RG', 'sam':'salref_RG', 'pliq_rg': 'pension_RG',
-                                         'prorat' : 'CP_RG', 'pts_ar' : 'nb_points_arrco', 'pts_ag' : 'nb_points_agirc', 'pliq_ar' :'pension_arrco',
-                                         'pliq_ag' :'pension_agirc', 'DA_rg_maj': 'DA_RG', 'taux_rg': 'taux_RG', 'pliq_fp': 'pension_FP',
-                                         'taux_fp': 'taux_FP', 'DA_fp_maj':'DA_FP', 'DA_in' : 'DA_RSI_brute', 'DA_in_maj' : 'DA_RSI',
-                                         'DAcible_rg': 'n_trim_RG', 'DAcible_fp':'n_trim_FP', 'CPcible_rg':'N_CP_RG'},
+        result_pensipp.rename(columns= {'dec_rg': 'decote_RG', 'surc_rg': 'surcote_RG', 'taux': 'taux_RG', 'sam_rg':'salref_RG', 'pliq_rg': 'pension_RG',
+                                         'prorat_rg' : 'CP_RG', 'pts_ar' : 'nb_points_arrco', 'pts_ag' : 'nb_points_agirc', 'pliq_ar' :'pension_arrco',
+                                         'pliq_ag' :'pension_agirc', 'DA_rg_maj': 'DA_RG', 'taux_rg': 'taux_RG', 'pliq_fp': 'pension_FP', 'prorat_fp': 'CP_FP',
+                                         'taux_fp': 'taux_FP', 'surc_fp': 'surcote_FP', 'dec_fp':'decote_FP', 'DA_fp_maj':'DA_FP', 'DA_in' : 'DA_RSI_brute', 'DA_in_maj' : 'DA_RSI',
+                                         'DAcible_rg': 'n_trim_RG', 'DAcible_fp':'n_trim_FP', 'CPcible_rg':'N_CP_RG', 'sam_fp':'salref_FP'},
                                         inplace = True)   
-    if to_csv:
-        result_pensipp.to_csv(pensipp_path + 'result_pensipp.csv', sep =',')
     return result_pensipp
