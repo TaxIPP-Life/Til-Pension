@@ -12,7 +12,6 @@ from Param import legislations_add_pension as legislations
 from Param import legislationsxml_add_pension as  legislationsxml
 from openfisca_core import conv
 
-from France.dates_start import dates_start
 from Regimes.Fonction_publique import FonctionPublique
 from Regimes.Regimes_complementaires_prive import AGIRC, ARRCO
 from Regimes.Regimes_prives import RegimeGeneral, RegimeSocialIndependants
