@@ -10,6 +10,7 @@ from numpy import minimum, maximum, array, divide, multiply
 
 from regime import RegimeBase
 from trimesters_functions import nb_trim_surcote, nb_trim_decote
+from sandbox.compare.print_decorator import intermediate_print
 
 def date_(year, month, day):
     return datetime.date(year, month, day)
@@ -68,7 +69,7 @@ class RegimePrive(RegimeBase):
             trim_decote = nb_trim_decote(trimesters, trim_maj, agem, P)
         return trim_decote
     
-    
+    @intermediate_print
     def calculate_coeff_proratisation(self, info_ind, trim_wage_regime, trim_wage_all):
         ''' Calcul du coefficient de proratisation '''
         
