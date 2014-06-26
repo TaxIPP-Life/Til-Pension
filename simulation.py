@@ -21,7 +21,22 @@ class PensionSimulation(object):
         
         self.trimesters_wages = dict()
         self.pensions = dict()
+        self.check()
         
+    def check(self):
+        ''' Cette fonction vérifie que le data d'entrée comporte toute l'information nécessaire au
+        lancement d'une simulation'''
+        info_ind = self.data.info_ind
+        var_info_ind = ['agem', 'sexe', 'tauxprime', 'naiss']
+        regime_base_names = [ regime.name for regime in self.legislation.regimes['bases']]
+        for regime_name in regime_base_names:
+            var_info_ind.append('nb_enf_' + regime_name)
+        for var in var_info_ind:
+            if var not in info_ind.columns:
+                print("La variable {} doit être renseignée dans info_ind pour que la simulation puisse tourner, \n seules {} sont connues").format(var, info_ind.columns)
+                import pdb
+                pdb.set_trace()
+                
     def evaluate(self, time_step='year', to_check=False, output='pension'):
         if self.legislation.param is None:
             raise Exception("you should give parameter to PensionData before to evaluate")
