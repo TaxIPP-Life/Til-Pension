@@ -1520,6 +1520,9 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 	  </VALBYTRANCHES>
 	  </NODE>
 	  <NODE description="Surcote à appliquer en majoration du taux plein" code="surcote">
+	  	<CODE description="Existence d'un dispositif de surcote dans le régime" code="exist" format="integer">
+			 <VALUE valeur="1" deb="1945-01-01" fin="2100-12-31"/>
+		 </CODE>
 	     <NODE description="Dispositif 0: trimestre au-delà du taux plein" code="dispositif0">
 		   <CODE description="Coefficient de majoration à appliquer au taux plein pour les trimestres" code="taux" format="percent">
 			 <VALUE valeur="0.025" deb="1946-01-01" fin="1982-12-31"/>
@@ -3622,6 +3625,10 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 		<VALUE valeur=".80" deb="1949-01-01" fin="2100-12-31"/>
 	 </CODE>
 	<NODE description="Surcote de la fonction publique" code="surcote"> 
+		<CODE description="Existence d'un dispositif de surcote dans le régime" code="exist" format="integer">
+			 <VALUE valeur="0" deb="1945-01-01" fin="2003-12-31"/>
+			 <VALUE valeur="1" deb="2004-01-01" fin="2100-12-31"/>
+		 </CODE>
 	   	<CODE description="Taux surcote par trimestre supplémentaire" code="taux" format="percent">
 	   		<VALUE valeur="0.0" deb="1945-01-01" fin="2003-12-31"/>
 	   		<VALUE valeur="0.0075" deb="2004-01-01" fin="2008-12-31"/>

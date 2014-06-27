@@ -60,34 +60,52 @@ class Regime(object):
         ''' Détermine la date individuelle a partir de laquelle on atteint la surcote
         (a atteint l'âge légal de départ en retraite + côtisé le nombre de trimestres cible)
         Rq : pour l'instant on pourrait ne renvoyer que l'année'''
+        
         #TODO: do something better with datesim
         datesim = self.dateleg.liam
         P = reduce(getattr, self.param_name.split('.'), self.P)
-        n_trim = array(P.plein.n_trim)
-        cumul_trim = trim_by_year_tot.array.cumsum(axis=1)
-        trim_limit = array((n_trim - nan_to_num(trim_maj)))
-        years_surcote_trim = greater(cumul_trim.T,trim_limit)
-        nb_years_surcote_trim = years_surcote_trim.sum(axis=0)
-        start_surcote = [int(datesim - year_surcote*100)
-                            if month_trim > 0 else 2100*100 + 1
-                            for year_surcote, month_trim in zip(nb_years_surcote_trim, agem - age_start_surcote)]
-        return start_surcote
+        if P.surcote.exist == 0:
+            # Si pas de dispositif de surcote
+            return [2100*100 + 1]*len(trim_maj)
+        else:
+            # 1. Construction de la matrice des booléens indiquant si l'année est surcotée selon critère trimestres
+            n_trim = array(P.plein.n_trim)
+            cumul_trim = trim_by_year_tot.array.cumsum(axis=1)
+            trim_limit = array((n_trim - nan_to_num(trim_maj)))
+            years_surcote_trim = greater(cumul_trim.T,trim_limit).T
+            nb_years = years_surcote_trim.shape[1]
+            
+            # 2. Construction de la matrice des booléens indiquant si l'année est surcotée selon critère âge
+            age_by_year = array([array(agem) - 12*i for i in reversed(range(nb_years))])
+            years_surcote_age =  greater(age_by_year, array(age_start_surcote)).T
+            
+            # 3. Décompte du nombre d'années répondant aux deux critères
+            years_surcote = years_surcote_trim*years_surcote_age
+            nb_years_surcote = years_surcote.sum(axis=1)
+            start_surcote = [datesim - nb_years*100 
+                             if nb_years > 0 else 2100*100 + 1
+                             for nb_years in nb_years_surcote]
+
+            return start_surcote
 
     
-    def _date_start_taux_plein(self, trim_by_year_tot, trim_maj, agem):
+    def date_start_taux_plein(self, data, trim_wage_all):
         ''' Détermine la date individuelle a partir de laquelle on atteint le taux plein
         condition date_surcote ou si atteint l'âge du taux plein
         Rq : pour l'instant on pourrait ne renvoyer que l'année'''
+        agem = data.info_ind['agem']
         datesim = self.dateleg.liam
-        P = reduce(getattr, self.param_name.split('.'), self.P)
-        age_taux_plein = P.decote.age_null
+        age_taux_plein = self.age_annulation_decote(data)
         
+        trim_by_year = trim_wage_all['trimesters']['tot']
+        trim_maj = trim_wage_all['maj']['tot']
         # Condition sur l'âge -> automatique si on atteint l'âge du taux plein
         start_taux_plein_age = [ int(datesim - months//12*100 - months%12)
-                                if months> 0 else 2100*100 + 1
-                                for months in (agem - age_taux_plein) ]
-        # Condition sur les trimestres -> même que celle pour la surcote
-        start_taux_plein_trim = self._date_start_surcote(trim_by_year_tot, trim_maj, agem)
+                                if months> 0 else 2100*100 + 1 
+                                for months in (agem - age_taux_plein.replace(0,999)) ]
+        # Condition sur les trimestres -> même que celle pour la surcote 
+        age_start_surcote = self._age_min_retirement(data)
+        start_taux_plein_trim = self._date_start_surcote(trim_by_year, trim_maj, agem, age_start_surcote)
         return minimum(start_taux_plein_age, start_taux_plein_trim)
     
     def calculate_taux(self, decote, surcote):
@@ -96,6 +114,7 @@ class Regime(object):
             _surcote and _decote are called
             _date_start_surcote is a general method helping surcote
             '''
+        
         P = reduce(getattr, self.param_name.split('.'), self.P)
         return P.plein.taux*(1 - decote + surcote)
     
