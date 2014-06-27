@@ -100,12 +100,12 @@ class FonctionPublique(RegimeBase):
     def age_annulation_decote(self, data):
         ''' Détermination de l'âge d'annulation de la décote '''
         P = reduce(getattr, self.param_name.split('.'), self.P)
-        age_max = self._build_age_max(data)
+        
         if P.decote.taux == 0:
             # le dispositif n'existe pas encore
-            print age_max
-            return age_max
+            return self._age_min_retirement(data)
         else:
+            age_max = self._build_age_max(data)
             return maximum(age_max - P.decote.age_null,0).replace(0,999)
     
     def trim_decote(self, data, trim_wage_all):
