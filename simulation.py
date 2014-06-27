@@ -66,8 +66,17 @@ class PensionSimulation(object):
             trimesters_wages = sum_by_regime(trimesters_wages, to_other)
             trimesters_wages = update_all_regime(trimesters_wages, dict_to_check)
             self.trimesters_wages = trimesters_wages
+            
         if output == 'trimesters_wages':
             return self.trimesters_wages
+        
+        if output == 'dates_taux_plein':
+            dates_taux_plein = dict()
+            for reg in base_regimes:
+                reg.set_config(**config)
+                date_taux_plein = reg.date_start_taux_plein(data, trimesters_wages['all_regime'])
+                dates_taux_plein[reg.name] = date_taux_plein
+            return dates_taux_plein
         
         # 2 - Calcul des pensions brutes par régime (de base et complémentaire)
         pensions = self.pensions
