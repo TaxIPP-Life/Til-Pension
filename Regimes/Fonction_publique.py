@@ -96,7 +96,18 @@ class FonctionPublique(RegimeBase):
         if compare_destinie == True:
             return minimum(divide(trim_regime + trim_bonif_CPCM, N_CP),1)
         return maximum(CP_5eme, CP_CPCM)
-
+    
+    def age_annulation_decote(self, data):
+        ''' Détermination de l'âge d'annulation de la décote '''
+        P = reduce(getattr, self.param_name.split('.'), self.P)
+        age_max = self._build_age_max(data)
+        if P.decote.taux == 0:
+            # le dispositif n'existe pas encore
+            print age_max
+            return age_max
+        else:
+            return maximum(age_max - P.decote.age_null,0).replace(0,999)
+    
     def trim_decote(self, data, trim_wage_all):
         ''' Détermination de la décote à appliquer aux pensions '''
         trimesters = trim_wage_all['trimesters']

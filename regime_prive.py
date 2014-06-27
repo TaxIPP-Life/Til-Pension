@@ -21,7 +21,7 @@ class RegimePrive(RegimeBase):
         self.param_name = 'prive.RG' #TODO: move P.prive.RG used in the subclass RegimePrive in P.prive
         self.param_name_bis = None
 
-    def _age_min_retirement(self, workstate=None):
+    def _age_min_retirement(self, data=None):
         P = reduce(getattr, self.param_name.split('.'), self.P)
         return P.age_min
     
@@ -56,10 +56,7 @@ class RegimePrive(RegimeBase):
         ''' Détermination de la décote à appliquer aux pensions '''
         trimesters = trim_wage_all['trimesters']
         trim_maj = trim_wage_all['maj']
-        try:
-            P = reduce(getattr, self.param_RG.split('.'), self.P)
-        except:
-            P = reduce(getattr, self.param_name.split('.'), self.P)
+        P = reduce(getattr, self.param_name.split('.'), self.P)
         agem = data.info_ind['agem']
         if P.decote.dispositif == 1:
             age_annulation = P.decote.age_null
@@ -68,7 +65,11 @@ class RegimePrive(RegimeBase):
             trim_decote = nb_trim_decote(trimesters, trim_maj, agem, P)
         return trim_decote
     
-    
+    def age_annulation_decote(self, data):
+        ''' Détermination de l'âge d'annularion de la décote '''
+        P = reduce(getattr, self.param_name.split('.'), self.P)
+        return P.decote.age_null
+        
     def calculate_coeff_proratisation(self, info_ind, trim_wage_regime, trim_wage_all):
         ''' Calcul du coefficient de proratisation '''
         
