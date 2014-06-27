@@ -76,6 +76,7 @@ class PensionSimulation(object):
                 reg.set_config(**config)
                 date_taux_plein = reg.date_start_taux_plein(data, trimesters_wages['all_regime'])
                 dates_taux_plein[reg.name] = date_taux_plein
+            dates_taux_plein['index'] = data.info_ind.index
             return dates_taux_plein
         
         # 2 - Calcul des pensions brutes par régime (de base et complémentaire)
