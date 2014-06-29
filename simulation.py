@@ -42,8 +42,24 @@ class PensionSimulation(object):
             if to_print[2]:
                 select = Series(range(len(index)), index=index)
                 idx_to_print = select.loc[to_print[1]].values
+        
+        def update_methods(reg):
+            ''' la methode pour modifier les méthodes du régime reg si:
+                 - le regime est dans la liste
+                 - pour les méthodes de la listes
+            '''
+            if methods_to_look_into is None:
+                pass
+            # change les méthodes que l'on veut voir afficher
+            if reg.name in methods_to_look_into:
+                methods_to_look = methods_to_look_into[reg.name]
+                for method in methods_to_look:
+                    method_init = reg.__getattribute__(method)
+                    new_method = AddPrint(idx_to_print)(method_init)
+                    reg.__setattr__(method, new_method)
+            return reg
 
-        self.index = index
+#         self.index = index
         
         dict_to_check = dict()
         P = self.legislation.param
@@ -64,14 +80,7 @@ class PensionSimulation(object):
             to_other = dict()
             for reg in base_regimes:
                 reg.set_config(**config)
-                if methods_to_look_into is not None:
-                    # change les méthodes que l'on veut voir afficher
-                    if reg.name in methods_to_look_into:
-                        methods_to_look = methods_to_look_into[reg.name]
-                        for method in methods_to_look:
-                            method_init = reg.__getattribute__(method)
-                            new_method = AddPrint(idx_to_print)(method_init)
-                            reg.__setattr__(method, new_method)
+                reg = update_methods(reg)
                 trimesters_wages_regime, to_other_regime = reg.get_trimesters_wages(data)
                 trimesters_wages[reg.name] = trimesters_wages_regime
                 to_other.update(to_other_regime)
@@ -88,6 +97,7 @@ class PensionSimulation(object):
         if len(pensions) == 0:
             for reg in base_regimes:
                 reg.set_config(**config)
+                reg = update_methods(reg)
                 pension_reg, decote_reg = reg.calculate_pension(data, trimesters_wages[reg.name], trimesters_wages['all_regime'], 
                                                     dict_to_check)
                 trim_decote[reg.name] = decote_reg
@@ -95,6 +105,7 @@ class PensionSimulation(object):
         
             for reg in complementaire_regimes:
                 reg.set_config(**config)
+                reg = update_methods(reg)
                 regime_base = reg.regime_base
                 pension_reg = reg.calculate_pension(data, trimesters_wages[regime_base], trimesters_wages['all_regime'], trim_decote[regime_base],
                                                     dict_to_check)

@@ -33,7 +33,10 @@ def _to_print(key, val, selection, cache, intermediate=False):
             cache.append(key)
         elif isinstance(val, ndarray):
             #It has to be a vetor, numpy matrix should be timearrays
-            print "    - Le vecteur {} {} vaut: \n {}".format(key, add_print, val[selection])
+            try:
+                print "    - Le vecteur {} {} vaut: \n {}".format(key, add_print, val[selection]) #only for parameter ?
+            except:
+                pass
         elif isinstance(val, Series):
             if selection is None:
                 selection = range(len(val))
