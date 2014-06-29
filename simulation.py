@@ -3,17 +3,9 @@ from numpy import array
 from pandas import DataFrame
 from pension_functions import sum_by_regime, update_all_regime
 from sandbox.compare.print_decorator import PrintDecorator
+from add_print import AddPrint
 
 import cProfile
-
-def print_args(bool, list_id=None):
-    def _print_args(fn):
-        def caller(*args, **kw):
-            if bool:
-                print args
-            return fn(*args, **kw)
-        return caller
-    return _print_args
 
 class PensionSimulation(object):
     ''' class qui permet de simuler un système de retraite :
@@ -42,6 +34,9 @@ class PensionSimulation(object):
     def evaluate(self, time_step='year', to_check=False, output='pension'):
         if self.legislation.param is None:
             raise Exception("you should give parameter to PensionData before to evaluate")
+        
+        look_into = {'FP' : {'calculate_coeff_proratisation': True}} 
+        
         dict_to_check = dict()
         P = self.legislation.param
         P_longit = self.legislation.param_long
@@ -61,6 +56,12 @@ class PensionSimulation(object):
             to_other = dict()
             for reg in base_regimes:
                 reg.set_config(**config)
+                if reg.name in look_into:
+                    methods_to_look = look_into[reg.name]
+                    for method in methods_to_look:
+                        method_init = reg.__getattribute__(method)
+                        new_method = AddPrint(None)(method_init)
+                        reg.__setattr__(method, new_method)
                 trimesters_wages_regime, to_other_regime = reg.get_trimesters_wages(data)
                 trimesters_wages[reg.name] = trimesters_wages_regime
                 to_other.update(to_other_regime)

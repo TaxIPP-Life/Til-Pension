@@ -1,10 +1,17 @@
 # -*- coding: utf-8 -*-
+
+''' crée une fonction qui sert en fait de décorteur : 
+        - elle prend comme argument une fonction
+        - elle retourne une fonctino
+        - la différence entre l'entrée et la sortie c'est que 
+    la fonction de sortie affiche ses arguments (pour une liste 
+    d'indice donnée)
+'''
+
 import sys
 from pandas import DataFrame, Series
 from numpy import ndarray
 from time_array import TimeArray
-from load_pensipp import load_pensipp_data
-from CONFIG_compare import pensipp_comparison_path
 
 def _to_print(key, val, selection, cache, intermediate=False):
     add_print = 'qui'
@@ -18,6 +25,8 @@ def _to_print(key, val, selection, cache, intermediate=False):
             for child_key, child_val in val.iteritems():
                 _to_print(child_key, child_val, selection, cache)
         elif isinstance(val, DataFrame):
+            if selection is None:
+                selection = range(len(val))
             print "    - La table pandas {} {} vaut: \n{}".format(key, add_print, val.iloc[selection,:].to_string())
             cache.append(key)
         elif isinstance(val, TimeArray):
@@ -29,15 +38,18 @@ def _to_print(key, val, selection, cache, intermediate=False):
 #             val_print = Series(val, index=selection).to_string()
             print "    - Le vecteur {} {} vaut: \n {}".format(key, add_print, val[selection])
         elif isinstance(val, Series):
+            if selection is None:
+                selection = range(len(val))
             print "    - Le vecteur {} {} vaut: \n {}".format(key, add_print, val[selection].to_string())
         else:
             if key != 'self':
                 print "    - L'objet {}".format(key)
             #cache.append(key) : probleme 
-        return cache      
+        return cache     
 
-class PrintDecorator(object):
-    def __init__(self, print_level, selection, index=None):
+
+class AddPrint(object):
+    def __init__(self, selection, index=None):
         ''' 
         - print_level : TODO
         doit mémoriser 
@@ -47,7 +59,6 @@ class PrintDecorator(object):
         '''
            
         self._locals = {}
-        self.print_level = print_level
         self.selection = selection
         
         if index is not None:
@@ -80,37 +91,17 @@ class PrintDecorator(object):
             return res
         
         def wrapper(*args, **kwargs):
-            if fname in self.print_level.keys() and self.print_level[fname]:
-                print "Pour la fonction {}, les arguments appelés sont : ".format(fname)
-                arg_name = ''
-                args_names = []
+            print "Pour la fonction {}, les arguments appelés sont : ".format(fname)
+            arg_name = ''
+            args_names = []
 
-                for arg in args:
-                    if hasattr(arg, 'name'): 
-                        arg_name = arg.name
-                        args_names.append(arg_name)
-                    if hasattr(arg, '__name__'): 
-                        arg_name = arg.__name__
-                        args_names.append(arg_name)
-                    self.cache = _to_print(arg_name, arg, self.selection, self.cache,)
-                return call_func(*args,**kwargs)
-            else:
-                return func(*args, **kwargs)        
+            for arg in args:
+                if hasattr(arg, 'name'): 
+                    arg_name = arg.name
+                    args_names.append(arg_name)
+                if hasattr(arg, '__name__'): 
+                    arg_name = arg.__name__
+                    args_names.append(arg_name)
+                self.cache = _to_print(arg_name, arg, self.selection, self.cache,)
+            return call_func(*args,**kwargs)      
         return wrapper
-
-if __name__ == '__main__':
-        
-    print_level = {'is_sum_lt_prod': True}
-    test = PrintDecorator(print_level)
-    print_level = {'calculate_coeff_proratisation': True}
-    intermediate_print = PrintDecorator(print_level)
-    @test
-    def is_sum_lt_prod(a,b,c):
-        sum = a+b+c
-        prod = a*b*c
-        return prod/sum
-    
-    print_level = {'is_sum_lt_prod': True}
-    
-    test = is_sum_lt_prod(13,7,4)
-    print test
