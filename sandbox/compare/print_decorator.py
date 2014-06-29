@@ -6,48 +6,57 @@ from time_array import TimeArray
 from load_pensipp import load_pensipp_data
 from CONFIG_compare import pensipp_comparison_path
 
-def _to_print(key, val, index, cache, intermediate=False):
+def _to_print(key, val, selection, cache, intermediate=False):
     add_print = 'qui'
     if key in cache:
         return cache
     else:
+        print selection
         if intermediate:
             add_print = "est également appelé(e)/calculé(e) au cours du calcul et"
         if isinstance(val, dict):
             for child_key, child_val in val.iteritems():
-                _to_print(child_key, child_val, index, cache)
+                _to_print(child_key, child_val, selection, cache)
         elif isinstance(val, DataFrame):
-            print "    - La table pandas {} {} vaut: \n{}".format(key, add_print, val.to_string())
+            print "    - La table pandas {} {} vaut: \n{}".format(key, add_print, val.iloc[selection,:].to_string())
             cache.append(key)
-        elif isinstance(val,TimeArray):
-            val_print = DataFrame(val.array, index=index, columns=val.dates).to_string()
-            print "    - Le TimeArray {} {} vaut: \n{}".format(key, add_print, val_print)
+        elif isinstance(val, TimeArray):
+#             val_print = DataFrame(val.array, index=selection, columns=val.dates).to_string()
+            print "    - Le TimeArray {} {} vaut: \n{}".format(key, add_print, val.array[selection,:])
             cache.append(key)
         elif isinstance(val, ndarray):
             #It has to be a vetor, numpy matrix should be timearrays
-            val_print = Series(val, index=index).to_string()
-            print "    - Le vecteur {} {} vaut: \n {}".format(key, add_print, val_print)
-        elif isinstance(val,Series):
-            print "    - Le vecteur {} {} vaut: \n {}".format(key, add_print, val.to_string())
+#             val_print = Series(val, index=selection).to_string()
+            print "    - Le vecteur {} {} vaut: \n {}".format(key, add_print, val[selection])
+        elif isinstance(val, Series):
+            print "    - Le vecteur {} {} vaut: \n {}".format(key, add_print, val[selection].to_string())
         else:
             if key != 'self':
                 print "    - L'objet {}".format(key)
             #cache.append(key) : probleme 
-        return cache
+        return cache      
 
-def prep_to_print(yearsim, print_level, selection_id=None, first_year_sal=1949):
-    data_to_print = load_pensipp_data(pensipp_comparison_path,
-                                     yearsim, 
-                                     first_year_sal=first_year_sal, 
-                                     selection_id = selection_id)
-    intermediate_print = print_decorator(print_level, index=data_to_print.info_ind.index)
-    return data_to_print, intermediate_print
-      
-
-class print_decorator(object):
-    def __init__(self, print_level, index):
+class PrintDecorator(object):
+    def __init__(self, print_level, selection, index=None):
+        ''' 
+        - print_level : TODO
+        doit mémoriser 
+        on a besoin du len_data pour les valeurs par défaut
+        - selection est pour la liste de lignes à afficher
+        - si index est rempli alors la selection s'exprime en indice
+        '''
+           
         self._locals = {}
         self.print_level = print_level
+        self.selection = selection
+        
+        if index is not None:
+            assert isinstance(index, list)
+            sel = []
+            for idx in selection:
+                sel += [index.index(idx)] 
+            self.selection = sel
+
         self.index = index
         self.cache = []
 
@@ -67,7 +76,7 @@ class print_decorator(object):
                 # disable tracer and replace with old one
                 sys.setprofile(None)
             for key, val in self._locals.iteritems():
-                self.cache = _to_print(key, val, self.index, self.cache, intermediate=True)
+                self.cache = _to_print(key, val, self.selection, self.cache, intermediate=True)
             return res
         
         def wrapper(*args, **kwargs):
@@ -83,24 +92,18 @@ class print_decorator(object):
                     if hasattr(arg, '__name__'): 
                         arg_name = arg.__name__
                         args_names.append(arg_name)
-                    self.cache = _to_print(arg_name, arg, self.index, self.cache,)
+                    self.cache = _to_print(arg_name, arg, self.selection, self.cache,)
                 return call_func(*args,**kwargs)
             else:
                 return func(*args, **kwargs)        
         return wrapper
-    
-    
-yearsim = 2004
-selection_id =  [186,7338]
-func_to_print = {'calculate_coeff_proratisation': True}
-data_to_print, intermediate_print = prep_to_print(yearsim, func_to_print, selection_id=selection_id, first_year_sal=1949)
 
 if __name__ == '__main__':
         
     print_level = {'is_sum_lt_prod': True}
-    test = print_decorator(print_level)
+    test = PrintDecorator(print_level)
     print_level = {'calculate_coeff_proratisation': True}
-    intermediate_print = print_decorator(print_level)
+    intermediate_print = PrintDecorator(print_level)
     @test
     def is_sum_lt_prod(a,b,c):
         sum = a+b+c

@@ -2,6 +2,8 @@
 from numpy import array
 from pandas import DataFrame
 from pension_functions import sum_by_regime, update_all_regime
+from sandbox.compare.print_decorator import PrintDecorator
+
 import cProfile
 
 def print_args(bool, list_id=None):
@@ -30,6 +32,12 @@ class PensionSimulation(object):
         
         self.trimesters_wages = dict()
         self.pensions = dict()
+    
+    @staticmethod
+    def intermediate_print():
+#         index = self.data.info_ind.index
+#         tout = range(len(index))
+        return PrintDecorator(func_to_print, selection=[4,8])
         
     def evaluate(self, time_step='year', to_check=False, output='pension'):
         if self.legislation.param is None:
@@ -103,7 +111,7 @@ class PensionSimulation(object):
             return DataFrame(output, index = self.data.info_ind.index)
         else:
             return self.pensions['tot'] # TODO: define the output : for the moment a dic with pensions by regime
-        
+
     
     def profile_evaluate(self, time_step='year', to_check=False, output='pension'):
         prof = cProfile.Profile()
@@ -112,3 +120,9 @@ class PensionSimulation(object):
         prof.dump_stats("profile_pension" + str(self.legislation.date.liam))
         return result
         
+    
+    
+yearsim = 2004
+selection_id =  [186,7338]
+func_to_print = {'calculate_coeff_proratisation': True}
+
