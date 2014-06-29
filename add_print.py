@@ -18,7 +18,6 @@ def _to_print(key, val, selection, cache, intermediate=False):
     if key in cache:
         return cache
     else:
-        print selection
         if intermediate:
             add_print = "est également appelé(e)/calculé(e) au cours du calcul et"
         if isinstance(val, dict):
@@ -40,7 +39,7 @@ def _to_print(key, val, selection, cache, intermediate=False):
         elif isinstance(val, Series):
             if selection is None:
                 selection = range(len(val))
-            print "    - Le vecteur {} {} vaut: \n {}".format(key, add_print, val[selection].to_string())
+            print "    - Le vecteur {} {} vaut: \n {}".format(key, add_print, val.iloc[selection].to_string())
         else:
             if key != 'self':
                 print "    - L'objet {}".format(key)
