@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 from numpy import array
-from pandas import DataFrame
+from pandas import DataFrame, Series
 from pension_functions import sum_by_regime, update_all_regime
+from add_print import AddPrint
+
 import cProfile
 
 class PensionSimulation(object):
@@ -36,10 +38,44 @@ class PensionSimulation(object):
                 print("La variable {} doit être renseignée dans info_ind pour que la simulation puisse tourner, \n seules {} sont connues").format(var, info_ind.columns)
                 import pdb
                 pdb.set_trace()
-                
-    def evaluate(self, time_step='year', to_check=False, output='pension'):
+
+    def evaluate(self, time_step='year', to_check=False, output='pension', to_print=(None,None,True)):
+        ''' to print commande ce que va afficher le calcul, c'est un tuple de longueur 3 :
+                - en première position: un dictionnaire par régime qui donne les fonctions que l'on veut afficher
+                - en deuxième position: les indices à retourner : si None, on retourne tout
+                - en troisième postition: un booléun, si True c'est des valeurs de index qu'on donne, si false, c'est des numéro de ligne
+        '''
         if self.legislation.param is None:
             raise Exception("you should give parameter to PensionData before to evaluate")
+        
+        methods_to_look_into = to_print[0]
+        idx_to_print = to_print[1]
+        index = self.data.info_ind.index
+        if to_print[1] is None:
+            idx_to_print = range(len(index))
+        else: 
+            if to_print[2]:
+                select = Series(range(len(index)), index=index)
+                idx_to_print = select.loc[to_print[1]].values
+        
+        def update_methods(reg):
+            ''' la methode pour modifier les méthodes du régime reg si:
+                 - le regime est dans la liste
+                 - pour les méthodes de la listes
+            '''
+            if methods_to_look_into is None:
+                pass
+            # change les méthodes que l'on veut voir afficher
+            if reg.name in methods_to_look_into:
+                methods_to_look = methods_to_look_into[reg.name]
+                for method in methods_to_look:
+                    method_init = reg.__getattribute__(method)
+                    new_method = AddPrint(idx_to_print)(method_init)
+                    reg.__setattr__(method, new_method)
+            return reg
+
+#         self.index = index
+        
         dict_to_check = dict()
         P = self.legislation.param
         P_longit = self.legislation.param_long
@@ -59,6 +95,7 @@ class PensionSimulation(object):
             to_other = dict()
             for reg in base_regimes:
                 reg.set_config(**config)
+                reg = update_methods(reg)
                 trimesters_wages_regime, to_other_regime = reg.get_trimesters_wages(data)
                 trimesters_wages[reg.name] = trimesters_wages_regime
                 to_other.update(to_other_regime)
@@ -85,6 +122,7 @@ class PensionSimulation(object):
         if len(pensions) == 0:
             for reg in base_regimes:
                 reg.set_config(**config)
+                reg = update_methods(reg)
                 pension_reg, decote_reg = reg.calculate_pension(data, trimesters_wages[reg.name], trimesters_wages['all_regime'], 
                                                     dict_to_check)
                 trim_decote[reg.name] = decote_reg
@@ -92,6 +130,7 @@ class PensionSimulation(object):
         
             for reg in complementaire_regimes:
                 reg.set_config(**config)
+                reg = update_methods(reg)
                 regime_base = reg.regime_base
                 pension_reg = reg.calculate_pension(data, trimesters_wages[regime_base], trimesters_wages['all_regime'], trim_decote[regime_base],
                                                     dict_to_check)
@@ -119,12 +158,18 @@ class PensionSimulation(object):
             return DataFrame(output, index = self.data.info_ind.index)
         else:
             return self.pensions['tot'] # TODO: define the output : for the moment a dic with pensions by regime
-        
+
     
-    def profile_evaluate(self, time_step='year', to_check=False, output='pension'):
+    def profile_evaluate(self, time_step='year', to_check=False, output='pension', to_print=(None,None,True)):
         prof = cProfile.Profile()
-        result = prof.runcall(self.evaluate, *(time_step, to_check, output))
+        result = prof.runcall(self.evaluate, *(time_step, to_check, output, to_print))
         #TODO: add a suffix, like yearleg : was + str(self.yearsim)
         prof.dump_stats("profile_pension" + str(self.legislation.date.liam))
         return result
         
+    
+    
+yearsim = 2004
+selection_id =  [186,7338]
+func_to_print = {'calculate_coeff_proratisation': True}
+

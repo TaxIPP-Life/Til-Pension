@@ -64,7 +64,7 @@ class RegimePrive(RegimeBase):
         elif P.decote.dispositif == 2:
             trim_decote = nb_trim_decote(trimesters, trim_maj, agem, P)
         return trim_decote
-    
+
     def age_annulation_decote(self, data):
         ''' Détermination de l'âge d'annularion de la décote '''
         P = reduce(getattr, self.param_name.split('.'), self.P)
@@ -139,9 +139,9 @@ class RegimePrive(RegimeBase):
         return surcote  
         
     def minimum_pension(self, trim_wages_reg, trim_wages_all, pension_reg, pension_all):
-        ''' MICO du régime général : allocation différentielle 
+        ''' MICO du régime général : allocation différentielle
         RQ : ASPA et minimum vieillesse sont gérés par OF
-        Il est attribué quels que soient les revenus dont dispose le retraité en plus de ses pensions : loyers, revenus du capital, activité professionnelle... 
+        Il est attribué quels que soient les revenus dont dispose le retraité en plus de ses pensions : loyers, revenus du capital, activité professionnelle...
         + mécanisme de répartition si cotisations à plusieurs régimes
         TODO: coder toutes les évolutions et rebondissements 2004/2008'''
         P = reduce(getattr, self.param_name.split('.'), self.P)
@@ -156,7 +156,7 @@ class RegimePrive(RegimeBase):
         elif P.mico.dispositif == 1:
             # TODO: Voir comment gérer la limite de cumul relativement complexe (Doc n°5 du COR)
             mico = P.mico.entier
-            return  maximum(mico - pension_reg,0)*coeff
+            return maximum(mico - pension_reg,0)*coeff
         elif P.mico.dispositif == 2:
             # A partir du 1er janvier 2004 les périodes cotisées interviennent (+ dispositif transitoire de 2004)
             nb_trim = P.prorat.n_trim

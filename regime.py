@@ -124,7 +124,6 @@ class Regime(object):
     def calculate_salref(self):
 #         self.sal_regime = sali.array*_isin(self.workstate.array,self.code_regime)
         raise NotImplementedError
-    
 
     def bonif_pension(self, data, trim_wage_reg, trim_wage_all, pension_reg, pension_all):
         pension = pension_reg + self.minimum_pension(trim_wage_reg, trim_wage_all, pension_reg, pension_all)
