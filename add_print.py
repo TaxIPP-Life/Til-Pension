@@ -29,12 +29,10 @@ def _to_print(key, val, selection, cache, intermediate=False):
             print "    - La table pandas {} {} vaut: \n{}".format(key, add_print, val.iloc[selection,:].to_string())
             cache.append(key)
         elif isinstance(val, TimeArray):
-#             val_print = DataFrame(val.array, index=selection, columns=val.dates).to_string()
             print "    - Le TimeArray {} {} vaut: \n{}".format(key, add_print, val.array[selection,:])
             cache.append(key)
         elif isinstance(val, ndarray):
             #It has to be a vetor, numpy matrix should be timearrays
-#             val_print = Series(val, index=selection).to_string()
             print "    - Le vecteur {} {} vaut: \n {}".format(key, add_print, val[selection])
         elif isinstance(val, Series):
             if selection is None:
@@ -48,26 +46,17 @@ def _to_print(key, val, selection, cache, intermediate=False):
 
 
 class AddPrint(object):
-    def __init__(self, selection, index=None):
+    def __init__(self, selection):
         ''' 
         - print_level : TODO
         doit mémoriser 
         on a besoin du len_data pour les valeurs par défaut
-        - selection est pour la liste de lignes à afficher
-        - si index est rempli alors la selection s'exprime en indice
+        - selection est la liste de lignes à afficher
         '''
            
         self._locals = {}
         self.selection = selection
-        
-        if index is not None:
-            assert isinstance(index, list)
-            sel = []
-            for idx in selection:
-                sel += [index.index(idx)] 
-            self.selection = sel
 
-        self.index = index
         self.cache = []
 
     def __call__(self, func):
