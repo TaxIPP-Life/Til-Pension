@@ -67,13 +67,14 @@ class PensionSimulation(object):
             '''
             if methods_to_look_into is None:
                 pass
-            # change les méthodes que l'on veut voir afficher
-            if reg.name in methods_to_look_into:
-                methods_to_look = methods_to_look_into[reg.name]
-                for method in methods_to_look:
-                    method_init = reg.__getattribute__(method)
-                    new_method = AddPrint(ident_to_print, idx_to_print)(method_init)
-                    reg.__setattr__(method, new_method)
+            else:
+                # change les méthodes que l'on veut voir afficher
+                if reg.name in methods_to_look_into:
+                    methods_to_look = methods_to_look_into[reg.name]
+                    for method in methods_to_look:
+                        method_init = reg.__getattribute__(method)
+                        new_method = AddPrint(ident_to_print, idx_to_print)(method_init)
+                        reg.__setattr__(method, new_method)
             return reg
 
 #         self.index = index

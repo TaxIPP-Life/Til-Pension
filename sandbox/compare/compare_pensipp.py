@@ -9,7 +9,7 @@ from load_pensipp import load_pensipp_data, load_pensipp_result
 first_year_sal = 1949 
 
 
-def compare_til_pensipp(pensipp_comparison_path, var_to_check_montant, var_to_check_taux, threshold, to_print):
+def compare_til_pensipp(pensipp_comparison_path, var_to_check_montant, var_to_check_taux, threshold, to_print=(None,None,True)):
     result_pensipp = load_pensipp_result(pensipp_comparison_path, to_csv=True)
     result_til = pd.DataFrame(columns = var_to_check_montant + var_to_check_taux, index = result_pensipp.index)
     result_til['yearliq'] = -1
