@@ -53,10 +53,12 @@ class PensionSimulation(object):
         index = self.data.info_ind.index
         if to_print[1] is None:
             idx_to_print = range(len(index))
+            ident_to_print = index
         else: 
             if to_print[2]:
                 select = Series(range(len(index)), index=index)
                 idx_to_print = select.loc[to_print[1]].values
+                ident_to_print = to_print[1]
         
         def update_methods(reg):
             ''' la methode pour modifier les méthodes du régime reg si:
@@ -70,7 +72,7 @@ class PensionSimulation(object):
                 methods_to_look = methods_to_look_into[reg.name]
                 for method in methods_to_look:
                     method_init = reg.__getattribute__(method)
-                    new_method = AddPrint(idx_to_print)(method_init)
+                    new_method = AddPrint(ident_to_print, idx_to_print)(method_init)
                     reg.__setattr__(method, new_method)
             return reg
 
