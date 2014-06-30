@@ -116,6 +116,7 @@ class PensionSimulation(object):
             for reg in base_regimes:
                 reg.set_config(**config)
                 date_taux_plein = reg.date_start_taux_plein(data, trimesters_wages['all_regime'])
+                date_taux_plein[date_taux_plein == 210001] = -1
                 dates_taux_plein[reg.name] = date_taux_plein
             dates_taux_plein['index'] = data.info_ind.index
             return dates_taux_plein
@@ -128,7 +129,7 @@ class PensionSimulation(object):
                 reg.set_config(**config)
                 reg = update_methods(reg)
                 pension_reg, decote_reg = reg.calculate_pension(data, trimesters_wages[reg.name], trimesters_wages['all_regime'], 
-                                                    dict_to_check)
+                                                                dict_to_check)
                 trim_decote[reg.name] = decote_reg
                 pensions[reg.name] = pension_reg
         
@@ -136,8 +137,8 @@ class PensionSimulation(object):
                 reg.set_config(**config)
                 reg = update_methods(reg)
                 regime_base = reg.regime_base
-                pension_reg = reg.calculate_pension(data, trimesters_wages[regime_base], trimesters_wages['all_regime'], trim_decote[regime_base],
-                                                    dict_to_check)
+                pension_reg = reg.calculate_pension(data, trimesters_wages[regime_base], trimesters_wages['all_regime'], 
+                                                    trim_decote[regime_base], dict_to_check)
                 pensions[reg.name] = pension_reg
                 
             pensions['tot'] = sum(pensions.values())
@@ -171,9 +172,3 @@ class PensionSimulation(object):
         prof.dump_stats("profile_pension" + str(self.legislation.date.liam))
         return result
         
-    
-    
-yearsim = 2004
-selection_id =  [186,7338]
-func_to_print = {'calculate_coeff_proratisation': True}
-

@@ -129,12 +129,10 @@ class Regime(object):
         pension = pension_reg + self.minimum_pension(trim_wage_reg, trim_wage_all, pension_reg, pension_all)
         # Remarque : la majoration de pension s'applique à la pension rapportée au maximum ou au minimum
         pension += self.majoration_pension(data, pension)
-        pension = self.minimum_pension(trim_wage_reg, trim_wage_all, pension_reg, pension_all)
         return pension
 
 class RegimeBase(Regime):
     
-
     def revenu_valides(self, workstate, sali, code=None): #sali, 
         ''' Cette fonction pertmet de calculer des nombres par trimesters
         TODO: gérer la comptabilisation des temps partiels quand variable présente'''
