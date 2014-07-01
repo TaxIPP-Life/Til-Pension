@@ -112,7 +112,7 @@ def load_pensipp_result(pensipp_path, to_csv=False):
         import pandas.rpy.common as com
         from rpy2 import robjects as r
         print(" Les données sont chargées à partir du Rdata et non du csv")
-        output_pensipp = pensipp_path + 'output4.RData'
+        output_pensipp = pensipp_path + 'output20.RData'
         r.r['load'](output_pensipp)
         result_pensipp = com.load_data('output1')
         result_pensipp.rename(columns= {'dec_rg': 'decote_RG', 'surc_rg': 'surcote_RG', 'taux': 'taux_RG', 'sam_rg':'salref_RG', 'pliq_rg': 'pension_RG',
