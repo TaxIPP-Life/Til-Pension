@@ -204,11 +204,11 @@ class RegimeComplementaires(Regime):
     def sali_for_regime(self, data):
         raise NotImplementedError
     
-    def nombre_points(self, data):
+    def nombre_points(self, data, trim_wages):
         ''' Détermine le nombre de point à liquidation de la pension dans les régimes complémentaires (pour l'instant Ok pour ARRCO/AGIRC)
         Pour calculer ces points, il faut diviser la cotisation annuelle ouvrant des droits par le salaire de référence de l'année concernée 
         et multiplier par le taux d'acquisition des points'''
-        sali_plaf = self.sali_for_regime(data)
+        sali_plaf = self.sali_for_regime(data, trim_wages)
         Plong_regime = getattr(self.P_longit.prive.complementaire,  self.name)
         salref = Plong_regime.sal_ref
         taux_cot = Plong_regime.taux_cot_moy
@@ -287,13 +287,13 @@ class RegimeComplementaires(Regime):
         maj_enf = self._majoration_enf(data, nb_points_by_year)
         return maj_enf
     
-    def calculate_pension(self, data, trim_base, trim_wage_all, trim_decote_base, to_check=None):
+    def calculate_pension(self, data, trim_wage_base, trim_wage_all, trim_decote_base, to_check=None):
         info_ind = data.info_ind
         name = self.name
         P = reduce(getattr, self.param_name.split('.'), self.P)
-        nb_points_by_year = self.nombre_points(data)
+        nb_points_by_year = self.nombre_points(data, trim_wage_base)
         nb_points = nb_points_by_year.sum(axis=1)
-        coeff_age = self.coefficient_age(info_ind['agem'], trim_base)
+        coeff_age = self.coefficient_age(info_ind['agem'], trim_wage_base)
         val_point = P.val_point
         if compare_destinie:
             val_point = P.val_point_proj
