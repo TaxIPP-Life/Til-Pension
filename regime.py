@@ -209,7 +209,7 @@ class RegimeComplementaires(Regime):
         Pour calculer ces points, il faut diviser la cotisation annuelle ouvrant des droits par le salaire de référence de l'année concernée 
         et multiplier par le taux d'acquisition des points'''
         sali_plaf = self.sali_for_regime(data, trim_wages)
-        Plong_regime = getattr(self.P_longit.prive.complementaire,  self.name)
+        Plong_regime = reduce(getattr, self.param_name.split('.'), self.P_longit) #getattr(self.P_longit.prive.complementaire,  self.name)
         salref = Plong_regime.sal_ref
         taux_cot = Plong_regime.taux_cot_moy
         assert len(salref) == sali_plaf.shape[1] == len(taux_cot)

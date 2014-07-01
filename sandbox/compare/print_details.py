@@ -2,7 +2,6 @@
 
 from simulation import PensionSimulation
 from pension_legislation import PensionParam, PensionLegislation
-from print_decorator import data_to_print, yearsim
 
 def run_to_print(data, yearsim):
     param = PensionParam(yearsim, data)

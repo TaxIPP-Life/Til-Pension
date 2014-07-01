@@ -5,7 +5,7 @@ Created on 30 mai 2014
 
 @author: aeidelman
 '''
-from numpy import minimum, array, nonzero, divide, transpose, zeros, isnan, around, multiply, greater, where
+from numpy import minimum, array, divide, zeros, isnan, multiply, greater
 from pandas import Series
 from regime import compare_destinie
 from time_array import TimeArray
