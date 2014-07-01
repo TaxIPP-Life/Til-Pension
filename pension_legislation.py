@@ -63,8 +63,8 @@ class PensionParam(object):
         #     self.param = PensionParam.builder(dateleg, data.info_ind, duration, method)
         #  where method give how to shift legislation from on year to an other, constant_year, constant_sequence, etc?
         self.date = DateTil(dateleg)
-        self.param = None
-        self.param_long = None
+        self.P = None
+        self.P_longit = None
 
 #         def load_param(self):
 #             ''' should run after having a data '''
@@ -82,11 +82,11 @@ class PensionParam(object):
         
         dated_legislation_json = legislations.generate_dated_legislation_json(legislation_json, self.date.datetime)
         compact_legislation = legislations.compact_dated_node_json(dated_legislation_json, data.info_ind) #here is where data is needed
-        self.param = compact_legislation
+        self.P = compact_legislation
         
         long_dated_legislation_json = legislations.generate_long_legislation_json(legislation_json, self.date.datetime)
         compact_legislation_long = legislations.compact_long_dated_node_json(long_dated_legislation_json)
-        self.param_long = compact_legislation_long
+        self.P_longit = compact_legislation_long
 
         #Travail sur Salref 
         #
@@ -109,7 +109,7 @@ class PensionParam(object):
         
         # Article R351-9 du code de la sécurité sociale
         # de 1949 à 1972 -> AVTS, après jusqu'en 2014, 200 fois le smic horaire de la première année, ensuite 150 fois.
-        param_long = self.param_long
+        param_long = self.P_longit
         smic = param_long.common.smic
         avts = param_long.common.avts.montant
         if compare_destinie == True:
@@ -145,7 +145,7 @@ class PensionParam(object):
             salref[date] = 150*smic[smic_key[k]]
             year += 1        
 
-        self.param_long.prive.RG.salref = salref       
+        self.P_longit.prive.RG.salref = salref       
 
 
 class PensionLegislation(object):
@@ -174,7 +174,7 @@ class PensionLegislation(object):
         ''' Cette fonction permet de traduire les paramètres longitudinaux en vecteur numpy 
         comportant une valeur par année comprise entre first_year_sim et last_year_sim '''
         yearleg = self.date.year
-        P_longit = self.param.param_long
+        P_longit = self.param.P_longit
         first_year_sim = yearleg - 1 - duration_sim
         last_year_sim = yearleg
         # TODO: trouver une méthode plus systématique qui test le 'type' du noeud et construit le long parameter qui va bien
@@ -188,6 +188,7 @@ class PensionLegislation(object):
             param = reduce(getattr, param_name, P_longit)
             param = build_long_values(param_long=param, first=first_year_sim, last=last_year_sim)
             setattr(eval('P_longit.' + '.'.join(param_name[:-1])), param_name[-1], param)
+            
 
         for regime in self.regimes['complementaires']:
             regime = regime.name
