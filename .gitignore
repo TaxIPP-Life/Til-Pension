@@ -16,6 +16,8 @@ local.properties
 .settings/
 .loadpath
 
+*.egg-info
+
 # External tool builders
 .externalToolBuilders/
 
