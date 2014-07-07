@@ -13,7 +13,7 @@ def compare_til_pensipp(pensipp_comparison_path, var_to_check_montant, var_to_ch
     result_pensipp = load_pensipp_result(pensipp_comparison_path, to_csv=True)
     result_til = pd.DataFrame(columns = var_to_check_montant + var_to_check_taux, index = result_pensipp.index)
     result_til['yearliq'] = -1
-    for yearsim in range(2020,2021):
+    for yearsim in range(2004,2005):
         print(yearsim)
         data_bounded = load_pensipp_data(pensipp_comparison_path, yearsim, first_year_sal)
         param = PensionParam(yearsim, data_bounded)
@@ -43,7 +43,7 @@ def compare_til_pensipp(pensipp_comparison_path, var_to_check_montant, var_to_ch
         conflict = ((til_var.abs() - pensipp_var.abs()).abs() > threshold)
         if conflict.any():
             var_conflict += [var]
-            print u"Le calcul de {} pose problème pour {} personne(s) sur {}: ".format(var, sum(conflict), sum(result_til['yearliq'] == 2020))
+            print u"Le calcul de {} pose problème pour {} personne(s) sur {}: ".format(var, sum(conflict), sum(result_til['yearliq'] == 2004))
             print pd.DataFrame({
                 "TIL": til_var[conflict],
                 "PENSIPP": pensipp_var[conflict],

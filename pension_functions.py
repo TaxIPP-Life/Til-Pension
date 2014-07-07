@@ -7,7 +7,7 @@ def sum_from_dict(dictionnary, key='', plafond=None):
     ''' Somme les TimeArray contenus dans un dictionnaire et dont le nom contient la 'key' '''
     timearray_with_key = [trim for name, trim in dictionnary.items() if key in name]
     first = timearray_with_key[0]
-    trim_tot = TimeArray(zeros(first.array.shape), first.dates)
+    trim_tot = TimeArray(zeros(first.shape), first.dates)
     for timearray in timearray_with_key:
         trim_tot += timearray
     trim_tot = trim_tot.ceil(plaf=plafond)

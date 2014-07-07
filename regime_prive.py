@@ -39,16 +39,16 @@ class RegimePrive(RegimeBase):
             
         sal_regime = wages['regime']
         sal_regime.translate_frequency(output_frequency='year', method='sum', inplace=True)
-        years_sali = (sal_regime.array != 0).sum(1)
+        years_sali = (sal_regime != 0).sum(1)
         nb_best_years_to_take = array(nb_best_years_to_take)
         nb_best_years_to_take[years_sali < nb_best_years_to_take] = years_sali[years_sali < nb_best_years_to_take]    
             
         if plafond is not None:
-            assert sal_regime.array.shape[1] == len(plafond)
-            sal_regime.array = minimum(sal_regime.array, plafond) 
+            assert sal_regime.shape[1] == len(plafond)
+            sal_regime = minimum(sal_regime, plafond) 
         if revalo is not None:
-            assert sal_regime.array.shape[1] == len(revalo)
-            sal_regime.array = multiply(sal_regime.array,revalo)
+            assert sal_regime.shape[1] == len(revalo)
+            sal_regime = multiply(sal_regime,revalo)
         salref = sal_regime.best_dates_mean(nb_best_years_to_take)
         return salref.round(2)
     
@@ -112,7 +112,7 @@ class RegimePrive(RegimeBase):
         trim_by_year_tot = trim_wage_all['trimesters']['tot']
 
         # dispositif de type 0
-        n_trim = P.plein.n_trim
+        n_trim = array(P.plein.n_trim, dtype=float)
         trim_tot = trim_by_year_tot.sum(axis=1)
         surcote = P.surcote.dispositif0.taux*(trim_tot - n_trim)*(trim_tot > n_trim)# = 0 après 1983
                  

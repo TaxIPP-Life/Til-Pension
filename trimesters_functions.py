@@ -16,8 +16,8 @@ code_preretraite = 9
 
 def sali_in_regime(workstate, sali, code):
     ''' Cette fonction renvoie le TimeArray ne contenant que les salaires validés avec workstate == code_regime'''
-    wk_selection = workstate.isin(code).array
-    return TimeArray(wk_selection*sali.array, sali.dates)
+    wk_selection = workstate.isin(code)
+    return TimeArray(wk_selection*sali, sali.dates)
 
 def trim_cot_by_year_FP(data, code):
     ''' Cette fonction pertmet de calculer des nombres par trimesters validés dans un régime
@@ -31,10 +31,10 @@ def trim_cot_by_year_FP(data, code):
     trim_service.translate_frequency(output_frequency='year', method='sum', inplace=True)
     if frequency_init == 'year':
         #from year to trimester
-        trim_service.array = multiply(trim_service.array,4)
+        trim_service = multiply(trim_service,4)
     if frequency_init == 'month':
         #from month to trimester
-        trim_service.array = divide(trim_service.array,3)
+        trim_service = divide(trim_service,3)
     return trim_service, sali_in_regime(workstate, sali, code)
 
 
@@ -56,7 +56,7 @@ def trim_ass_by_year(data, code, compare_destinie):
     
     trim_by_year_ass = trim_by_year_chom #+...
     if compare_destinie:
-        trim_by_year_ass.array = (workstate.isin([code_chomage, code_preretraite])).array*4
+        trim_by_year_ass = (workstate.isin([code_chomage, code_preretraite]))*4
     return trim_by_year_ass, None
 
 #TODO: remove ? 
@@ -73,10 +73,10 @@ def validation_trimestre(data, code, salref, frequency='year', name=''):
     sal = data_validation.sali
     #selection des données du régime
     wk_selection = workstate.isin(code)
-    sal_selection = TimeArray(wk_selection.array*sal.array, sal.dates, name=name_sal)
+    sal_selection = TimeArray(wk_selection*sal, sal.dates, name=name_sal)
     # applique le bareme de legislation sur les salaires
     plafond = 4
-    sal_annuel = sal_selection.array
+    sal_annuel = sal_selection
     sal_annuel[isnan(sal_annuel)] = 0
     division = divide(sal_annuel, salref).astype(int)
     trim_cot_by_year = TimeArray(minimum(division, plafond), sal.dates, name=name_trim)
@@ -86,14 +86,14 @@ def imput_sali_avpf(data, code, P_longit, compare_destinie):
     #TODO: move to an other place
     data_avpf = data.selected_regime(code)
     sali_avpf = data_avpf.sali
-    if sali_avpf.array.all() == 0:
+    if (sali_avpf == 0).all():
         # TODO: frquency warning, cette manière de calculer les trimestres avpf ne fonctionne qu'avec des tables annuelles
         year_avpf = (data_avpf.workstate != 0)
         avpf = P_longit.common.avpf
-        sali_avpf.array = 12*multiply(year_avpf, avpf)
+        sali_avpf = 12*multiply(year_avpf, avpf)
         if compare_destinie == True:
             smic_long = P_longit.common.smic_proj
-            sali_avpf.array = multiply(year_avpf, smic_long)
+            sali_avpf = multiply(year_avpf, smic_long)
     return sali_avpf
 
 
@@ -123,16 +123,16 @@ def nb_trim_bonif_5eme(trim):
 
 def nb_trim_surcote(trim_by_year, selected_dates, date_start_surcote):
     ''' Cette fonction renvoie le vecteur numpy du nombre de trimestres surcotés entre la first_year_surcote et la last_year_surcote grâce à :
-    - la table du nombre de trimestre comptablisé au sein du régime par année : trim_by_year.array
+    - la table du nombre de trimestre comptablisé au sein du régime par année : trim_by_year
     - le vecteur des dates (format yyyymm) à partir desquelles les individus surcote (détermination sur cotisations tout régime confondu)
     '''
-    assert trim_by_year.array.shape[1] == len(selected_dates)
-    nb_trim = zeros(trim_by_year.array.shape[0])
+    assert trim_by_year.shape[1] == len(selected_dates)
+    nb_trim = zeros(trim_by_year.shape[0])
     for i in range(len(selected_dates)):
         if selected_dates[i] == 1:
             date = trim_by_year.dates[i]
             to_keep = greater(date, date_start_surcote)
-            nb_trim += trim_by_year.array[:,i]*to_keep
+            nb_trim += trim_by_year[:,i]*to_keep
     return nb_trim
 
 def nb_trim_decote(trimesters, trim_maj, agem, P):

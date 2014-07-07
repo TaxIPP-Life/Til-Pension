@@ -61,7 +61,7 @@ def count_enf_by_year(data, info_enf):
     id_ix = [k[0][0] for k in count_by_ix]
     year_ix = [k[0][1] for k in count_by_ix]
     nb_enf = [k[1] for k in count_by_ix]
-    enf_by_year = zeros(data.workstate.array.shape)
+    enf_by_year = zeros(data.workstate.shape)
     enf_by_year[(id_ix, year_ix)] = array(nb_enf)
     #TODO: check pb with twins
     return enf_by_year
@@ -69,13 +69,12 @@ def count_enf_by_year(data, info_enf):
 def print_info_timearrays(list_timearrays, all_ident, label_func, loglevel="info", list_ident=None):
     ''' Cette fonction permet d'imprimer (sous format DataFrame) le déroulé individuel
     contenus dans différents timearrays (pour l'ensemble des individus de la base)'''
-    first_shape = list_timearrays[0].array.shape
+    first_shape = list_timearrays[0].shape
     max_nb_dates = 0
     for timearray in list_timearrays:
-        array = timearray.array
         assert len(array.shape) == 2
-        nb_rows = array.shape[0]
-        nb_cols = array.shape[1]
+        nb_rows = timearray.shape[0]
+        nb_cols = timearray.shape[1]
         assert first_shape[0] == nb_rows
         if nb_cols > max_nb_dates:
             max_nb_dates = nb_cols
@@ -90,16 +89,15 @@ def print_info_timearrays(list_timearrays, all_ident, label_func, loglevel="info
         names = []
         i = 0
         for timearray in list_timearrays:
-            array = timearray.array
-            nb_dates = array.shape[1]
+            nb_dates = timearray.shape[1]
             id_ix = list(list_ident).index(ident)
-            col_to_print = timearray.array[id_ix,:]
+            col_to_print = timearray[id_ix,:]
             if nb_dates < max_nb_dates:
                 long_col_to_print = zeros(max_nb_dates)
                 long_col_to_print[-len(col_to_print):] = col_to_print
                 col_to_print = long_col_to_print
             to_print[i,:] = col_to_print
-            names += [timearray.name] 
+            names += [timearray] 
             i += 1
         frame_to_print = DataFrame(to_print, columns=dates_all)
         frame_to_print['names'] = names

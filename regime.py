@@ -70,7 +70,7 @@ class Regime(object):
         else:
             # 1. Construction de la matrice des booléens indiquant si l'année est surcotée selon critère trimestres
             n_trim = array(P.plein.n_trim)
-            cumul_trim = trim_by_year_tot.array.cumsum(axis=1)
+            cumul_trim = trim_by_year_tot.cumsum(axis=1)
             trim_limit = array((n_trim - nan_to_num(trim_maj)))
             years_surcote_trim = greater(cumul_trim.T,trim_limit).T
             nb_years = years_surcote_trim.shape[1]
@@ -122,7 +122,7 @@ class Regime(object):
         raise NotImplementedError
             
     def calculate_salref(self):
-#         self.sal_regime = sali.array*_isin(self.workstate.array,self.code_regime)
+#         self.sal_regime = sali*_isin(self.workstate.array,self.code_regime)
         raise NotImplementedError
 
     def bonif_pension(self, data, trim_wage_reg, trim_wage_all, pension_reg, pension_all):
@@ -144,8 +144,8 @@ class RegimeBase(Regime):
         wk_selection.translate_frequency(output_frequency='month', inplace=True)
         #TODO: condition not assuming sali is in year
         sali.translate_frequency(output_frequency='month', inplace=True)
-        sali.array = around(divide(sali.array, 12), decimals=3)
-        trim = divide(wk_selection.array.sum(axis=1), 4).astype(int)
+        sali = around(divide(sali, 12), decimals=3)
+        trim = divide(wk_selection.sum(axis=1), 4).astype(int)
         return trim
     
     def get_trimester(self, workstate, sali):
@@ -193,7 +193,7 @@ class RegimeBase(Regime):
             to_check['n_trim_' + name] = P.plein.n_trim / 4
             if self.name == 'RG':
                 to_check['N_CP_' + name] = P.prorat.n_trim / 4
-        return pension.fillna(0), trim_decote
+        return pension, trim_decote
 
 class RegimeComplementaires(Regime):
         

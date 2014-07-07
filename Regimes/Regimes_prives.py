@@ -5,11 +5,7 @@ from datetime import datetime
 import os
 parentdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.sys.path.insert(0,parentdir) 
-from time_array import TimeArray
 from pension_data import PensionData
-
-from numpy import array, multiply
-from pandas import Series
 
 from regime import compare_destinie
 from regime_prive import RegimePrive

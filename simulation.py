@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from numpy import array
+from numpy import zeros
 from pandas import DataFrame, Series
 from pension_functions import sum_by_regime, update_all_regime
 from add_print import AddPrint
@@ -141,7 +141,10 @@ class PensionSimulation(object):
                                                     trim_decote[regime_base], dict_to_check)
                 pensions[reg.name] = pension_reg
                 
-            pensions['tot'] = sum(pensions.values())
+            output = zeros(len(pension_reg))
+            for val in pensions.values():
+                output += val
+            pensions['tot'] = output
             self.pensions = pensions
             
         # 3 - Application des minimums de pensions et majorations postérieures

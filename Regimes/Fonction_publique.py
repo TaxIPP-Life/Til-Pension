@@ -4,7 +4,7 @@ import os
 parentdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.sys.path.insert(0,parentdir) 
 
-from numpy import array, maximum, minimum, divide, zeros
+from numpy import array, maximum, minimum, divide, zeros, inf
 
 from regime import RegimeBase
 from trimesters_functions import nb_trim_surcote, nb_trim_decote
@@ -46,7 +46,7 @@ class FonctionPublique(RegimeBase):
     def _age_min_retirement(self, data):
         P = self.P.public.fp
         trim_actif, _ = trim_cot_by_year_FP(data, self.code_actif)
-        trim_actif = trim_actif.array.sum(1)
+        trim_actif = trim_actif.sum(1)
         # age_min = age_min_actif pour les fonctionnaires actif en fin de carrières ou carrière mixte ayant une durée de service actif suffisante
         age_min_s = P.sedentaire.age_min
         age_min_a = P.actif.age_min
@@ -74,8 +74,8 @@ class FonctionPublique(RegimeBase):
         to_RG_actif = (3*trim_cot < P.actif.N_min)*(last_fp == self.code_actif)
         to_RG_sedentaire = (3*trim_cot < P.sedentaire.N_min)*(last_fp == self.code_sedentaire)
         to_RG = (to_RG_actif + to_RG_sedentaire)
-        trim_by_year.array[~to_RG,:] = 0
-        sal_by_year.array[~to_RG,:] = 0
+        trim_by_year[~to_RG,:] = 0
+        sal_by_year[~to_RG,:] = 0
         return trim_by_year, sal_by_year
         
     def calculate_coeff_proratisation(self, info_ind, trim_wage_regime, trim_wage_all):
@@ -134,17 +134,18 @@ class FonctionPublique(RegimeBase):
         
     def calculate_salref(self, data, wages_regime = None):
         last_fp_idx = data.workstate.idx_last_time_in(self.code_regime)
-        last_fp = zeros(data.sali.array.shape[0])
-        last_fp[last_fp_idx[0]] = data.sali.array[last_fp_idx]
-        taux_prime = data.info_ind['tauxprime']
+        last_fp = zeros(data.sali.shape[0])
+        last_fp[last_fp_idx[0]] = data.sali[last_fp_idx]
+        taux_prime = array(data.info_ind['tauxprime'])
         P_long = reduce(getattr, self.param_name.split('.'), self.P_longit)
         P = reduce(getattr, self.param_name.split('.'), self.P)
         val_point = P_long.val_point 
-        val_point_last_fp = zeros(data.sali.array.shape[0])
+        val_point_last_fp = zeros(data.sali.shape[0])
         val_point_last_fp[last_fp_idx[0]] = array([val_point[date_last] for date_last in last_fp_idx[1]])
         val_point_t = P.val_point
         coeff_revalo = val_point_t/val_point_last_fp
-        return last_fp*coeff_revalo/(taux_prime + 1)
+        coeff_revalo[coeff_revalo== inf] = 0
+        return last_fp*coeff_revalo/(1 + taux_prime)
 
     
     def plafond_pension(self, pension_brute, salref, cp, surcote):

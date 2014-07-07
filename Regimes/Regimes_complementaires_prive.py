@@ -23,7 +23,7 @@ class AGIRC(RegimeComplementaires):
     def sali_for_regime(self, data, trim_wages=None):
         workstate = data.workstate
         sali = data.sali
-        return sali.array*(workstate.isin(self.code_regime).array)
+        return sali*(workstate.isin(self.code_regime))
         
         
 
@@ -42,15 +42,15 @@ class ARRCO(RegimeComplementaires):
     def sali_for_regime(self, data, trim_wages):
         '''plafonne le salaire des cadres à 1 pss pour qu'il ne pait que la première tranche '''
         workstate = data.workstate
-        sal = data.sali.array.copy()
+        sal = data.sali.copy()
         plaf_ss = self.P_longit.common.plaf_ss
         nb_pss = 1 # TODO: Should be a parameter
-        cadre_selection = (workstate.array == self.code_cadre)
+        cadre_selection = (workstate == self.code_cadre)
         plaf_sal = minimum(sal, nb_pss*plaf_ss)
-        noncadre_selection = (workstate.array == self.code_noncadre)
+        noncadre_selection = (workstate == self.code_noncadre)
         if compare_destinie:
             # Dans Destinie, les FP reversés au RG sont considérés comme cotisants non-cadre 
-            FP_selection = (trim_wages['trimesters']['cot_FP'].array != 0)*sal
+            FP_selection = (trim_wages['trimesters']['cot_FP'] != 0)*sal
             noncadre_selection += FP_selection
         return sal*noncadre_selection + plaf_sal*cadre_selection
         
