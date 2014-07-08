@@ -33,8 +33,8 @@ class FonctionPublique(RegimeBase):
                 
         trim_valide, sal_regime = trim_cot_by_year_FP(data, self.code_regime)
         trim_to_RG, sal_to_RG = self.select_to_RG(data, trim_valide.copy(), sal_regime)
-        trimesters['cot'] = trim_valide.subtract(trim_to_RG)
-        wages['cot'] = sal_regime.subtract(sal_to_RG)
+        trimesters['cot'] = trim_valide - trim_to_RG
+        wages['cot'] = sal_regime - sal_to_RG
         trim_cotises = trimesters['cot'].sum(axis=1)
         P_mda = self.P.public.fp.mda
         trim_maj['DA'] = trim_mda(info_ind, self.name, P_mda)*(trim_cotises>0)

@@ -143,31 +143,31 @@ class TimeArray(np.ndarray):
 #             sum_array[:,list_ix_col] += self
 #             dates = other_dates
 #         return TimeArray(sum_array, dates)
-        
-    def subtract(self, other, inplace=False):
-        initial_dates = self.dates
-        other_dates = other.dates
-        if initial_dates == other_dates:
-            return TimeArray(self - other, initial_dates)
-        
-        assert self.shape[0] == other.shape[0] # Même nombre de lignes
-        other_in_initial = [date for date in other_dates if date in initial_dates] 
-        initial_in_other = [date for date in initial_dates if date in other_dates]
-        assert other_in_initial == other_dates or initial_in_other == initial_dates #les dates de l'une sont un sous ensemble de l'autre
-        if other_in_initial == other_dates:
-            sub_array = self.copy()
-            list_ix_col = [list(initial_dates).index(date) for date in other_dates]
-            sub_array[:,list_ix_col] = subtract(sub_array[:,list_ix_col], other)
-            dates = initial_dates
-        if initial_in_other == initial_dates:
-            sub_array = other.copy()
-            list_ix_col = [list(other_dates).index(date) for date in initial_dates]
-            sub_array[:,list_ix_col] = subtract(sub_array[:,list_ix_col], self)
-            dates = other_dates
-        if inplace == True:
-            self = sub_array
-        else:
-            return TimeArray(array, dates)
+#         
+#     def subtract(self, other, inplace=False):
+#         initial_dates = self.dates
+#         other_dates = other.dates
+#         if initial_dates == other_dates:
+#             return TimeArray(self - other, initial_dates)
+#         
+#         assert self.shape[0] == other.shape[0] # Même nombre de lignes
+#         other_in_initial = [date for date in other_dates if date in initial_dates] 
+#         initial_in_other = [date for date in initial_dates if date in other_dates]
+#         assert other_in_initial == other_dates or initial_in_other == initial_dates #les dates de l'une sont un sous ensemble de l'autre
+#         if other_in_initial == other_dates:
+#             sub_array = self.copy()
+#             list_ix_col = [list(initial_dates).index(date) for date in other_dates]
+#             sub_array[:,list_ix_col] = subtract(sub_array[:,list_ix_col], other)
+#             dates = initial_dates
+#         if initial_in_other == initial_dates:
+#             sub_array = other.copy()
+#             list_ix_col = [list(other_dates).index(date) for date in initial_dates]
+#             sub_array[:,list_ix_col] = subtract(sub_array[:,list_ix_col], self)
+#             dates = other_dates
+#         if inplace == True:
+#             self = sub_array
+#         else:
+#             return TimeArray(array, dates)
         
     def ceil(self, plaf=None, inplace=False):
         array = self.copy()
