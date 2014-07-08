@@ -168,15 +168,15 @@ class TimeArray(np.ndarray):
 #             self = sub_array
 #         else:
 #             return TimeArray(array, dates)
-        
-    def ceil(self, plaf=None, inplace=False):
-        array = self.copy()
-        if plaf is not None:
-            array = minimum(array, plaf)
-        if inplace == True:
-            self = array
-        else:
-            return TimeArray(array, self.dates)
+#         
+#     def ceil(self, plaf=None, inplace=False):
+#         array = self.copy()
+#         if plaf is not None:
+#             array = minimum(array, plaf)
+#         if inplace == True:
+#             self = array
+#         else:
+#             return TimeArray(array, self.dates)
         
     def idx_last_time_in(self, in_what):
         ''' Retourne les coordonnées de la dernière fois que l'individu a été dans l'état in_what :

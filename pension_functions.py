@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from time_array import TimeArray
-from numpy import zeros
+from numpy import zeros, minimum
 
 def sum_from_dict(dictionnary, key='', plafond=None):
     ''' Somme les TimeArray contenus dans un dictionnaire et dont le nom contient la 'key' '''
@@ -10,7 +10,8 @@ def sum_from_dict(dictionnary, key='', plafond=None):
     trim_tot = TimeArray(zeros(first.shape), first.dates)
     for timearray in timearray_with_key:
         trim_tot += timearray
-    trim_tot = trim_tot.ceil(plaf=plafond)
+    if plafond is not None:
+        trim_tot = minimum(trim_tot, plafond)
     return trim_tot
     
 def sum_by_regime(trimesters_wages, to_other):
