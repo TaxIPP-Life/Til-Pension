@@ -35,7 +35,7 @@ class FonctionPublique(RegimeBase):
         trim_to_RG, sal_to_RG = self.select_to_RG(data, trim_valide.copy(), sal_regime)
         trimesters['cot'] = trim_valide.subtract(trim_to_RG)
         wages['cot'] = sal_regime.subtract(sal_to_RG)
-        trim_cotises = trimesters['cot'].sum(1)
+        trim_cotises = trimesters['cot'].sum(axis=1)
         P_mda = self.P.public.fp.mda
         trim_maj['DA'] = trim_mda(info_ind, self.name, P_mda)*(trim_cotises>0)
         trim_maj['5eme'] = nb_trim_bonif_5eme(trim_cotises)*(trim_cotises>0)
@@ -46,7 +46,7 @@ class FonctionPublique(RegimeBase):
     def _age_min_retirement(self, data):
         P = self.P.public.fp
         trim_actif, _ = trim_cot_by_year_FP(data, self.code_actif)
-        trim_actif = trim_actif.sum(1)
+        trim_actif = trim_actif.sum(axis=1)
         # age_min = age_min_actif pour les fonctionnaires actif en fin de carrières ou carrière mixte ayant une durée de service actif suffisante
         age_min_s = P.sedentaire.age_min
         age_min_a = P.actif.age_min
@@ -69,7 +69,7 @@ class FonctionPublique(RegimeBase):
         output : trim_by_year_FP_to_RG '''
         P = reduce(getattr, self.param_name.split('.'), self.P)
         # N_min donné en mois
-        trim_cot = trim_by_year.sum(1)
+        trim_cot = trim_by_year.sum(axis=1)
         last_fp = data.workstate.last_time_in(self.code_regime)
         to_RG_actif = (3*trim_cot < P.actif.N_min)*(last_fp == self.code_actif)
         to_RG_sedentaire = (3*trim_cot < P.sedentaire.N_min)*(last_fp == self.code_sedentaire)
@@ -85,7 +85,7 @@ class FonctionPublique(RegimeBase):
         trimesters = trim_wage_regime['trimesters']
         trim_maj = trim_wage_regime['maj']
         N_CP = P.plein.n_trim
-        trim_regime = trimesters['regime'].sum() 
+        trim_regime = trimesters['regime'].sum(axis=1) 
         trim_bonif_5eme = trim_maj['5eme']
         CP_5eme = minimum(divide(trim_regime + trim_bonif_5eme, N_CP), 1)
         

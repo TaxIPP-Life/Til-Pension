@@ -97,7 +97,7 @@ def load_pensipp_data(pensipp_path, yearsim, first_year_sal, selection_id=False)
     array_enf = count_enf_by_year(data_bounded, info_child)
     nb_enf_all = 0
     for name_reg, code_reg in dict_regime.iteritems():
-        nb_enf_regime = (array_enf*data_bounded.workstate.isin(code_reg)).sum(1)
+        nb_enf_regime = (array_enf*data_bounded.workstate.isin(code_reg)).sum(axis=1)
         data_bounded.info_ind['nb_enf_' + name_reg] = nb_enf_regime
         nb_enf_all += nb_enf_regime
     info_ind.loc[:,'nb_enf'] = nb_enf_all

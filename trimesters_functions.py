@@ -147,7 +147,7 @@ def nb_trim_decote(trimesters, trim_maj, agem, P):
     n_trim = array(P.plein.n_trim)
     trim_decote_age = divide(age_annulation - agem, 3)
     
-    trim_tot = trimesters['tot'].sum(1) + trim_maj['enf']
+    trim_tot = trimesters['tot'].sum(axis=1) + trim_maj['enf']
     trim_decote_cot = n_trim - trim_tot
     assert len(trim_decote_age) == len(trim_decote_cot)
     trim_plaf = minimum(minimum(trim_decote_age, trim_decote_cot), plafond)

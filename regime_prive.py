@@ -39,7 +39,7 @@ class RegimePrive(RegimeBase):
             
         sal_regime = wages['regime']
         sal_regime.translate_frequency(output_frequency='year', method='sum', inplace=True)
-        years_sali = (sal_regime != 0).sum(1)
+        years_sali = (sal_regime != 0).sum(axis=1)
         nb_best_years_to_take = array(nb_best_years_to_take)
         nb_best_years_to_take[years_sali < nb_best_years_to_take] = years_sali[years_sali < nb_best_years_to_take]    
             
@@ -94,7 +94,7 @@ class RegimePrive(RegimeBase):
                 return trim_regime
 
         P =  reduce(getattr, self.param_name.split('.'), self.P)
-        trim_regime = trim_wage_regime['trimesters']['regime'].sum(1) 
+        trim_regime = trim_wage_regime['trimesters']['regime'].sum(axis=1) 
         trim_regime_maj = sum(trim_wage_regime['maj'].values())
         agem = info_ind['agem']
         trim_regime = trim_regime_maj + trim_regime  # _assurance_corrigee(trim_regime, agem) 
@@ -147,7 +147,7 @@ class RegimePrive(RegimeBase):
         P = reduce(getattr, self.param_name.split('.'), self.P)
         # pension_RG, pension, trim_RG, trim_cot, trim
         trimesters = trim_wages_reg['trimesters']
-        trim_regime = trimesters['regime'].sum() + sum(trim_wages_reg['maj'].values())
+        trim_regime = trimesters['regime'].sum(axis=1) + sum(trim_wages_reg['maj'].values())
         coeff = minimum(1, divide(trim_regime, P.prorat.n_trim))
         if P.mico.dispositif == 0:
             # Avant le 1er janvier 1983, comparé à l'AVTS
@@ -160,8 +160,8 @@ class RegimePrive(RegimeBase):
         elif P.mico.dispositif == 2:
             # A partir du 1er janvier 2004 les périodes cotisées interviennent (+ dispositif transitoire de 2004)
             nb_trim = P.prorat.n_trim
-            trim_regime = trimesters['regime'].sum() #+ sum(trim_wages_regime['maj'].values())
-            trim_cot_regime = sum(trimesters[key].sum() for key in trimesters.keys() if 'cot' in key)
+            trim_regime = trimesters['regime'].sum(axis=1) #+ sum(trim_wages_regime['maj'].values())
+            trim_cot_regime = sum(trimesters[key].sum(axis=1) for key in trimesters.keys() if 'cot' in key)
             mico_entier = P.mico.entier*minimum(divide(trim_regime, nb_trim), 1)
             maj = (P.mico.entier_maj - P.mico.entier)*divide(trim_cot_regime, nb_trim)
             mico = mico_entier + maj*(trim_cot_regime >= P.mico.trim_min)

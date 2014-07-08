@@ -183,7 +183,7 @@ class RegimeBase(Regime):
             P = reduce(getattr, self.param_name.split('.'), self.P)
             taux_plein = P.plein.taux
             trimesters = trim_wage_regime['trimesters']
-            trim_regime = trimesters['regime'].sum()
+            trim_regime = trimesters['regime'].sum(axis=1)
             to_check['decote_' + name] = taux_plein*decote*(trim_regime > 0)
             to_check['surcote_' + name] = taux_plein*surcote*(trim_regime > 0)
             to_check['CP_' + name] = cp*(trim_regime > 0)
@@ -225,7 +225,7 @@ class RegimeComplementaires(Regime):
         P = reduce(getattr, self.param_name.split('.'), self.P)
         gmp = P.gmp
         nb_points = maximum(nb_points_by_year, gmp)*(nb_points_by_year > 0)
-        return nb_points.sum(1)
+        return nb_points.sum(axis=1)
         
     def coefficient_age(self, agem, trim):
         ''' TODO: add surcote  pour avant 1955 '''
@@ -266,7 +266,7 @@ class RegimeComplementaires(Regime):
             selected_dates = getattr(P_long.born, 'dispositif' + str(num_dispo)).dates
             taux_dispositif = P_dispositif.taux
             nb_enf_min = P_dispositif.nb_enf_min
-            nb_points_dates = multiply(nb_points_by_year,selected_dates).sum(1)
+            nb_points_dates = multiply(nb_points_by_year,selected_dates).sum(axis=1)
             nb_points_enf = nb_points_dates*taux_dispositif*(nb_born >= nb_enf_min)
             if hasattr(P_dispositif, 'taux_maj'):
                 taux_maj = P_dispositif.taux_maj
