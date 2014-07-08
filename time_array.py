@@ -25,6 +25,18 @@ class TimeArray(np.ndarray):
         self.dates = getattr(obj, 'dates', None)
         self.frequency = getattr(obj, 'frequency', None)
         self.name = getattr(obj, 'name', None)
+        
+    def __array_wrap__(self, out_arr, context=None):
+        if not isinstance(out_arr, TimeArray):
+            assert out_arr.shape == self.shape
+            assert isinstance(out_arr, np.ndarray) #could be extend to pandas, but we don't want pandas    
+        if isinstance(out_arr, TimeArray):
+            assert out_arr.shape == self.shape
+            assert out_arr.dates == self.dates
+            assert out_arr.frequency == self.frequency
+        # then just call the parent
+        return np.ndarray.__array_wrap__(self, out_arr, context)
+    
 #     def __repr__(self):
 #         return self.__repr__() + self.dates.__repr__() 
 #     
