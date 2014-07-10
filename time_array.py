@@ -11,7 +11,7 @@ def determine_frequency(dates):
     return frequency
 
 class TimeArray(np.ndarray):
-    
+    ''' numpy array with dates '''
     def __new__(cls, input_array, dates, name=None):
         obj = np.asarray(input_array).view(cls)
         obj.dates = dates
