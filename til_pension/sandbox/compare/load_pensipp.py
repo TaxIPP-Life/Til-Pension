@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import os
 import datetime
 from pandas import read_table
 
@@ -33,10 +34,10 @@ def build_info_child(enf, info_ind):
 def load_from_csv(path):
     ''' the csv are directly produce after executing load_from_Rdata 
             - we don't need to work on columns names'''
-    statut = read_table(path + 'statut.csv', sep=',', index_col=0)
-    salaire = read_table(path + 'salaire.csv', sep=',', index_col=0)
-    info = read_table(path + 'info.csv', sep=',', index_col=0)
-    info_child = read_table(path + 'info_child.csv', sep=',', index_col=0)
+    statut = read_table(os.path.join(path, 'statut.csv'), sep=',', index_col=0)
+    salaire = read_table(os.path.join(path, 'salaire.csv'), sep=',', index_col=0)
+    info = read_table(os.path.join(path, 'info.csv'), sep=',', index_col=0)
+    info_child = read_table(os.path.join(path, 'info_child.csv'), sep=',', index_col=0)
     # is read_table not able to convert directly to datetime
     info_child['naiss'] = [datetime.date(int(date[0:4]),int(date[5:7]),int(date[8:10])) for date in info_child['naiss']]
     info['naiss'] = [datetime.date(int(year),1,1) for year in info['t_naiss']]
@@ -107,12 +108,13 @@ def load_pensipp_data(pensipp_path, yearsim, first_year_sal, selection_id=False)
 
 def load_pensipp_result(pensipp_path, to_csv=False):
     try: 
-        result_pensipp = read_table(pensipp_path + 'result_pensipp.csv', sep=',', index_col=0)
+        path = os.path.join(pensipp_path, 'result_pensipp.csv')
+        result_pensipp = read_table(path, sep=',', index_col=0)
     except:
         import pandas.rpy.common as com
         from rpy2 import robjects as r
         print(" Les données sont chargées à partir du Rdata et non du csv")
-        output_pensipp = pensipp_path + 'output20.RData'
+        output_pensipp = os.path.join(pensipp_path, 'output20.RData')
         r.r['load'](output_pensipp)
         result_pensipp = com.load_data('output1')
         result_pensipp.rename(columns= {'dec_rg': 'decote_RG', 'surc_rg': 'surcote_RG', 'taux': 'taux_RG', 'sam_rg':'salref_RG', 'pliq_rg': 'pension_RG',

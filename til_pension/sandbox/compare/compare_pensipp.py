@@ -2,10 +2,10 @@
 
 import pandas as pd
 
-from CONFIG_compare import pensipp_comparison_path
-from simulation import PensionSimulation
-from pension_legislation import PensionParam, PensionLegislation
-from load_pensipp import load_pensipp_data, load_pensipp_result
+from til_pension.sandbox.compare.CONFIG_compare import pensipp_comparison_path
+from til_pension.simulation import PensionSimulation
+from til_pension.pension_legislation import PensionParam, PensionLegislation
+from til_pension.sandbox.compare.load_pensipp import load_pensipp_data, load_pensipp_result
 first_year_sal = 1949 
 
 
