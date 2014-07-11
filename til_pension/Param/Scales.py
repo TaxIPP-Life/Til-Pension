@@ -371,7 +371,7 @@ class Generation(object):
     @property
     def option(self):
         return self._option
-    
+
     @property
     def control(self):
         return self._control
@@ -428,7 +428,7 @@ class Generation(object):
             return b
 
     def addGeneration(self, generation):
-        if generation.nb > 0:  # Pour ne pas avoir de problèmes avec des échelles générationnelles vides 
+        if generation.nb > 0:  # Pour ne pas avoir de problèmes avec des échelles générationnelles vides
             for seuilInf, seuilSup, valeur in zip(generation.seuils[:-1], generation.seuils[1:], generation.valeur):
                 self.combineTranche(valeur, seuilInf, seuilSup)
             self.combineTranche(generation.valeurs[-1],generation.seuils[-1])  # Pour traiter le dernier seuil
@@ -470,7 +470,7 @@ class Generation(object):
             self.setvaleurM(i, self.valeurM[i] + valeur)
         else:
             self._tranchesM.append([seuil, valeur])
-    
+
     def marToMoy(self):
         ''' Only for numerical seuil '''
         self._tranchesM = []
@@ -487,7 +487,7 @@ class Generation(object):
                 sprec = seuil
                 tprec = valeur
             self.addTrancheM('Infini', valeur)
-            
+
     def moyToMar(self):
         self._tranches = []
         Iprev, sprev = 0, 0

@@ -13,7 +13,7 @@ from itertools import groupby
 def calculate_age(birth_date, date):
     ''' calculate age at date thanks birthdate '''
     def _age(birthdate):
-        try: 
+        try:
             birthday = birthdate.replace(year=date.year)
         except ValueError: # raised when birth date is February 29 and the current year is not a leap year
             birthday = birthdate.replace(year=date.year, month=birthdate.month+1, day=1)
@@ -56,7 +56,7 @@ def count_enf_by_year(data, info_enf):
     datenaiss = info['naiss_liam']
     naiss_ix = [list(list_dates).index(date) for date in datenaiss]
     list_ix = sorted([(ident, year) for ident, year in zip(id_ix, naiss_ix)])
-    
+
     count_by_ix = [(i, list_ix.count(i)) for i,_ in groupby(list_ix)]
     id_ix = [k[0][0] for k in count_by_ix]
     year_ix = [k[0][1] for k in count_by_ix]
@@ -79,7 +79,7 @@ def print_info_timearrays(list_timearrays, all_ident, label_func, loglevel="info
         if nb_cols > max_nb_dates:
             max_nb_dates = nb_cols
             dates_all = timearray.dates
-    
+
     if not list_ident:
         list_ident = all_ident
 
@@ -97,35 +97,35 @@ def print_info_timearrays(list_timearrays, all_ident, label_func, loglevel="info
                 long_col_to_print[-len(col_to_print):] = col_to_print
                 col_to_print = long_col_to_print
             to_print[i,:] = col_to_print
-            names += [timearray] 
+            names += [timearray]
             i += 1
         frame_to_print = DataFrame(to_print, columns=dates_all)
         frame_to_print['names'] = names
         frame_to_print.index = frame_to_print['names']
         getattr(log,loglevel)(frame_to_print)
 
-    
+
 def print_info_vectors(dic_vectors, all_ident, label_func, loglevel="info", list_ident=None):
-    ''' Cette fonction permet d'imprimer (sous format DataFrame) les paramètres individuels 
+    ''' Cette fonction permet d'imprimer (sous format DataFrame) les paramètres individuels
     contenus dans différents vecteurs (pour l'ensemble des individus de la base)'''
     if not list_ident:
         list_ident=all_ident
-    
+
     for ident in list_ident:
         getattr(log,loglevel)("Les informations personnelles de l'individu {} dans le calcul de {} sont : ".format(ident, label_func))
         for name, vec in dic_vectors.iteritems():
             id_ix = list(list_ident).index(ident)
-            val = vec[id_ix] 
+            val = vec[id_ix]
             getattr(log,loglevel)('  - {} = {}'.format(name, val))
 
 
-        
+
 def print_info(dic_vectors, list_timearrays, all_ident, label, loglevel="info",list_ident=None):
     print_info_vectors(dic_vectors, all_ident, label)
     print_info_timearrays(list_timearrays, all_ident, label)
-    
-if __name__ == '__main__':  
-    
+
+if __name__ == '__main__':
+
     # Example for count_enf_by_year
     nb_enf = [1,2,1,1]
     id_ix = [0,0,1,2]

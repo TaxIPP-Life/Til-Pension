@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from simulation import PensionSimulation
-from pension_legislation import PensionParam, PensionLegislation
+from til_pension.simulation import PensionSimulation
+from til_pension.pension_legislation import PensionParam, PensionLegislation
 
 def run_to_print(data, yearsim):
     param = PensionParam(yearsim, data)

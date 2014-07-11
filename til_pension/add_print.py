@@ -1,17 +1,18 @@
 # -*- coding: utf-8 -*-
 
-''' crée une fonction qui sert en fait de décorteur : 
+''' crée une fonction qui sert en fait de décorteur :
         - elle prend comme argument une fonction
         - elle retourne une fonctino
-        - la différence entre l'entrée et la sortie c'est que 
-    la fonction de sortie affiche ses arguments (pour une liste 
+        - la différence entre l'entrée et la sortie c'est que
+    la fonction de sortie affiche ses arguments (pour une liste
     d'indice donnée)
 '''
 
 import sys
 from pandas import DataFrame, Series
 from numpy import ndarray
-from time_array import TimeArray
+
+from til_pension.time_array import TimeArray
 
 def _to_print(key, val, selection_id, selection_ix, cache, intermediate=False):
     add_print = 'qui'
@@ -47,15 +48,15 @@ def _to_print(key, val, selection_id, selection_ix, cache, intermediate=False):
         else:
             if key != 'self':
                 print "    - L'objet {}".format(key)
-            #cache.append(key) : probleme 
-        return cache     
+            #cache.append(key) : probleme
+        return cache
 
 
 class AddPrint(object):
     def __init__(self, selected_ident, selected_index):
-        ''' 
+        '''
         - print_level : TODO
-        doit mémoriser 
+        doit mémoriser
         on a besoin du len_data pour les valeurs par défaut
         - selection est la liste de lignes à afficher
         '''
@@ -71,7 +72,7 @@ class AddPrint(object):
             def tracer(frame, event, arg):
                 if event=='return':
                     self._locals = frame.f_locals.copy()
-                    
+
             sys.setprofile(tracer)
             try:
                 # trace the function call
@@ -82,18 +83,18 @@ class AddPrint(object):
             for key, val in self._locals.iteritems():
                 self.cache = _to_print(key, val, self.selected_indent, self.selected_index, self.cache, intermediate=True)
             return res
-        
+
         def wrapper(*args, **kwargs):
             print "Pour la fonction {}, les arguments appelés sont : ".format(fname)
             arg_name = ''
             args_names = []
             for arg in args:
-                if hasattr(arg, 'name'): 
+                if hasattr(arg, 'name'):
                     arg_name = arg.name
                     args_names.append(arg_name)
-                if hasattr(arg, '__name__'): 
+                if hasattr(arg, '__name__'):
                     arg_name = arg.__name__
                     args_names.append(arg_name)
                 self.cache = _to_print(arg_name, arg,self.selected_indent, self.selected_index, self.cache)
-            return call_func(*args,**kwargs)      
+            return call_func(*args,**kwargs)
         return wrapper

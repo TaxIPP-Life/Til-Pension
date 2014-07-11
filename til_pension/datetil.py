@@ -2,7 +2,7 @@
 from datetime import date as classic_date
 
 class DateTil(object):
-    
+
     def __init__(self, date):
         if isinstance(date, DateTil):
             self.datetime = date.datetime

@@ -1,5 +1,5 @@
 # -*- coding:utf-8 -*-
-         
+
 import xml.etree.ElementTree as ET
 from xml.etree.ElementTree import ElementTree, SubElement, Element, Comment
 from utils import multiple_lists, Tree2Object, TranchesAttr
@@ -8,7 +8,7 @@ from datetime import datetime
 from xml.dom import minidom
 
 class Node(object):
-    def __init__(self, code, description = '', parent=None):        
+    def __init__(self, code, description = '', parent=None):
         super(Node, self).__init__()
         self._parent = parent
         self._children = []
@@ -18,7 +18,7 @@ class Node(object):
         self.valueType = 'none'
         self.typeInfo = 'NODE'
         self.varcontrol = 'none'
-        
+
         if parent is not None:
             parent.addChild(self)
 
@@ -50,7 +50,7 @@ class Node(object):
     def asXml(self, fileName, date_simul):
         doc = ElementTree()
         datesim = date_simul
-        root = Element(tag = self.typeInfo, 
+        root = Element(tag = self.typeInfo,
                        attrib={'datesim': '%s' % datesim})
 
         for i in self._children:
@@ -60,11 +60,11 @@ class Node(object):
         return doc.write(fileName, encoding = "utf-8", method = "xml")
 
     def _recurseXml(self, parent):
-        child = SubElement(parent, 
+        child = SubElement(parent,
                                tag = self.typeInfo,
                                attrib = {'code': self.code,
                                          'description': self.description})
-            
+
         for i in self._children:
             i._recurseXml(child)
 
@@ -81,7 +81,7 @@ class Node(object):
         self._code = value
 
     code = property(getCode, setCode)
-    
+
     def getType(self):
         return self._typeInfo
 
@@ -89,13 +89,13 @@ class Node(object):
         self._typeInfo = value
 
     typeInfo = property(getType, setType)
-    
+
     def getDescription(self):
         return self._description
 
     def setDescription(self, value):
         self._description = value
-        
+
     description = property(getDescription, setDescription)
 
     def getValueFormat(self):
@@ -105,7 +105,7 @@ class Node(object):
         if not value in ('none', 'integer', 'percent', 'date'):
             return Exception("Unknowned %s valueFormat: valueFormat can be 'none', 'integer', 'percent', 'date'" % value)
         self._format = value
-    
+
     valueFormat = property(getValueFormat, setValueFormat)
 
     def getValueType(self):
@@ -117,7 +117,7 @@ class Node(object):
             return Exception("Unknowned %s valueType: valueType can be 'none', 'monetary', 'age', 'hours', 'days', 'years'" % value)
         self._type = value
     valueType = property(getValueType, setValueType)
-    
+
     def getValue(self):
         return self._value
 
@@ -131,7 +131,7 @@ class Node(object):
 
     def setDefault(self, value):
         self._default = value
-        
+
     default = property(getDefault, setDefault)
 
     def hasValue(self):
@@ -139,7 +139,7 @@ class Node(object):
         for child in self._children:
             out = out or child.hasValue()
         return out
-    
+
     def isDirty(self):
         '''
         Check if a value has been changed in a child object
@@ -148,7 +148,7 @@ class Node(object):
         for child in self._children:
             dirty = dirty or child.isDirty()
         return dirty
-            
+
 
     def addChild(self, child):
         self._children.append(child)
@@ -156,23 +156,23 @@ class Node(object):
 
     def child(self, row):
         return self._children[row]
-    
+
     def childCount(self):
         return len(self._children)
 
     def parent(self):
         return self._parent
-    
+
     def row(self):
         if self._parent is not None:
             return self._parent._children.index(self)
 
-    def data(self, column):        
+    def data(self, column):
         if column is 0: return self.description
-    
+
     def setData(self, column, value):
         if column is 0: pass
-    
+
 class CodeNode(Node):
     def __init__(self, code, description, value, parent, valueFormat = 'none', valueType = 'none'):
         super(CodeNode, self).__init__(code, description, parent)
@@ -181,14 +181,14 @@ class CodeNode(Node):
         self.typeInfo = 'CODE'
         self.valueFormat = valueFormat
         self.valueType   = valueType
-        
+
     def _recurseXml(self, parent):
-        child = ET.SubElement(parent, 
+        child = ET.SubElement(parent,
                            tag = self.typeInfo,
                            attrib = {'code': self.code,
                                      'description': self.description})
-        ET.SubElement(child, 
-                   tag = 'VALUE', 
+        ET.SubElement(child,
+                   tag = 'VALUE',
                    attrib = {'valeur': '%f' % self.value})
 
     def load(self, other):
@@ -198,23 +198,23 @@ class CodeNode(Node):
         if self.value is None:
             return False
         return True
-    
+
     def isDirty(self):
         if self.value == self.default:
             return False
         return True
-        
+
     def data(self, column):
-        r = super(CodeNode, self).data(column)        
+        r = super(CodeNode, self).data(column)
         if   column is 1: r = self.default
         if   column is 2: r = self.value
         return r
 
     def setData(self, column, value):
-        super(CodeNode, self).setData(column, value)        
+        super(CodeNode, self).setData(column, value)
         if   column is 1: pass
-        
-        
+
+
 class MultipleNode(Node):
     def __init__(self, code, description, parent, varcontrol, values, seuils,  valueType = 'none', valueFormat = 'none'):
         super(MultipleNode, self).__init__(code, description, parent)
@@ -232,52 +232,52 @@ class MultipleNode(Node):
         V = self.values
         nb_values = len(S)
         if len(S)>1 :
-            child = SubElement(parent, 
+            child = SubElement(parent,
                                 tag = self.typeInfo,
                                 attrib = {'code': self.code,
                                           'description': self.description,
                                           'varcontrol' : self.varcontrol})
             S = S + ["unbound"]
-            
+
             for i in range(nb_values):
-                tranche = SubElement(child, 
-                                     tag = 'TRANCHE', 
+                tranche = SubElement(child,
+                                     tag = 'TRANCHE',
                                      attrib = {'code': 'tranche%d' % i,
                                                'deb' : '%s' % S[i],
                                                'fin' : '%s' % S[i+1] })
-                
-                SubElement(tranche, 
-                           tag = 'VALUE', 
+
+                SubElement(tranche,
+                           tag = 'VALUE',
                            attrib = {'valeur': '%f' % V[i]})
 
     def load(self, other):
         self.value = other.value
-        
+
     def data(self, column):
-        r = super(MultipleNode, self).data(column)        
+        r = super(MultipleNode, self).data(column)
         if   column is 1: r = self.value
         return r
-    
+
     def setData(self, column, value):
         pass
-        
+
     def hasValue(self):
         return True
-    
+
     def isDirty(self):
         if self.value._tranches == self.default._tranches:
             return False
         return True
-    
+
 class XmlReader(object):
     def __init__(self, paramFile, date_simul):
-        self._date = date_simul 
-        self._doc = minidom.parse(paramFile)        
+        self._date = date_simul
+        self._doc = minidom.parse(paramFile)
         self.tree = Node('root')
         self.handleNodeList(self._doc.childNodes, self.tree)
         self.tree = self.tree.child(0)
         self.param = Tree2Object(self.tree)
-    
+
     def handleNodeList(self, nodeList, parent):
         date = self._date
         for element in nodeList:
@@ -298,7 +298,7 @@ class XmlReader(object):
                             tranches.addTranche(seuil, taux*assiette)
                     tranches.marToMoy()
                     node = BaremeNode(code, desc, tranches, parent, valueType)
-                    
+
                 elif element.tagName == "VALBYTRANCHES":
                     code = element.getAttribute('code')
                     desc = element.getAttribute('description')
@@ -310,10 +310,10 @@ class XmlReader(object):
                         node = MultipleNode(code, desc, parent, varcontrol, values, seuils, valueType, valueFormat)
                         node = TranchesAttr(node, values, seuils)
                     else :
-                        val = self.handleValues(element, date) 
+                        val = self.handleValues(element, date)
                         if not val is None :
                             node = CodeNode(code, desc, float(val), parent, valueFormat, valueType)
-                        
+
                 elif element.tagName == "CODE":
                     code = element.getAttribute('code')
                     desc = element.getAttribute('description')
@@ -340,7 +340,7 @@ class XmlReader(object):
                 code = element.getAttribute('code')
                 raise Exception("Problem error when dealing with %s : \n %s" %(code,e))
         return None
-    
+
     def handleCodes(self, element, date):
         # TODO gérer les assiettes en mettan l'assiette à 1 si elle n'existe pas
         for code in element.getElementsByTagName("CODE"):
@@ -360,11 +360,11 @@ read = XmlReader(paramFile, date_simul)
 param = read.param
 tree = read.tree
 
- 
+
 # print read._doc.toxml() -> retourne le code présent dans paramFile
 tree.asXml('treesortie.xml', date_simul)
 
-# Pour voir comment appeler les param 
+# Pour voir comment appeler les param
 print param.ret_base.RG.tx_plein
 print param.ret_base.RG.age_min._nb
 print param.ret_base.RG.age_min.tranche0_seuilinf

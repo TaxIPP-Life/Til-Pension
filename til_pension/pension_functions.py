@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from time_array import TimeArray
+from til_pension.time_array import TimeArray
 from numpy import zeros, minimum
 
 def sum_from_dict(dictionnary, key='', plafond=None):
@@ -13,7 +13,7 @@ def sum_from_dict(dictionnary, key='', plafond=None):
     if plafond is not None:
         trim_tot = minimum(trim_tot, plafond)
     return trim_tot
-    
+
 def sum_by_regime(trimesters_wages, to_other):
     for regime, dict_regime in to_other.iteritems():
         for type in dict_regime.keys():
@@ -24,7 +24,7 @@ def sum_by_regime(trimesters_wages, to_other):
     return trimesters_wages
 
 def attribution_mda(trimesters_wages):
-    ''' La Mda (attribuée par tous les régimes de base), ne peut être accordé par plus d'un régime. 
+    ''' La Mda (attribuée par tous les régimes de base), ne peut être accordé par plus d'un régime.
     Régle d'attribution : a cotisé au régime + si polypensionnés -> ordre d'attribution : RG, RSI, FP
     Rq : Pas beau mais temporaire, pour comparaison Destinie'''
     #devrait peut-être remonter dans PensionLegislation
@@ -35,7 +35,7 @@ def attribution_mda(trimesters_wages):
     trimesters_wages['RSI']['maj']['DA']= trimesters_wages['RSI']['maj']['DA']*RSI_cot*(1-RG_cot)
     trimesters_wages['FP']['maj']['DA'] = trimesters_wages['FP']['maj']['DA']*FP_cot*(1-RG_cot)*(1-RSI_cot)
     return trimesters_wages
-    
+
 def update_all_regime(trimesters_wages, dict_to_check):
     #devrait peut-être remonter dans PensionLegislation
     trim_by_year_tot = sum_from_dict({ regime : trimesters_wages[regime]['trimesters']['regime'] for regime in trimesters_wages.keys()})

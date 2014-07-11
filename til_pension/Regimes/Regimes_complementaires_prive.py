@@ -1,17 +1,15 @@
 # -*- coding:utf-8 -*-
 import os
 
-parentdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-os.sys.path.insert(0,parentdir) 
 
 from numpy import minimum
-from regime import RegimeComplementaires, compare_destinie
+from til_pension.regime import RegimeComplementaires, compare_destinie
 
 
 class AGIRC(RegimeComplementaires):
-    ''' L'Association générale des institutions de retraite des cadres gère le régime de retraite des cadres du secteur privé 
+    ''' L'Association générale des institutions de retraite des cadres gère le régime de retraite des cadres du secteur privé
     de l’industrie, du commerce, des services et de l’agriculture. '''
-    
+
     def __init__(self):
         RegimeComplementaires.__init__(self)
         self.name = 'agirc'
@@ -19,16 +17,16 @@ class AGIRC(RegimeComplementaires):
         self.param_name = 'prive.complementaire.agirc'
         self.regime_base = 'RG'
         self.code_cadre = 4
-        
+
     def sali_for_regime(self, data, trim_wages=None):
         workstate = data.workstate
         sali = data.sali
         return sali*(workstate.isin(self.code_regime))
-        
-        
+
+
 
 class ARRCO(RegimeComplementaires):
-    ''' L'association pour le régime de retraite complémentaire des salariés gère le régime de retraite complémentaire de l’ensemble 
+    ''' L'association pour le régime de retraite complémentaire des salariés gère le régime de retraite complémentaire de l’ensemble
     des salariés du secteur privé de l’industrie, du commerce, des services et de l’agriculture, cadres compris. '''
     def __init__(self):
         RegimeComplementaires.__init__(self)
@@ -38,7 +36,7 @@ class ARRCO(RegimeComplementaires):
         self.code_regime = [3,4]
         self.code_noncadre = 3
         self.code_cadre = 4
-        
+
     def sali_for_regime(self, data, trim_wages):
         '''plafonne le salaire des cadres à 1 pss pour qu'il ne pait que la première tranche '''
         workstate = data.workstate
@@ -49,8 +47,7 @@ class ARRCO(RegimeComplementaires):
         plaf_sal = minimum(sal, nb_pss*plaf_ss)
         noncadre_selection = (workstate == self.code_noncadre)
         if compare_destinie:
-            # Dans Destinie, les FP reversés au RG sont considérés comme cotisants non-cadre 
+            # Dans Destinie, les FP reversés au RG sont considérés comme cotisants non-cadre
             FP_selection = (trim_wages['trimesters']['cot_FP'] != 0)*sal
             noncadre_selection += FP_selection
         return sal*noncadre_selection + plaf_sal*cadre_selection
-        

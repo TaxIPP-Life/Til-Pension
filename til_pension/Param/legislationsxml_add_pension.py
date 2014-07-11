@@ -184,7 +184,7 @@ def transform_parameter_xml_json_to_json(parameter_xml_json):
                     format = float
                 else:
                     format = eval(parameter_xml_json['format'])
-            else: 
+            else:
                 format = float
             parameter_json['values'] = [ transform_value_xml_json_to_json(item, format)
                 for item in value

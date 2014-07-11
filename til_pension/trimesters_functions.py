@@ -7,8 +7,8 @@ Created on 30 mai 2014
 '''
 from numpy import minimum, array, divide, zeros, isnan, multiply, greater
 from pandas import Series
-from regime import compare_destinie
-from time_array import TimeArray
+from til_pension.regime import compare_destinie
+from til_pension.time_array import TimeArray
 
 code_chomage = 2
 code_preretraite = 9
@@ -39,34 +39,34 @@ def trim_cot_by_year_FP(data, code):
 
 
 def trim_ass_by_year(data, code, compare_destinie):
-    ''' 
+    '''
     Comptabilisation des périodes assimilées à des durées d'assurance
-    Pour l"instant juste chômage workstate == 5 (considéré comme indemnisé) 
+    Pour l"instant juste chômage workstate == 5 (considéré comme indemnisé)
     qui succède directement à une période de côtisation au RG workstate == [3,4]
     '''
     workstate = data.workstate
-    
+
     unemp_trim = workstate.select_code_after_period(code, code_chomage)
     if workstate.frequency == 'month':
         month_by_year_unemp = unemp_trim.translate_frequency('year', method='sum')
-        trim_by_year_chom = TimeArray(divide(month_by_year_unemp, 3), workstate.dates)  
+        trim_by_year_chom = TimeArray(divide(month_by_year_unemp, 3), workstate.dates)
     else:
         assert workstate.frequency == 'year'
         trim_by_year_chom =  TimeArray(multiply(unemp_trim, 4), workstate.dates)
-    
+
     trim_by_year_ass = trim_by_year_chom #+...
     if compare_destinie:
         trim_by_year_ass = (workstate.isin([code_chomage, code_preretraite]))*4
     return trim_by_year_ass, None
 
-#TODO: remove ? 
-def validation_trimestre(data, code, salref, frequency='year', name=''):  
-    ''' FP Nombre de trimestres côtisés pour le régime général par année 
+#TODO: remove ?
+def validation_trimestre(data, code, salref, frequency='year', name=''):
+    ''' FP Nombre de trimestres côtisés pour le régime général par année
     ref : code de la sécurité sociale, article R351-9
     '''
     name_sal = 'sali_' + name
     name_trim = 'trim_' + name
-        
+
     # Selection des salaires à prendre en compte dans le décompte (mois où il y a eu côtisation au régime)
     data_validation = data.translate_frequency(output_frequency=frequency, method='sum')
     workstate = data_validation.workstate
@@ -81,7 +81,7 @@ def validation_trimestre(data, code, salref, frequency='year', name=''):
     division = divide(sal_annuel, salref).astype(int)
     trim_cot_by_year = TimeArray(minimum(division, plafond), sal.dates, name=name_trim)
     return trim_cot_by_year, sal_selection
-    
+
 def imput_sali_avpf(data, code, P_longit, compare_destinie):
     #TODO: move to an other place
     data_avpf = data.selected_regime(code)
@@ -97,13 +97,13 @@ def imput_sali_avpf(data, code, P_longit, compare_destinie):
     return sali_avpf
 
 
-def trim_mda(info_ind, name_regime, P): 
+def trim_mda(info_ind, name_regime, P):
     ''' Majoration pour enfant : nombre de trimestres acquis'''
     child_mother = info_ind.loc[info_ind['sexe'] == 1, 'nb_enf_' + name_regime]
     if compare_destinie and name_regime != 'FP':
         child_mother = info_ind.loc[info_ind['sexe'] == 1, 'nb_enf']
     mda = Series(0, index=info_ind.index)
-    # TODO: distinguer selon l'âge des enfants après 2003 
+    # TODO: distinguer selon l'âge des enfants après 2003
     # ligne suivante seulement if child_mother['age_enf'].min() > 16 :
     mda[child_mother.index.values] = P.trim_per_child*child_mother.values
     cond_enf_min = child_mother.values >= P.nb_enf_min
@@ -113,7 +113,7 @@ def trim_mda(info_ind, name_regime, P):
 
 def nb_trim_bonif_5eme(trim):
     ''' FP '''
-    #TODO: 5*4 ? d'ou ca vient ? 
+    #TODO: 5*4 ? d'ou ca vient ?
     #TODO: Add bonification au cinquième pour les superactifs (policiers, surveillants pénitentiaires, contrôleurs aériens... à identifier grâce à workstate)
     super_actif = 0 # condition superactif à définir
     taux_5eme = 0.2
@@ -136,17 +136,17 @@ def nb_trim_surcote(trim_by_year, selected_dates, date_start_surcote):
     return nb_trim
 
 def nb_trim_decote(trimesters, trim_maj, agem, P):
-    ''' Cette fonction renvoie le vecteur numpy du nombre de trimestres décotés 
+    ''' Cette fonction renvoie le vecteur numpy du nombre de trimestres décotés
     Lorsque les deux règles (d'âge et de nombre de trimestres cibles) jouent
     -> Ref : Article L351-1-2 : les bonifications de durée de services et majorations de durée d'assurance,
-    à l'exclusion de celles accordées au titre des enfants et du handicap, ne sont pas prises en compte 
+    à l'exclusion de celles accordées au titre des enfants et du handicap, ne sont pas prises en compte
     dans la durée d'assurance tous régimes confondus pour apprécier la décote.
     '''
     age_annulation = array(P.decote.age_null)
     plafond = array(P.decote.nb_trim_max)
     n_trim = array(P.plein.n_trim)
     trim_decote_age = divide(age_annulation - agem, 3)
-    
+
     trim_tot = trimesters['tot'].sum(axis=1) + trim_maj['enf']
     trim_decote_cot = n_trim - trim_tot
     assert len(trim_decote_age) == len(trim_decote_cot)

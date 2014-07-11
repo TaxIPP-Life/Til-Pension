@@ -16,17 +16,17 @@ def multiple_lists(element, date):
                 seuil =  datetime.strptime(val.getAttribute('valeurcontrol'),"%Y-%m-%d").date()
                 if not valeur is None and not seuil is None:
                     values = values + [valeur]
-                    seuils =  seuils + [seuil] 
+                    seuils =  seuils + [seuil]
         except Exception, e:
             code = element.getAttribute('code')
             raise Exception("Problem error when dealing with %s : \n %s" %(code,e))
-        
+
     return values, seuils
 
 def TranchesAttr(node, V, S):
         nb_tranches = len(S)
         S = S + ["unbound"]
-        for i in range(nb_tranches):     
+        for i in range(nb_tranches):
             seuilinf  = 'tranche'+ str(i) + '_seuilinf'
             seuilsup  = 'tranche'+ str(i) + '_seuilsup'
             setattr(node, seuilinf, S[i])
@@ -46,7 +46,7 @@ class Tree2Object(object):
                     setattr(self,a, b.default)
                 else:
                     setattr(self,a, b.value)
-                    
+
             elif  b.typeInfo == 'VALBYTRANCHES' :
                 setattr(self, a, b)
 
@@ -61,7 +61,7 @@ def from_excel_to_xml(data, code, data_date, description, xml = 'test_xml', form
         year = date[6:]
         date = year + "-" + month + "-" + day
         return date
-    
+
     if ascendant_date:
         data = data[::-1]
         data_date = data_date[::-1]
@@ -71,7 +71,7 @@ def from_excel_to_xml(data, code, data_date, description, xml = 'test_xml', form
         f.write(to_write)
         # Insertions des paramètres
         for i in range(len(data)):
-            if i == 0: 
+            if i == 0:
                 fin = "2100-12-01"
             else:
                 fin = str(datetime.strptime(debut,"%Y-%m-%d").date() - timedelta(days=1))
@@ -88,42 +88,42 @@ def from_excel_to_xml(data, code, data_date, description, xml = 'test_xml', form
         f.write(to_write)
         # Corps du dofile
         f.close()
-        
-if __name__ == '__main__': 
-    # Examples  
+
+if __name__ == '__main__':
+    # Examples
     example = False
-    if example:      
+    if example:
         data = [0,2,3,99]
         date = ["01/04/2013", "01/04/2012", "01/04/2011", "01/04/2010"]
         code = "test"
         description = "salut"
         from_excel_to_xml(data, code, date, description, xml = 'test_xml', format_date = '/')
-        
+
         date = [2009,2010,2011,2012]
         from_excel_to_xml(data, code, date, description, xml = 'test_xml', ascendant_date = True, format_date = 'year')
-        
 
-    
+
+
     #########
     # Séries chronologiques alimentant le noeud 'common'
     ########
-    
+
     def _francs_to_euro(data,ix):
-        data = [w.replace(',', '.') for w in data.astype(str)] 
+        data = [w.replace(',', '.') for w in data.astype(str)]
         data = [w.replace('FRF', '')  for w in data]
         data = [w.replace(' ', '') for w in data]
         data = np.array(data, dtype = np.float)
         data[ix:] =data[ix:] / 6.5596
         return data.round(2)
-    
+
     def _oldfrancs_to_francs(data,ix):
-        data = [w.replace(',', '.') for w in data.astype(str)] 
+        data = [w.replace(',', '.') for w in data.astype(str)]
         data = [w.replace('AF', '')  for w in data]
         data = [w.replace(' ', '') for w in data]
         data = np.array(data, dtype = np.float)
         data[ix:] = data[ix:] /  100
         return data
-    
+
     # 1 -- Importation des Baremes IPP
     '''
     xlsxfile = pd.ExcelFile('Bareme_retraite.xlsx')
@@ -137,7 +137,7 @@ if __name__ == '__main__':
     plaf_avts_seul = _francs_to_euro(plaf_avts_seul, 13)
     plaf_avts_couple = np.array(data.ix[1:, 'plaf_mv_men'])
     plaf_avts_couple = _francs_to_euro(plaf_avts_couple, 13)
-    
+
     #from_excel_to_xml(data = avts, description = "Montant de l'allocations aux vieux travailleurs salariés", code = "montant", format = "float", data_date = dates)
     #from_excel_to_xml(data = plaf_avts_seul, description = "Plafond de ressources - personne seul", code = "plaf_seul", format = "float", data_date = dates)
     #from_excel_to_xml(data = plaf_avts_couple, description = "Plafond de ressources - couple", code = "plaf_couple", format = "float", data_date = dates)
@@ -155,13 +155,13 @@ if __name__ == '__main__':
     dates = np.array(data.index)
     indice =  np.array(data['Indice Prix'])
     #from_excel_to_xml(data = indice, description = "Indice des prix", code = "ip_reval", format = "float", data_date = dates, ascendant_date = True, format_date = 'year')
-    
+
     plaf_ss =  np.array(data['Plafond SS'])
     #from_excel_to_xml(data = plaf_ss, description = "Plafond de la sécurité sociale", code = "plaf_ss", format = "float", data_date = dates, ascendant_date = True, format_date = 'year')
-    
+
     smic = np.array((data['SMIC']).round(2))
     #from_excel_to_xml(data = smic, description = "SMIC horaire projeté à partir du SMPT ", code = "smic_proj", format = "float", data_date = dates, ascendant_date = True, format_date = 'year')
-    
+
     smpt = np.array(data['SMPT '])
     #from_excel_to_xml(data = smpt, description = "SMPT - Hypothèse d'évolution selon le scénario C du COR + inflation", code = "smpt", format = "float", data_date = dates, ascendant_date = True, format_date = 'year')
 
@@ -183,7 +183,7 @@ if __name__ == '__main__':
     smic = _francs_to_euro(smic,17)
     dates = np.array(data["Date d'effet"][:107])
     #from_excel_to_xml(data = smic, description = "Montant du smic horaire", code = "smic", format = "float", data_date = dates)
-    
+
         # 4 --Importation des barèmes IPP retraite
     xlsxfile = pd.ExcelFile('Retraite.xlsx')
 
@@ -195,30 +195,30 @@ if __name__ == '__main__':
     #from_excel_to_xml(data = mico, description = "Minimum contributif (annuel)", code = "mico", format = "float", data_date = dates)
     mico_maj =  np.array(data['Minimum contributif majoré'][1:12])
     #from_excel_to_xml(data = mico_maj, description = "Minimum contributif majoré", code = "maj", format = "float", data_date = dates[:12])
-    
+
     # Paramètres ARRCO
     data = xlsxfile.parse('SALREF-ARRCO', index_col = None, header = True)
     arrco =  np.array(data[u'Salaire de référence (en euros)'])
     dates = np.array(data[u"Date d'entrée en vigueur"])
     #from_excel_to_xml(data = arrco, description = "Salaires de référence pour validation des points (en euros)", code = "sal_ref", format = "float", data_date = dates)
-    
+
     data = xlsxfile.parse('PT-ARRCO', index_col = None, header = True)
     arrco =  np.array(data[u'Valeur du point ARRCO (en euros)'])[: -5]
     dates = np.array(data[u"Date d'entrée en vigueur"])
     dates = dates[:len(arrco)]
     #from_excel_to_xml(data = arrco, description = "Valeur du point ARRCO (en euros)", code = "val_point", format = "float", data_date = dates)
-    
+
     # Paramètres AGIRC
     data = xlsxfile.parse('SALREF-AGIRC', index_col = None, header = True)
     salref_agirc=  np.array(data[ u"Salaire de référence AGIRC (prix d'achat) en euros"])[:-3]
     dates = np.array(data[u"Date d'entrée en vigueur"])[:-3]
     #from_excel_to_xml(data = salref_agirc, description = "Salaires de référence pour validation des points (en euros)", code = "sal_ref", format = "float", data_date = dates)
-    
+
     data = xlsxfile.parse('PT-AGIRC', index_col = None, header = True)
     agirc =  np.array(data[u'Valeur du point AGIRC (en euros)'])[:-7].round(4)
     dates = np.array(data[u"Date d'entrée en vigueur"])[:-7]
     #from_excel_to_xml(data = agirc, description = "Valeur du point AGIRC (en euros)", code = "val_point", format = "float", data_date = dates)
-      
+
     # AVPF
     data = xlsxfile.parse('AVPF', index_col = None, header = True)
     avpf = data["Montant mensuel de l'Assurance vieillesse des parents au foyer (AVPF)"][1:50]
@@ -226,7 +226,7 @@ if __name__ == '__main__':
     avpf =  _francs_to_euro(np.array(avpf), 15)
     dates = np.array(dates)
     #from_excel_to_xml(data=avpf, description = "Assurance vieillesse des parents au foyer", code = "avpf", format = "float", data_date = dates)
-    
+
 
         # 5 -- Importation des paramètres Destinie :
     # 5-1 : retraite de base
@@ -234,7 +234,7 @@ if __name__ == '__main__':
     dates = np.array(Retbase['annee'])
     revalo = np.array(Retbase['Reval SPC'])
     #from_excel_to_xml(data = revalo, description = "Coefficient de revalorisation des pensions (coeff. Destinie)", code = "revalo", format = "float", data_date = dates, format_date = 'year', ascendant_date = True)
-    
+
     # 5-2 : retraite complémentaire
     Retcomp = pd.read_csv('ParamRetComp.csv', sep=";")
     dates = np.array(Retcomp['annee'])

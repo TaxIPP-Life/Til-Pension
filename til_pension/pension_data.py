@@ -3,7 +3,7 @@
 from numpy import array, ndarray
 from pandas import DataFrame
 from til_pension.time_array import TimeArray
-from datetil import DateTil
+from til_pension.datetil import DateTil
 
 compare_destinie = True
 

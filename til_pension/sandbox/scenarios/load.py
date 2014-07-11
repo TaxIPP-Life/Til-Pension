@@ -18,7 +18,7 @@ dates = [100*x + 1 for x in range(1969,2010)]
 
 sali = zeros((nb_scenarios,len(dates)))
 workstate = zeros((nb_scenarios,len(dates)))
-info_ind = DataFrame(index=range(nb_scenarios), 
+info_ind = DataFrame(index=range(nb_scenarios),
                      columns=['agem','naiss','sexe','nb_enf',
                                 'nb_pac','nb_enf_FP','nb_enf_RG','nb_enf_RSI',
                                 'tauxprime'])

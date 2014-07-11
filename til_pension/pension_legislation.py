@@ -8,14 +8,14 @@ from numpy import array, ones
 from pandas import DataFrame
 
 from xml.etree import ElementTree
-from Param import legislations_add_pension as legislations
-from Param import legislationsxml_add_pension as  legislationsxml
+from til_pension.Param import legislations_add_pension as legislations
+from til_pension.Param import legislationsxml_add_pension as  legislationsxml
 from openfisca_core import conv
 
-from Regimes.Fonction_publique import FonctionPublique
-from Regimes.Regimes_complementaires_prive import AGIRC, ARRCO
-from Regimes.Regimes_prives import RegimeGeneral, RegimeSocialIndependants
-from regime import compare_destinie
+from til_pension.Regimes.Fonction_publique import FonctionPublique
+from til_pension.Regimes.Regimes_complementaires_prive import AGIRC, ARRCO
+from til_pension.Regimes.Regimes_prives import RegimeGeneral, RegimeSocialIndependants
+from til_pension.regime import compare_destinie
 
 def build_long_values(param_long, first, last, time_scale='year'):
     ''' Cette fonction permet de traduire les paramètres longitudinaux en vecteur numpy

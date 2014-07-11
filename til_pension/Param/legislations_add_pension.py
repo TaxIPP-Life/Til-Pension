@@ -33,7 +33,7 @@ import itertools
 from openfisca_core import conv
 from Scales import Bareme, Generation
 def valbytranches(param, info_ind):
-    ''' Associe à chaque individu la bonne valeur du paramètre selon la valeur de la variable de control 
+    ''' Associe à chaque individu la bonne valeur du paramètre selon la valeur de la variable de control
     var_control spécifié au format date (exemple : date de naissance) '''
     if isinstance(param, float) or isinstance(param, int):
         return param
@@ -98,7 +98,7 @@ def compact_dated_node_json(dated_node_json, info_ind, code = None):
             if val is not None and threshold is not None:
                 generation.addTranche(threshold, val)
         return valbytranches(generation, info_ind)
-    
+
 def compact_long_dated_node_json(long_node_json, code = None):
     node_type = long_node_json['@type']
     if node_type == u'Node':
@@ -116,7 +116,7 @@ def compact_long_dated_node_json(long_node_json, code = None):
         pass
     elif node_type == u'LongitudinalParam':
         return long_node_json.get('values')
-       
+
     elif node_type == u'LongitudinalScale':
         long = long_node_json.get('values')
         long_bareme = {}
@@ -214,7 +214,7 @@ def generate_long_node_json(node_json, date_str):
             long_values = generate_long_json_value(value, date_str)
             long_node_json['values'] = long_values
             if long_values is None:
-                return None           
+                return None
         elif key =='control' and long==True:
             # Occurs when @type == 'Generation'.
             long_node_json['control'] = dated_value
@@ -259,7 +259,7 @@ def generate_dated_node_json(node_json, date_str):
             if key == 'values':
                 dated_node_json['value'] = dated_value
             if key == 'control':
-                dated_node_json['control'] = dated_value   
+                dated_node_json['control'] = dated_value
         else:
             dated_node_json[key] = value
     return dated_node_json

@@ -4,9 +4,9 @@ import os
 import datetime
 from pandas import read_table
 
-from CONFIG_compare import pensipp_comparison_path
-from utils_compar import calculate_age, count_enf_born, count_enf_pac, count_enf_by_year
-from pension_data import PensionData
+from til_pension.sandbox.compare.CONFIG_compare import pensipp_comparison_path
+from til_pension.sandbox.compare.utils_compar import calculate_age, count_enf_born, count_enf_pac, count_enf_by_year
+from til_pension.pension_data import PensionData
 
 
 def _child_by_age(info_child, year, id_selected):
@@ -32,7 +32,7 @@ def build_info_child(enf, info_ind):
     return info_enf
 
 def load_from_csv(path):
-    ''' the csv are directly produce after executing load_from_Rdata 
+    ''' the csv are directly produce after executing load_from_Rdata
             - we don't need to work on columns names'''
     statut = read_table(os.path.join(path, 'statut.csv'), sep=',', index_col=0)
     salaire = read_table(os.path.join(path, 'salaire.csv'), sep=',', index_col=0)
@@ -61,17 +61,17 @@ def load_from_Rdata(path, to_csv=False):
     info['id'] = info.index
     id_enf = com.load_data('enf')
     id_enf.columns =  [ 'enf'+ str(i) for i in range(id_enf.shape[1])]
-    info_child = build_info_child(id_enf,info) 
-      
+    info_child = build_info_child(id_enf,info)
+
     if to_csv:
         for table in ['info', 'info_child', 'salaire', 'statut']:
             temp = eval(table)
             temp.to_csv(pensipp_comparison_path + table + '.csv', sep =',')
-            
+
     return info, info_child, salaire, statut
 
 def load_pensipp_data(pensipp_path, yearsim, first_year_sal, selection_id=False):
-    try: 
+    try:
         info, info_child, salaire, statut = load_from_csv(pensipp_comparison_path)
     except:
         print(" Les données sont chargées à partir du Rdata et non du csv")
@@ -107,7 +107,7 @@ def load_pensipp_data(pensipp_path, yearsim, first_year_sal, selection_id=False)
     return data_bounded
 
 def load_pensipp_result(pensipp_path, to_csv=False):
-    try: 
+    try:
         path = os.path.join(pensipp_path, 'result_pensipp.csv')
         result_pensipp = read_table(path, sep=',', index_col=0)
     except:
@@ -125,5 +125,5 @@ def load_pensipp_result(pensipp_path, to_csv=False):
                                         inplace = True)
     if to_csv:
         result_pensipp.to_csv(pensipp_path + 'result_pensipp.csv', sep =',')
-             
+
     return result_pensipp

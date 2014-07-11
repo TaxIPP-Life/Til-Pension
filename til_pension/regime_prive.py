@@ -4,18 +4,18 @@ from datetime import datetime
 
 import os
 parentdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-os.sys.path.insert(0,parentdir) 
+os.sys.path.insert(0,parentdir)
 
 from numpy import minimum, maximum, array, divide, multiply
 
-from regime import RegimeBase
-from trimesters_functions import nb_trim_surcote, nb_trim_decote
+from til_pension.regime import RegimeBase
+from til_pension.trimesters_functions import nb_trim_surcote, nb_trim_decote
 
 def date_(year, month, day):
     return datetime.date(year, month, day)
 
 class RegimePrive(RegimeBase):
-    
+
     def __init__(self):
         RegimeBase.__init__(self)
         self.param_name = 'prive.RG' #TODO: move P.prive.RG used in the subclass RegimePrive in P.prive
@@ -24,34 +24,34 @@ class RegimePrive(RegimeBase):
     def _age_min_retirement(self, data=None):
         P = reduce(getattr, self.param_name.split('.'), self.P)
         return P.age_min
-    
+
     def calculate_salref(self, data, wages):
-        ''' SAM : Calcul du salaire annuel moyen de référence : 
+        ''' SAM : Calcul du salaire annuel moyen de référence :
         notamment application du plafonnement à un PSS'''
         P = reduce(getattr, self.param_name_bis.split('.'), self.P)
         nb_best_years_to_take = P.nb_years
         plafond = self.P_longit.common.plaf_ss
-        revalo = self.P_longit.prive.RG.revalo 
+        revalo = self.P_longit.prive.RG.revalo
 
         revalo = array(revalo)
         for i in range(1, len(revalo)) :
             revalo[:i] *= revalo[i]
-            
+
         sal_regime = wages['regime']
         sal_regime.translate_frequency(output_frequency='year', method='sum', inplace=True)
         years_sali = (sal_regime != 0).sum(axis=1)
         nb_best_years_to_take = array(nb_best_years_to_take)
-        nb_best_years_to_take[years_sali < nb_best_years_to_take] = years_sali[years_sali < nb_best_years_to_take]    
-            
+        nb_best_years_to_take[years_sali < nb_best_years_to_take] = years_sali[years_sali < nb_best_years_to_take]
+
         if plafond is not None:
             assert sal_regime.shape[1] == len(plafond)
-            sal_regime = minimum(sal_regime, plafond) 
+            sal_regime = minimum(sal_regime, plafond)
         if revalo is not None:
             assert sal_regime.shape[1] == len(revalo)
             sal_regime = multiply(sal_regime,revalo)
         salref = sal_regime.best_dates_mean(nb_best_years_to_take)
         return salref.round(2)
-    
+
     def trim_decote(self, data, trim_wage_all):
         ''' Détermination de la décote à appliquer aux pensions '''
         trimesters = trim_wage_all['trimesters']
@@ -69,18 +69,18 @@ class RegimePrive(RegimeBase):
         ''' Détermination de l'âge d'annularion de la décote '''
         P = reduce(getattr, self.param_name.split('.'), self.P)
         return P.decote.age_null
-        
+
     def calculate_coeff_proratisation(self, info_ind, trim_wage_regime, trim_wage_all):
         ''' Calcul du coefficient de proratisation '''
-        
+
         def _assurance_corrigee(trim_regime, agem):
-            ''' 
+            '''
             Deux types de corrections :
             - correction de 1948-1982
             - Détermination de la durée d'assurance corrigée introduite par la réforme Boulin
             (majoration quand départ à la retraite après 65 ans) à partir de 1983'''
             P = reduce(getattr, self.param_name.split('.'), self.P)
-            
+
             if P.prorat.dispositif == 1:
                 correction = (P.prorat.n_trim - trim_regime)/2
                 return trim_regime + correction
@@ -94,16 +94,16 @@ class RegimePrive(RegimeBase):
                 return trim_regime
 
         P =  reduce(getattr, self.param_name.split('.'), self.P)
-        trim_regime = trim_wage_regime['trimesters']['regime'].sum(axis=1) 
+        trim_regime = trim_wage_regime['trimesters']['regime'].sum(axis=1)
         trim_regime_maj = sum(trim_wage_regime['maj'].values())
         agem = info_ind['agem']
-        trim_regime = trim_regime_maj + trim_regime  # _assurance_corrigee(trim_regime, agem) 
+        trim_regime = trim_regime_maj + trim_regime  # _assurance_corrigee(trim_regime, agem)
         #disposition pour montée en charge de la loi Boulin (ne s'applique qu'entre 72 et 74) :
         if P.prorat.application_plaf == 1:
-            trim_regime = minimum(trim_regime, P.prorat.plaf) 
+            trim_regime = minimum(trim_regime, P.prorat.plaf)
         CP = minimum(1, divide(trim_regime, P.prorat.n_trim))
         return CP
-        
+
     def _calculate_surcote(self, trim_wage_regime, trim_wage_all, date_start_surcote, age):
         ''' Détermination de la surcote à appliquer aux pensions.'''
         P = reduce(getattr, self.param_name.split('.'), self.P)
@@ -115,15 +115,15 @@ class RegimePrive(RegimeBase):
         n_trim = array(P.plein.n_trim, dtype=float)
         trim_tot = trim_by_year_tot.sum(axis=1)
         surcote = P.surcote.dispositif0.taux*(trim_tot - n_trim)*(trim_tot > n_trim)# = 0 après 1983
-                 
+
         # dispositif de type 1
-        if P.surcote.dispositif1.taux > 0: 
+        if P.surcote.dispositif1.taux > 0:
             trick = P.surcote.dispositif1.date_trick
             trick = str(int(trick))
             selected_dates = getattr(P_long.surcote.dispositif1, 'dates' + trick)
             if sum(selected_dates) > 0 :
                 surcote += P.surcote.dispositif1.taux*nb_trim_surcote(trim_by_year_RG, selected_dates, date_start_surcote)
-        
+
         # dispositif de type 2
         P2 = P.surcote.dispositif2
         if P2.taux0 > 0:
@@ -135,9 +135,9 @@ class RegimePrive(RegimeBase):
             trim_with_majo = (basic_trim - P2.trim_majoration)*((basic_trim - P2.trim_majoration) >= 0)
             basic_trim = basic_trim - trim_with_majo
             surcote += P2.taux0*basic_trim + P2.taux_maj_trim*trim_with_majo + P2.taux_maj_age*maj_age_trim
-            
-        return surcote  
-        
+
+        return surcote
+
     def minimum_pension(self, trim_wages_reg, trim_wages_all, pension_reg, pension_all):
         ''' MICO du régime général : allocation différentielle
         RQ : ASPA et minimum vieillesse sont gérés par OF
@@ -167,9 +167,9 @@ class RegimePrive(RegimeBase):
             mico = mico_entier + maj*(trim_cot_regime >= P.mico.trim_min)
             return (mico - pension_reg)*(mico > pension_reg)*(pension_reg>0)
 
-        
+
     def plafond_pension(self, pension_brute, salref, cp, surcote):
-        ''' plafonnement à 50% du PSS 
+        ''' plafonnement à 50% du PSS
         TODO: gérer les plus de 65 ans au 1er janvier 1983'''
         PSS = self.P.common.plaf_ss
         P = reduce(getattr, self.param_name.split('.'), self.P)
