@@ -3,7 +3,7 @@ import logging as log
 
 from datetime import date
 from numpy import maximum, array, nan_to_num, greater, divide, around, zeros, minimum, multiply
-from pandas import Series, DataFrame
+from pandas import Series
 from til_pension.time_array import TimeArray
 from til_pension.datetil import DateTil
 

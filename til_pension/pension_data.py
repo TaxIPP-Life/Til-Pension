@@ -22,8 +22,6 @@ class PensionData(object):
         assert sorted(dates) == dates
         self.last_date = None  # intialisation for assertion in set_dates
         self.set_dates(dates)
-        if 'date_liquidation' not in info_ind.columns:
-            self.info_ind['date_liquidation'] = self.last_date.datetime
 
     def set_dates(self, dates):
         self.dates = dates
