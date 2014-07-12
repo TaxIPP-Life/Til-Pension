@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from numpy import zeros
+import numpy as np
 from pandas import DataFrame, Series
 from til_pension.pension_functions import sum_by_regime, update_all_regime
 from til_pension.add_print import AddPrint
@@ -119,8 +119,8 @@ class PensionSimulation(object):
                 date_taux_plein = reg.date_start_taux_plein(data, trimesters_wages['all_regime'])
                 date_taux_plein[date_taux_plein == 210001] = -1
                 dates_taux_plein[reg.name] = date_taux_plein
-            dates_taux_plein['index'] = data.info_ind['index']
-            return dates_taux_plein
+            dates = reduce(np.minimum, dates_taux_plein.values())
+            return dates
 
         # 2 - Calcul des pensions brutes par régime (de base et complémentaire)
         pensions = self.pensions
@@ -142,7 +142,7 @@ class PensionSimulation(object):
                                                     trim_decote[regime_base], dict_to_check)
                 pensions[reg.name] = pension_reg
 
-            output = zeros(len(pension_reg))
+            output = np.zeros(len(pension_reg))
             for val in pensions.values():
                 output += val
             pensions['tot'] = output
