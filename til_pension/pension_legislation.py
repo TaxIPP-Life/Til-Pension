@@ -211,14 +211,13 @@ if __name__ == '__main__':
     from pandas import DataFrame
     
     data = DataFrame()
-    table = array([ (186L, 1941.0, 2.0, 1.0, datetime.date(1941, 1, 1), 186L, 756.0, 0.0, 2.0),
-       (376L, 1941.0, 1.0, 1.0, datetime.date(1941, 1, 1), 376L, 756.0, 0.0, 1.0),
-       (833L, 1941.0, 3.0, 0.0, datetime.date(1941, 1, 1), 833L, 756.0, 0.0, 3.0),
-       (834L, 1941.0, 3.0, 1.0, datetime.date(1941, 1, 1), 834L, 756.0, 0.0, 3.0),
-       (956L, 1941.0, 0.0, 0.0, datetime.date(1941, 1, 1), 956L, 756.0, 0.0, 0.0)],
-      dtype=[('index', '<i8'), ('t_naiss', '<f8'), ('n_enf', '<f8'), ('sexe', '<f8'), ('naiss', 'O'), ('id', '<i8'), ('agem', '<f8'), ('nb_pac', '<f8'), ('nb_born', '<f8'), ('date_liquidation', 'O')])
-    info_ind = DataFrame(table)
-    sali = DataFrame(0, index=info_ind.index, columns=[201301,201401])
+    info_ind = array([ (186L, 2.0, 1.0, datetime.date(1941, 1, 1), 756.0, 0.0, 2.0),
+       (376L, 1.0, 1.0, datetime.date(1941, 1, 1), 756.0, 0.0, 1.0),
+       (833L, 3.0, 0.0, datetime.date(1941, 1, 1), 756.0, 0.0, 3.0),
+       (834L, 3.0, 1.0, datetime.date(1941, 1, 1), 756.0, 0.0, 3.0),
+       (956L, 0.0, 0.0, datetime.date(1941, 1, 1), 756.0, 0.0, 0.0)],
+      dtype=[('index', '<i8'), ('n_enf', '<f8'), ('sexe', '<f8'), ('naiss', 'O'), ('agem', '<f8'), ('nb_pac', '<f8'), ('nb_born', '<f8'), ('date_liquidation', 'O')])
+    sali = DataFrame(0, index=info_ind['index'], columns=[201301,201401])
     data = PensionData.from_arrays(sali, sali, info_ind)
 
     param = PensionParam(2015, data)

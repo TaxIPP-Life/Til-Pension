@@ -2,7 +2,9 @@
 
 import os
 import datetime
+import numpy as np
 from pandas import read_table
+from numpy.lib import recfunctions
 
 from til_pension.sandbox.compare.CONFIG_compare import pensipp_comparison_path
 from til_pension.sandbox.compare.utils_compar import calculate_age, count_enf_born, count_enf_pac, count_enf_by_year
@@ -56,8 +58,7 @@ def load_from_Rdata(path, to_csv=False):
     salaire = com.load_data('salaire')
     salaire.columns = dates_to_col
     info = com.load_data('ind')
-    info['t_naiss'] = 1900 + info['t_naiss']
-    info['naiss'] = [datetime.date(int(year),1,1) for year in info['t_naiss']]
+    info['naiss'] = [datetime.date(1900 + int(year),1,1) for year in info['t_naiss']]
     info['id'] = info.index
     id_enf = com.load_data('enf')
     id_enf.columns =  [ 'enf'+ str(i) for i in range(id_enf.shape[1])]
@@ -80,6 +81,7 @@ def load_pensipp_data(pensipp_path, yearsim, first_year_sal, selection_id=False)
             info.loc[:,'sexe'] = info.loc[:,'sexe'].replace(1,0)
             info.loc[:,'sexe'] = info.loc[:,'sexe'].replace(2,1)
     info.loc[:,'agem'] =  (yearsim - info['t_naiss'])*12
+    info.drop('t_naiss', axis=1, inplace=True)
     select_id_depart = (info.loc[:,'agem'] ==  12*63)
     id_selected = select_id_depart[select_id_depart == True].index
     if selection_id:
@@ -94,16 +96,27 @@ def load_pensipp_data(pensipp_path, yearsim, first_year_sal, selection_id=False)
     data = PensionData.from_arrays(workstate, sali, info_ind)
     data_bounded = data.selected_dates(first=first_year_sal, last=yearsim)
     # TODO: commun declaration for codes and names regimes : Déclaration inapte (mais adapté à Taxipp)
-    dict_regime = {'FP': [5,6], 'RG': [3,4,1,2,9,8,0], 'RSI':[7]} #On met les inactifs/chomeurs/avpf ou préretraité au RG
-    array_enf = count_enf_by_year(data_bounded, info_child)
-    nb_enf_all = 0
+    array_enf = count_enf_by_year(data_bounded.workstate, info_ind, info_child)
+    dict_regime = {'FP': [5,6], 'RG': [3,4,1,2,9,8,0], 'RSI':[7]} #On met les inactifs/chomeurs/avpf ou préretraité au RG   
+    # ajoute les variables d'enfants pour info_ind
+    rec = data_bounded.info_ind
+    newdtype = [('nb_enf_' + name, '<i8') for name in dict_regime] + [('nb_enf_all', '<i8')]
+    newdtype = np.dtype(rec.dtype.descr + newdtype)
+    print newdtype
+    info_ind = np.empty(rec.shape, dtype=newdtype)
+    for field in rec.dtype.fields:
+        info_ind[field] = rec[field]
+    # rempli les colonnes nb_enf
     for name_reg, code_reg in dict_regime.iteritems():
         nb_enf_regime = (array_enf*data_bounded.workstate.isin(code_reg)).sum(axis=1)
-        data_bounded.info_ind['nb_enf_' + name_reg] = nb_enf_regime
-        nb_enf_all += nb_enf_regime
-    info_ind.loc[:,'nb_enf'] = nb_enf_all
+        info_ind['nb_enf_' + name_reg] = nb_enf_regime
+        info_ind['nb_enf_all'] += nb_enf_regime
+#         data_bounded.info_ind['nb_enf_' + name_reg] = nb_enf_regime
+#         nb_enf_all += nb_enf_regime
+#     info_ind.loc[:,'nb_enf'] = nb_enf_all
     #print sum(nb_enf_all -  info_ind.loc[:,'nb_born'])
     #print info_ind.loc[15478, ['nb_born', 'nb_enf', 'nb_enf_RG', 'nb_enf_FP', 'nb_enf_RSI']]
+    data_bounded.info_ind = info_ind
     return data_bounded
 
 def load_pensipp_result(pensipp_path, to_csv=False):

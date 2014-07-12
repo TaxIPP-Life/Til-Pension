@@ -41,18 +41,18 @@ def count_enf_born(info_child, index):
     nb_born += info['nb_born']
     return nb_born.fillna(0)
 
-def count_enf_by_year(data, info_enf):
+def count_enf_by_year(workstate, info_ind, info_enf):
     ''' Update le info_ind contenue dans Data avec le nombre d'enfant par régime '''
-    parents_id = data.info_ind.index
+    parents_id = info_ind.index
     info = info_enf.loc[info_enf['id_parent'].isin(parents_id),:]
     info['naiss_liam'] = [ datenaiss.year*100 + 1 for datenaiss in info['naiss']]
     info = info.sort('id_parent')
 
-    list_ident = data.info_ind.index
+    list_ident = info_ind.index
     id_par = info['id_parent']
     id_ix = [list(list_ident).index(ident) for ident in id_par]
 
-    list_dates = data.workstate.dates
+    list_dates = workstate.dates
     datenaiss = info['naiss_liam']
     naiss_ix = [list(list_dates).index(date) for date in datenaiss]
     list_ix = sorted([(ident, year) for ident, year in zip(id_ix, naiss_ix)])
@@ -61,7 +61,7 @@ def count_enf_by_year(data, info_enf):
     id_ix = [k[0][0] for k in count_by_ix]
     year_ix = [k[0][1] for k in count_by_ix]
     nb_enf = [k[1] for k in count_by_ix]
-    enf_by_year = zeros(data.workstate.shape)
+    enf_by_year = zeros(workstate.shape)
     enf_by_year[(id_ix, year_ix)] = array(nb_enf)
     #TODO: check pb with twins
     return enf_by_year

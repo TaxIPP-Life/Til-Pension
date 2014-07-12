@@ -6,6 +6,9 @@ from til_pension.add_print import AddPrint
 
 import cProfile
 
+basic_info = [('index', '<i8'), ('n_enf', '<f8'), ('sexe', '<f8'), ('tauxprime', '<f8'),
+              ('naiss', 'O'), ('agem', '<f8'), ('nb_pac', '<f8')]
+
 class PensionSimulation(object):
     ''' class qui permet de simuler un système de retraite :
             a besoin d'une data et d'une legislation
@@ -30,11 +33,11 @@ class PensionSimulation(object):
         lancement d'une simulation'''
         info_ind = self.data.info_ind
         var_info_ind = ['agem', 'sexe', 'tauxprime', 'naiss']
-        regime_base_names = [ regime.name for regime in self.legislation.regimes['bases']]
-        for regime_name in regime_base_names:
-            var_info_ind.append('nb_enf_' + regime_name)
+        regime_base_names = ['nb_enf_' + regime.name 
+                             for regime in self.legislation.regimes['bases']]
+        var_info_ind += regime_base_names
         for var in var_info_ind:
-            if var not in info_ind.columns:
+            if var not in info_ind.dtype.names:
                 print("La variable {} doit être renseignée dans info_ind pour que la simulation puisse tourner, \n seules {} sont connues").format(var, info_ind.columns)
                 import pdb
                 pdb.set_trace()
@@ -51,7 +54,7 @@ class PensionSimulation(object):
         methods_to_look_into = to_print[0]
         idx_to_print = to_print[1]
         ident_to_print = to_print[1]
-        index = self.data.info_ind.index
+        index = self.data.info_ind['index']
         if to_print[1] is None:
             idx_to_print = range(len(index))
             ident_to_print = index
@@ -77,8 +80,6 @@ class PensionSimulation(object):
                         new_method = AddPrint(ident_to_print, idx_to_print)(method_init)
                         reg.__setattr__(method, new_method)
             return reg
-
-#         self.index = index
 
         dict_to_check = dict()
         P = self.legislation.P
@@ -118,7 +119,7 @@ class PensionSimulation(object):
                 date_taux_plein = reg.date_start_taux_plein(data, trimesters_wages['all_regime'])
                 date_taux_plein[date_taux_plein == 210001] = -1
                 dates_taux_plein[reg.name] = date_taux_plein
-            dates_taux_plein['index'] = data.info_ind.index
+            dates_taux_plein['index'] = data.info_ind['index']
             return dates_taux_plein
 
         # 2 - Calcul des pensions brutes par régime (de base et complémentaire)
@@ -163,7 +164,7 @@ class PensionSimulation(object):
             output = dict_to_check
             for key, value in self.pensions.iteritems():
                 output['pension_' + key] = value
-            return DataFrame(output, index = self.data.info_ind.index)
+            return DataFrame(output, index = self.data.info_ind['index'])
         else:
             return self.pensions['tot'] # TODO: define the output : for the moment a dic with pensions by regime
 

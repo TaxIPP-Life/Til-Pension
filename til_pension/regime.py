@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
-import logging as log
 
 from datetime import date
 from numpy import maximum, array, nan_to_num, greater, divide, around, zeros, minimum, multiply
-from pandas import Series
 from til_pension.time_array import TimeArray
 from til_pension.datetil import DateTil
 
@@ -153,7 +151,7 @@ class RegimeBase(Regime):
 
     def majoration_pension(self, data, pension):
         P = reduce(getattr, self.param_name.split('.'), self.P)
-        nb_enf = data.info_ind['nb_enf']
+        nb_enf = data.info_ind['nb_enf_all']
         def _taux_enf(nb_enf, P):
             ''' Majoration pour avoir élevé trois enfants '''
             taux_3enf = P.maj_3enf.taux
@@ -233,7 +231,7 @@ class RegimeComplementaires(Regime):
         coef_mino = P.coef_mino
         age_annulation_decote = self.P.prive.RG.decote.age_null
         diff_age = divide(age_annulation_decote - agem, 12)*(age_annulation_decote > agem)
-        coeff_min = Series(zeros(len(agem)), index=agem.index)
+        coeff_min = zeros(len(agem))
         for nb_annees, coef_mino in coef_mino._tranches:
             coeff_min += (diff_age == nb_annees)*coef_mino
 
@@ -251,8 +249,8 @@ class RegimeComplementaires(Regime):
         C'est la plus avantageuse qui s'applique.'''
         P = reduce(getattr, self.param_name.split('.'), self.P)
         P_long = reduce(getattr, self.param_name.split('.'), self.P_longit).maj_enf
-        nb_pac = array(data.info_ind['nb_pac'].copy())
-        nb_born = array(data.info_ind['nb_enf'].copy())
+        nb_pac = data.info_ind['nb_pac'].copy()
+        nb_born = data.info_ind['nb_enf_all'].copy()
 
         # 1- Calcul des points pour enfants à charge
         taux_pac = P.maj_enf.pac.taux
