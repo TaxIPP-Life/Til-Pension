@@ -32,6 +32,7 @@ import itertools
 
 from openfisca_core import conv
 from Scales import Bareme, Generation
+
 def valbytranches(param, info_ind):
     ''' Associe à chaque individu la bonne valeur du paramètre selon la valeur de la variable de control
     var_control spécifié au format date (exemple : date de naissance) '''

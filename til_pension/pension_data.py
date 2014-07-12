@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from numpy import array, ndarray
+from numpy import array, ndarray, in1d
 from pandas import DataFrame
 from til_pension.time_array import TimeArray
 from til_pension.datetil import DateTil
@@ -18,8 +18,8 @@ class PensionData(object):
         self.sali = sali
         self.info_ind = info_ind
         if isinstance(info_ind, DataFrame):
-            self.info_ind = info_ind.to_records(index=True)
-                    
+            self.info_ind = info_ind.to_records(index=True)     
+                     
         assert workstate.dates == sali.dates
         dates = sali.dates
         assert sorted(dates) == dates
@@ -99,5 +99,5 @@ class PensionData(object):
             sali = TimeArray(sali, dates, name='sali')
             workstate = TimeArray(workstate, dates, name='workstate')
 
-        assert info_ind['sexe'].isin([0,1]).all()
+        assert in1d(info_ind['sexe'],[0,1]).all()
         return PensionData(workstate, sali, info_ind)

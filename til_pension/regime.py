@@ -98,9 +98,10 @@ class Regime(object):
         trim_by_year = trim_wage_all['trimesters']['tot']
         trim_maj = trim_wage_all['maj']['tot']
         # Condition sur l'âge -> automatique si on atteint l'âge du taux plein
+        age_taux_plein[age_taux_plein == 0] = 999
         start_taux_plein_age = [ int(datesim - months//12*100 - months%12)
                                 if months> 0 else 2100*100 + 1
-                                for months in (agem - age_taux_plein.replace(0,999)) ]
+                                for months in (agem - age_taux_plein) ]
         # Condition sur les trimestres -> même que celle pour la surcote
         age_start_surcote = self._age_min_retirement(data)
         start_taux_plein_trim = self._date_start_surcote(trim_by_year, trim_maj, agem, age_start_surcote)

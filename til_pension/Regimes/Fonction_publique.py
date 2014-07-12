@@ -102,7 +102,9 @@ class FonctionPublique(RegimeBase):
             return self._age_min_retirement(data)
         else:
             age_max = self._build_age_max(data)
-            return maximum(age_max - P.decote.age_null,0).replace(0,999)
+            age_annul = maximum(age_max - P.decote.age_null,0)
+            age_annul[age_annul == 0] = 999
+            return age_annul
 
     def trim_decote(self, data, trim_wage_all):
         ''' Détermination de la décote à appliquer aux pensions '''
