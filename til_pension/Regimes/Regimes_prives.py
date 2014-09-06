@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 import math
 from datetime import datetime
-
+from numpy import zeros
 
 from til_pension.pension_data import PensionData
 
@@ -44,6 +44,7 @@ class RegimeGeneral(RegimePrive):
         output = {'trimesters': trimesters, 'wages': wages, 'maj': trim_maj}
         #print_multi_info_numpy([data.workstate, data.sali, trimesters['cot'], wages['cot'], trimesters['avpf'], wages['avpf'], trimesters['ass']], 1882, data.info_ind.index)
         return output, to_other
+       
 
 class RegimeSocialIndependants(RegimePrive):
 
@@ -71,3 +72,14 @@ class RegimeSocialIndependants(RegimePrive):
         trim_maj['DA'] = trim_mda(data.info_ind, self.name, P_mda)*(trimesters['cot'].sum(axis=1)>0)
         output = {'trimesters': trimesters, 'wages': wages, 'maj': trim_maj}
         return output, to_other
+      
+    def cotisations(self, data):
+        ''' Calcul des cotisations passées par année'''
+        sali = data.sali.isin(self.code_regime)
+        taux = self.P_cot.indep.cot_arti
+        assert len(taux) == sali.shape[1] 
+        cot_by_year = zeros(sali.shape)
+        for ix_year in range(sali.shape[1]):
+            cot_by_year[:,ix_year] = taux[ix_year]*sali[:,ix_year]
+        return {'tot': cot_by_year}
+    

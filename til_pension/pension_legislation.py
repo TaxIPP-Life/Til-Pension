@@ -223,7 +223,7 @@ class PensionLegislation(object):
         first_year_sim = yearleg - 1 - duration_sim
         last_year_sim = yearleg
         
-        param_codes = ['common.plaf_ss', 'indep.cot_indus','prive.complementaire.agirc.cet_sal', 'prive.complementaire.agirc.cet_pat', 'indep.cot_arti', 'public.fp.cot_pat', 'public.rafp.cot_pat', 'public.rafp.cot_sal']
+        param_codes = ['common.plaf_ss', 'indep.cot_indus','prive.complementaire.agirc.cet_sal', 'prive.complementaire.agirc.cet_pat', 'indep.cot_arti', 'public.fp.cot_pat', 'public.fp.cot_sal', 'public.rafp.cot_pat', 'public.rafp.cot_sal']
         param_baremes = ['prive.RG.cot_sal', 'prive.RG.cot_pat', 'prive.complementaire.arrco.cot_sal', 'prive.complementaire.arrco.cot_pat', 
                          'prive.complementaire.agirc.cot_sal', 'prive.complementaire.agirc.cot_pat']
         

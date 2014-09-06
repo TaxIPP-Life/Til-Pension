@@ -151,3 +151,17 @@ class FonctionPublique(RegimeBase):
 
     def minimum_pension(self, trim_regime, pension):
         return 0*pension
+    
+    def cotisations(self, data):
+        ''' Calcul des cotisations passées par année'''
+        sali = data.sali.isin(self.code_regime)
+        Pcot_regime = reduce(getattr, self.param_name.split('.'), self.P_cot) #getattr(self.P_longit.prive.complementaire,  self.name)
+        taux_pat = Pcot_regime.cot_pat
+        taux_sal = Pcot_regime.cot_sal
+        assert len(taux_pat) == sali.shape[1] == len(taux_sal)
+        cot_sal_by_year = zeros(sali.shape)
+        cot_pat_by_year = zeros(sali.shape)
+        for ix_year in range(sali.shape[1]):
+            cot_sal_by_year[:,ix_year] = taux_sal[ix_year]*sali[:,ix_year]
+            cot_pat_by_year[:,ix_year] = taux_pat[ix_year]*sali[:,ix_year]
+        return {'sal': cot_sal_by_year, 'pat':cot_pat_by_year}

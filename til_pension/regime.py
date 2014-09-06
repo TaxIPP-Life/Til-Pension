@@ -27,6 +27,7 @@ class Regime(object):
 
         self.P = None
         self.P_longit = None
+        self.P_cot = None
 
     def set_config(self, **kwargs):
         """
@@ -129,7 +130,23 @@ class Regime(object):
         # Remarque : la majoration de pension s'applique à la pension rapportée au maximum ou au minimum
         pension += self.majoration_pension(data, pension)
         return pension
+    
+    def cotisations(self, data):
+        ''' Calcul des cotisations passées par année'''
+        sali = data.sali.isin(self.code_regime)
+        Pcot_regime = reduce(getattr, self.param_name.split('.'), self.P_cot) #getattr(self.P_longit.prive.complementaire,  self.name)
+        taux_pat = Pcot_regime.cot_pat
+        taux_sal = Pcot_regime.cot_sal
+        print len(taux_pat), sali.shape[1], len(taux_sal), self.name
+        assert len(taux_pat) == sali.shape[1] == len(taux_sal)
+        cot_sal_by_year = zeros(sali.shape)
+        cot_pat_by_year = zeros(sali.shape)
+        for ix_year in range(sali.shape[1]):
+            cot_sal_by_year[:,ix_year] = taux_sal[ix_year].calc(sali[:,ix_year])
+            cot_pat_by_year[:,ix_year] = taux_pat[ix_year].calc(sali[:,ix_year])
+        return {'sal': cot_sal_by_year, 'pat':cot_pat_by_year}
 
+    
 class RegimeBase(Regime):
 
     def revenu_valides(self, workstate, sali, code=None): #sali,
@@ -305,3 +322,5 @@ class RegimeComplementaires(Regime):
             to_check['nb_points_' + name] = nb_points
             to_check['coeff_age_' + name] = coeff_age
         return pension*coeff_age
+    
+
