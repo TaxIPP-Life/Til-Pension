@@ -147,7 +147,7 @@ if __name__ == '__main__':
     avtsold = _oldfrancs_to_francs(avtsold, 2)
     avtsold = _francs_to_euro(avtsold, 0)
     from_excel_to_xml(data = avtsold, description = "AVTS", code = "avtsold", format = "float", data_date = dates)
-    '''
+
         # 2 -- Importation du Excel ParamSociaux
     xlsxfile = pd.ExcelFile('ParamSociaux2.xls')
     # 2.a - Paramètres généraux
@@ -244,3 +244,97 @@ if __name__ == '__main__':
     salref =  np.array(Retcomp[u'Salaire de r_f_rence UNIRS/ ARRCO en euros'])[:69] #On ne prend qu'avant 1998 car après actualisé sur Barèmes IPP
     vp_point =  np.array(Retcomp[u'VP UNIRS/ ARRCO en euros'])[:69] #On ne prend qu'avant 1998 car après actualisé sur Barèmes IPP
     #from_excel_to_xml(data = taux_1, description = "Taux d'acquisition des points pour le première tranche", code = "taux_ac", format = "float", data_date = dates, format_date = 'year', ascendant_date = True)
+    '''
+        # 6 - importation des taux de cotisations (barèmes IPP)
+    prelsoc = pd.ExcelFile('Baremes IPP - prelevements sociaux.xlsx')
+    
+    # 6.1 - CET
+    cet = prelsoc.parse("CET",index_col = None, header = True)
+    cet_sal = cet["salarie"][0:5]
+    cet_empl = cet["employeur"][0:5]
+    dates = cet[u"Date d'entrée en vigueur"][0:5]
+    dates = np.array(dates)
+    #from_excel_to_xml(data=cet_sal, description = "Cotisation Exceptionnelle et Temporaire, cotisation salariale pour les cadres du régime Agirc", code = "cot_sal", format = "float", data_date = dates)
+    #from_excel_to_xml(data=cet_empl, description = "Cotisation Exceptionnelle et Temporaire, cotisation employeur pour les cadres du régime Agirc", code = "cot_pat", format = "float", data_date = dates)
+
+    # 6.2 - Retenus sur pensions (fonction publique)
+    rp = prelsoc.parse("RP",index_col = None, header = True)
+    rp_sal = rp["Retenues"][0:17]
+    dates = rp[u"Date d'entrée en vigueur"][0:17]
+    dates = np.array(dates)
+    #from_excel_to_xml(data=rp_sal, description = "", code = "rp_sal", format = "float", data_date = dates)
+    
+    rp = prelsoc.parse("RET-Etat",index_col = None, header = True)
+    dates = rp[u"Date d'entrée en vigueur"][11:22]
+    dates = np.array(dates)
+    rp_pat_impl = np.array(rp["Taux implicite"][11:22])
+    #from_excel_to_xml(data=rp_pat_impl, description = u"Cotisation retraite de l'Etat employeur, implicite (jusqu'en 2005)", code = "rp_pat_impl", format = "float", data_date = dates)
+
+    dates = rp[u"Date d'entrée en vigueur"][0:11]
+    dates = np.array(dates)
+    rp_pat_pc = np.array(rp["Pensions civils"][0:11])
+    #from_excel_to_xml(data=rp_pat_pc, description = u"Cotisation retraite de l'Etat employeur, pensions civiles taux explicite", code = "rp_pat_pc", format = "float", data_date = dates)
+
+    rp_pat_pc = np.array(rp["Pensions militaires"][0:11])
+    #from_excel_to_xml(data=rp_pat_pc, description = u"Cotisation retraite de l'Etat employeur, pensions militaires taux explicite", code = "rp_pat_pm", format = "float", data_date = dates)
+    
+        # 6.3 - Retenus sur pensions (artisans et commerçants)
+    rp = prelsoc.parse("RET-AC",index_col = None, header = True)
+    dates = rp[u"Date d'entrée en vigueur"][1:16]
+    dates = np.array(dates)
+    
+    cot_arti = np.array(rp["Artisans"][1:16])
+    cot_indus= np.array(rp[u"Industriels et commercants"][1:16])
+    #from_excel_to_xml(data=cot_arti, description = u"Cotisations à l'assurance-vieillesse des professions artisanales ", code = "cot_arti", format = "float", data_date = dates)
+    #from_excel_to_xml(data=cot_indus, description = u"Cotisations à l'assurance-vieillesse des professions industrielles et commerciales", code = "cot_indus", format = "float", data_date = dates)
+
+        # 6.4 taux de cotisations RG
+    rg = prelsoc.parse("CNAV",index_col = None, header = True)
+    #print rg.columns
+    dates = rg[u"Date d'entrée en vigueur"][0:18]
+    cot_sal_plaf = np.array(rg[u"Sal_1_pss"][0:18].fillna(0))
+    cot_emp_plaf = np.array(rg[u"empl_1_pss"][0:18].replace(np.nan, 0))
+    cot_sal = np.array(rg[u"Salariés"][0:18]) + cot_sal_plaf
+    cot_emp = np.array(rg[u"Employeurs"][0:18]) 
+    cot_emp2 = cot_emp + + cot_emp_plaf
+    dates = np.array(dates)
+    #from_excel_to_xml(data=cot_sal_plaf, description = u"Cotisations retraites pour les salariés de Régime Général, inférieur à 1PSS ", code = "cot_sal_plaf", format = "float", data_date = dates)
+    #from_excel_to_xml(data=cot_sal, description = u"Cotisations retraites pour les salariés de Régime Général, ensemble du salaire", code = "cot_sal", format = "float", data_date = dates)
+   # from_excel_to_xml(data=cot_emp, description = u"Cotisations retraites pour les salariés de Régime Général, inférieur à 1PSS ", code = "cot_sal_plaf", format = "float", data_date = dates)
+    #from_excel_to_xml(data=cot_sal, description = u"Cotisations retraites pour les salariés de Régime Général, ensemble du salaire", code = "cot_sal", format = "float", data_date = dates)
+    
+    
+        #6.5 Taux de cotisations ARRCO
+    arrco = prelsoc.parse("ARRCO",index_col = None, header = True)
+    print arrco.columns
+    dates = arrco[u"Date d'entrée en vigueur"][0:26]
+    dates = np.array(dates)
+    cot_sal_1 = np.array(arrco[u"tranche1_sal"][0:26].fillna(0))
+    cot_sal_2 = np.array(arrco[u"tranche2_sal"][0:26].fillna(0))
+    cot_sal_297 = np.array(arrco[u"tranche2_sal_97"][0:26].fillna(0))
+    #from_excel_to_xml(data=cot_sal_2, description = u"", code = "", format = "float", data_date = dates)
+    
+    cot_emp_1 = np.array(arrco[u"tranche1_emp"][0:26].fillna(0))
+    cot_emp_2 = np.array(arrco[u"tranche2_emp"][0:26].fillna(0))
+    cot_emp_297 = np.array(arrco[u"tranche_2_emp_97"][0:26].fillna(0))
+    #from_excel_to_xml(data=cot_emp_2, description = u"", code = "", format = "float", data_date = dates)
+    
+        #6.6 Taux de cotisations AGIRC
+    agirc = prelsoc.parse("AGIRC",index_col = None, header = True)
+    print agirc.columns
+    dates = agirc[u"Date d'entrée en vigueur"][0:26]
+    dates = np.array(dates)
+    cot_sal_B = np.array(agirc[u"sal_B"][0:26])
+    cot_sal_C = np.array(agirc[u"sal_C"][0:26])
+    cot_sal_B81 = np.array(agirc[u"sal_B_81"][0:26])
+    cot_sal_C81 = np.array(agirc[u"sal_C_81"][0:26])
+    #from_excel_to_xml(data=cot_sal_C81, description = u"", code = "", format = "float", data_date = dates)
+    
+    cot_emp_B = np.array(agirc[u"emp_B"][0:26])
+    cot_emp_C = np.array(agirc[u"emp_C"][0:26])
+    cot_emp_B81 = np.array(agirc[u"emp_B_81"][0:26])
+    cot_emp_C81 = np.array(agirc[u"emp_C_81"][0:26])
+    from_excel_to_xml(data=cot_emp_C81, description = u"", code = "", format = "float", data_date = dates)
+
+    
+#TODO: import IRCANTEC et collectivites locales

@@ -1,0 +1,685 @@
+
+<NODE description= "Cotisations retraites" code="cot">
+	  <NODE description="Retraite du secteur privé" code="prive" >
+	  	<NODE description="Régime général (retraites de base)" code="RG" >
+		 <BAREME description="Cotisations retraites salariales du Régime Général (agrégation de la cotisation inférieur à 1PSS + tout salaire)" code="cot_sal" format="float">
+			<TRANCHE code="tranche0">
+				<SEUIL description= "Plancher tranche 1 (à multiplier par le PSS)">
+			  		<VALUE valeur="0" deb="1949-01-01" fin="2100-12-01"/>
+			 	</SEUIL>
+		 		<TAUX>
+		 			  <VALUE valeur="0.0715" deb="2016-01-01" fin="2100-12-01"/>
+					 <VALUE valeur="0.071" deb="2015-01-01" fin="2015-12-01"/>
+					  <VALUE valeur="0.0705" deb="2014-01-01" fin="2014-12-31"/>
+					  <VALUE valeur="0.0685" deb="2012-11-01" fin="2013-12-31"/>
+					  <VALUE valeur="0.0665" deb="2004-07-01" fin="2012-10-31"/>
+					  <VALUE valeur="0.0655" deb="1995-09-01" fin="2004-06-30"/>
+					  <VALUE valeur="0.0655" deb="1991-02-01" fin="1995-08-31"/>
+					  <VALUE valeur="0.076" deb="1989-01-01" fin="1991-01-31"/>
+					  <VALUE valeur="0.066" deb="1987-07-01" fin="1988-12-31"/>
+					  <VALUE valeur="0.064" deb="1986-08-01" fin="1987-06-30"/>
+					  <VALUE valeur="0.057" deb="1984-01-01" fin="1986-07-31"/>
+					  <VALUE valeur="0.047" deb="1979-01-01" fin="1983-12-31"/>
+					  <VALUE valeur="0.0345" deb="1976-10-01" fin="1978-12-31"/>
+					  <VALUE valeur="0.0325" deb="1976-01-01" fin="1976-09-30"/>
+					  <VALUE valeur="0.03" deb="1974-01-01" fin="1975-12-31"/>
+					  <VALUE valeur="0.03" deb="1970-08-01" fin="1973-12-31"/>
+					  <VALUE valeur="0.03" deb="1967-10-01" fin="1970-07-31"/>
+					  <VALUE valeur="0.0" deb="1949-01-01" fin="1967-09-30"/>
+		 		</TAUX>
+			</TRANCHE>
+			<TRANCHE code="tranche1">
+				<SEUIL description= "Plancher tranche 2 (à multiplier par le PSS)">
+			  		<VALUE valeur="1" deb="1949-01-01" fin="2100-12-01"/>
+			 	</SEUIL>
+		 		<TAUX>
+				  <VALUE valeur="0.0025" deb="2014-01-01" fin="2100-12-31"/>
+				  <VALUE valeur="0.001" deb="2004-07-01" fin="2013-12-31"/>
+				  <VALUE valeur="0.0" deb="1949-01-01" fin="2004-06-30"/>
+		 		</TAUX>
+			</TRANCHE>
+		</BAREME>
+		 <BAREME description="Cotisations retraites employeurs du Régime Général (agrégation de la cotisation inférieur à 1PSS + tout salaire)" code="cot_pat" format="float">
+			<TRANCHE code="tranche0">
+				<SEUIL description= "Plancher tranche 1 (à multiplier par le PSS)">
+			  		<VALUE valeur="0" deb="1949-01-01" fin="2100-12-01"/>
+			 	</SEUIL>
+		 		<TAUX>
+				  <VALUE valeur="0.103" deb="2016-01-01" fin="2100-12-01"/>
+				  <VALUE valeur="0.1025" deb="2015-01-01" fin="2015-12-31"/>
+				  <VALUE valeur="0.102" deb="2014-01-01" fin="2014-12-31"/>
+				  <VALUE valeur="0.1" deb="2012-11-01" fin="2013-12-31"/>
+				  <VALUE valeur="0.099" deb="2006-01-01" fin="2012-10-31"/>
+				  <VALUE valeur="0.098" deb="2004-07-01" fin="2005-12-31"/>
+				  <VALUE valeur="0.098" deb="1995-09-01" fin="2004-06-30"/>
+				  <VALUE valeur="0.098" deb="1991-02-01" fin="1995-08-31"/>
+				  <VALUE valeur="0.082" deb="1989-01-01" fin="1991-01-31"/>
+				  <VALUE valeur="0.082" deb="1987-07-01" fin="1988-12-31"/>
+				  <VALUE valeur="0.082" deb="1986-08-01" fin="1987-06-30"/>
+				  <VALUE valeur="0.082" deb="1984-01-01" fin="1986-07-31"/>
+				  <VALUE valeur="0.082" deb="1979-01-01" fin="1983-12-31"/>
+				  <VALUE valeur="0.077" deb="1976-10-01" fin="1978-12-31"/>
+				  <VALUE valeur="0.075" deb="1976-01-01" fin="1976-09-30"/>
+				  <VALUE valeur="0.0725" deb="1974-01-01" fin="1975-12-31"/>
+				  <VALUE valeur="0.0575" deb="1970-08-01" fin="1973-12-31"/>
+				  <VALUE valeur="0.055" deb="1967-10-01" fin="1970-07-31"/>
+				  <VALUE valeur="0.0" deb="1949-10-01" fin="1967-09-30"/>
+		 		</TAUX>
+			</TRANCHE>
+			<TRANCHE code="tranche1">
+				<SEUIL description= "Plancher tranche 2 (à multiplier par le PSS)">
+			  		<VALUE valeur="1" deb="1949-01-01" fin="2100-12-01"/>
+			 	</SEUIL>
+		 		<TAUX>
+				  <VALUE valeur="0.0175" deb="2014-01-01" fin="2100-12-31"/>
+				  <VALUE valeur="0.016" deb="1991-02-01" fin="2013-12-31"/>
+				  <VALUE valeur="0.0" deb="1949-10-01" fin="1991-01-30"/>
+		 		</TAUX>
+			</TRANCHE>
+		</BAREME>
+	  </NODE>
+	  <NODE description="Retraites complémentaires " code="complementaire">
+	 	<NODE description="Retraites complémentaires des salariés du privés : ARCCO" code="arrco">
+			 <BAREME description="Cotisations retraites salariales ARRCO, entreprises créées avant 1997" code="cot_sal" format="float">
+				<TRANCHE code="tranche0">
+					<SEUIL description= "Plancher tranche 1 (à multiplier par le PSS)">
+				  		<VALUE valeur="0" deb="1949-01-01" fin="2100-12-01"/>
+				 	</SEUIL>
+			 		<TAUX>
+			  		  <VALUE valeur="0.031" deb="2015-01-01" fin="2100-12-01"/>
+					  <VALUE valeur="0.0305" deb="2014-01-01" fin="2014-12-31"/>
+					  <VALUE valeur="0.03" deb="2005-01-01" fin="2013-12-31"/>
+					  <VALUE valeur="0.03" deb="2004-01-01" fin="2004-12-31"/>
+					  <VALUE valeur="0.03" deb="2002-01-01" fin="2003-12-31"/>
+					  <VALUE valeur="0.03" deb="2000-01-01" fin="2001-12-31"/>
+					  <VALUE valeur="0.03" deb="1999-01-01" fin="1999-12-31"/>
+					  <VALUE valeur="0.0275" deb="1998-01-01" fin="1998-12-31"/>
+					  <VALUE valeur="0.025" deb="1997-01-01" fin="1997-12-31"/>
+					  <VALUE valeur="0.0225" deb="1996-01-01" fin="1996-12-31"/>
+					  <VALUE valeur="0.02" deb="1995-01-01" fin="1995-12-31"/>
+					  <VALUE valeur="0.02" deb="1992-01-01" fin="1994-12-31"/>
+					  <VALUE valeur="0.01968" deb="1991-01-01" fin="1991-12-31"/>
+					  <VALUE valeur="0.0192" deb="1990-01-01" fin="1990-12-31"/>
+					  <VALUE valeur="0.0192" deb="1988-01-01" fin="1989-12-31"/>
+					  <VALUE valeur="0.0188" deb="1987-01-01" fin="1987-12-31"/>
+					  <VALUE valeur="0.0184" deb="1986-01-01" fin="1986-12-31"/>
+					  <VALUE valeur="0.0184" deb="1983-01-01" fin="1985-12-31"/>
+					  <VALUE valeur="0.0176" deb="1982-01-01" fin="1982-12-31"/>
+					  <VALUE valeur="0.0176" deb="1974-01-01" fin="1981-12-31"/>
+					  <VALUE valeur="0.0172" deb="1973-01-01" fin="1973-12-31"/>
+					  <VALUE valeur="0.0168" deb="1972-01-01" fin="1972-12-31"/>
+					  <VALUE valeur="0.0164" deb="1971-01-01" fin="1971-12-31"/>
+					  <VALUE valeur="0.016" deb="1970-01-01" fin="1970-12-31"/>
+					  <VALUE valeur="0.016" deb="1967-01-01" fin="1969-12-31"/>
+					  <VALUE valeur="0.01" deb="1962-01-01" fin="1966-12-31"/>
+					  <VALUE valeur="0.0" deb="1949-10-01" fin="1961-12-31"/>
+			 		</TAUX>
+				</TRANCHE>
+				<TRANCHE code="tranche1">
+					<SEUIL description= "Plancher tranche 2 (à multiplier par le PSS)">
+				  		<VALUE valeur="1" deb="1949-01-01" fin="2100-12-01"/>
+				 	</SEUIL>
+			 		<TAUX>
+					  <VALUE valeur="0.081" deb="2015-01-01" fin="2100-12-01"/>
+					  <VALUE valeur="0.0805" deb="2014-01-01" fin="2014-12-31"/>
+					  <VALUE valeur="0.08" deb="2005-01-01" fin="2013-12-31"/>
+					  <VALUE valeur="0.07" deb="2004-01-01" fin="2004-12-31"/>
+					  <VALUE valeur="0.06" deb="2002-01-01" fin="2003-12-31"/>
+					  <VALUE valeur="0.05" deb="2000-01-01" fin="2001-12-31"/>
+					  <VALUE valeur="0.03" deb="1999-01-01" fin="1999-12-31"/>
+					  <VALUE valeur="0.0275" deb="1998-01-01" fin="1998-12-31"/>
+					  <VALUE valeur="0.025" deb="1997-01-01" fin="1997-12-31"/>
+					  <VALUE valeur="0.0225" deb="1996-01-01" fin="1996-12-31"/>
+					  <VALUE valeur="0.02" deb="1995-01-01" fin="1995-12-31"/>
+					  <VALUE valeur="0.02" deb="1992-01-01" fin="1994-12-31"/>
+					  <VALUE valeur="0.01968" deb="1991-01-01" fin="1991-12-31"/>
+					  <VALUE valeur="0.0192" deb="1990-01-01" fin="1990-12-31"/>
+					  <VALUE valeur="0.0192" deb="1988-01-01" fin="1989-12-31"/>
+					  <VALUE valeur="0.0188" deb="1987-01-01" fin="1987-12-31"/>
+					  <VALUE valeur="0.0184" deb="1986-01-01" fin="1986-12-31"/>
+					  <VALUE valeur="0.0184" deb="1983-01-01" fin="1985-12-31"/>
+					  <VALUE valeur="0.0176" deb="1982-01-01" fin="1982-12-31"/>
+					  <VALUE valeur="0.0176" deb="1974-01-01" fin="1981-12-31"/>
+					  <VALUE valeur="0.0172" deb="1973-01-01" fin="1973-12-31"/>
+					  <VALUE valeur="0.0168" deb="1972-01-01" fin="1972-12-31"/>
+					  <VALUE valeur="0.0164" deb="1971-01-01" fin="1971-12-31"/>
+					  <VALUE valeur="0.016" deb="1970-01-01" fin="1970-12-31"/>
+					  <VALUE valeur="0.016" deb="1967-01-01" fin="1969-12-31"/>
+					  <VALUE valeur="0.01" deb="1962-01-01" fin="1966-12-31"/>
+					  <VALUE valeur="0.0" deb="1949-10-01" fin="1961-12-31"/>
+			 		</TAUX>
+				</TRANCHE>
+				<TRANCHE code="tranche2">
+					<SEUIL description= "Plancher tranche 3 (à multiplier par le PSS)">
+				  		<VALUE valeur="3" deb="1949-01-01" fin="2100-12-01"/>
+				 	</SEUIL>
+			 		<TAUX>
+			 			<VALUE valeur="0.0" deb="1949-10-01" fin="1961-12-31"/>
+			 		</TAUX>
+			 	</TRANCHE>
+			</BAREME>
+			
+			 <BAREME description="Cotisations retraites salariales ARRCO, entreprises créées après 1997" code="cot_sal_97" format="float">
+				<TRANCHE code="tranche0">
+					<SEUIL description= "Plancher tranche 1 (à multiplier par le PSS)">
+				  		<VALUE valeur="0" deb="1949-01-01" fin="2100-12-01"/>
+				 	</SEUIL>
+			 		<TAUX>
+			  		  <VALUE valeur="0.031" deb="2015-01-01" fin="2100-12-01"/>
+					  <VALUE valeur="0.0305" deb="2014-01-01" fin="2014-12-31"/>
+					  <VALUE valeur="0.03" deb="2005-01-01" fin="2013-12-31"/>
+					  <VALUE valeur="0.03" deb="2004-01-01" fin="2004-12-31"/>
+					  <VALUE valeur="0.03" deb="2002-01-01" fin="2003-12-31"/>
+					  <VALUE valeur="0.03" deb="2000-01-01" fin="2001-12-31"/>
+					  <VALUE valeur="0.03" deb="1999-01-01" fin="1999-12-31"/>
+					  <VALUE valeur="0.0275" deb="1998-01-01" fin="1998-12-31"/>
+					  <VALUE valeur="0.025" deb="1997-01-01" fin="1997-12-31"/>
+			 		</TAUX>
+				</TRANCHE>
+				<TRANCHE code="tranche1">
+					<SEUIL description= "Plancher tranche 2 (à multiplier par le PSS)">
+				  		<VALUE valeur="1" deb="1949-01-01" fin="2100-12-01"/>
+				 	</SEUIL>
+			 		<TAUX>
+					  <VALUE valeur="0.081" deb="2015-01-01" fin="2100-12-01"/>
+					  <VALUE valeur="0.0805" deb="2014-01-01" fin="2014-12-31"/>
+					  <VALUE valeur="0.08" deb="2000-01-01" fin="2013-12-31"/>
+					  <VALUE valeur="0.075" deb="1999-01-01" fin="1999-12-31"/>
+					  <VALUE valeur="0.07" deb="1997-01-01" fin="1998-12-31"/>
+			 		</TAUX>
+				</TRANCHE>
+				<TRANCHE code="tranche2">
+					<SEUIL description= "Plancher tranche 3 (à multiplier par le PSS)">
+				  		<VALUE valeur="3" deb="1949-01-01" fin="2100-12-01"/>
+				 	</SEUIL>
+			 		<TAUX>
+			 			<VALUE valeur="0.0" deb="1949-10-01" fin="1961-12-31"/>
+			 		</TAUX>
+			 	</TRANCHE>
+			</BAREME>
+			
+			<BAREME description="Cotisations retraites employeurs ARRCO, entreprises créées avant 1997" code="cot_pat" format="float">
+				<TRANCHE code="tranche0">
+					<SEUIL description= "Plancher tranche 1 (à multiplier par le PSS)">
+				  		<VALUE valeur="0" deb="1949-01-01" fin="2100-12-01"/>
+				 	</SEUIL>
+			 		<TAUX>
+			  		   <VALUE valeur="0.0465" deb="2015-01-01" fin="2100-12-01"/>
+					  <VALUE valeur="0.04575" deb="2014-01-01" fin="2014-12-31"/>
+					  <VALUE valeur="0.045" deb="2005-01-01" fin="2013-12-31"/>
+					  <VALUE valeur="0.045" deb="2004-01-01" fin="2004-12-31"/>
+					  <VALUE valeur="0.045" deb="2002-01-01" fin="2003-12-31"/>
+					  <VALUE valeur="0.045" deb="2000-01-01" fin="2001-12-31"/>
+					  <VALUE valeur="0.045" deb="1999-01-01" fin="1999-12-31"/>
+					  <VALUE valeur="0.04125" deb="1998-01-01" fin="1998-12-31"/>
+					  <VALUE valeur="0.0375" deb="1997-01-01" fin="1997-12-31"/>
+					  <VALUE valeur="0.03375" deb="1996-01-01" fin="1996-12-31"/>
+					  <VALUE valeur="0.03" deb="1995-01-01" fin="1995-12-31"/>
+					  <VALUE valeur="0.03" deb="1992-01-01" fin="1994-12-31"/>
+					  <VALUE valeur="0.02952" deb="1991-01-01" fin="1991-12-31"/>
+					  <VALUE valeur="0.0288" deb="1990-01-01" fin="1990-12-31"/>
+					  <VALUE valeur="0.0288" deb="1988-01-01" fin="1989-12-31"/>
+					  <VALUE valeur="0.0282" deb="1987-01-01" fin="1987-12-31"/>
+					  <VALUE valeur="0.0276" deb="1986-01-01" fin="1986-12-31"/>
+					  <VALUE valeur="0.0276" deb="1983-01-01" fin="1985-12-31"/>
+					  <VALUE valeur="0.0264" deb="1982-01-01" fin="1982-12-31"/>
+					  <VALUE valeur="0.0264" deb="1974-01-01" fin="1981-12-31"/>
+					  <VALUE valeur="0.0258" deb="1973-01-01" fin="1973-12-31"/>
+					  <VALUE valeur="0.0252" deb="1972-01-01" fin="1972-12-31"/>
+					  <VALUE valeur="0.0246" deb="1971-01-01" fin="1971-12-31"/>
+					  <VALUE valeur="0.024" deb="1970-01-01" fin="1970-12-31"/>
+					  <VALUE valeur="0.024" deb="1967-01-01" fin="1969-12-31"/>
+					  <VALUE valeur="0.015" deb="1962-01-01" fin="1966-12-31"/>
+					  <VALUE valeur="0.0" deb="1949-10-01" fin="1961-12-31"/>
+			 		</TAUX>
+				</TRANCHE>
+				<TRANCHE code="tranche1">
+					<SEUIL description= "Plancher tranche 2 (à multiplier par le PSS)">
+				  		<VALUE valeur="1" deb="1949-01-01" fin="2100-12-01"/>
+				 	</SEUIL>
+			 		<TAUX>
+					  <VALUE valeur="0.1215" deb="2015-01-01" fin="2100-12-01"/>
+					  <VALUE valeur="0.12075" deb="2014-01-01" fin="2014-12-31"/>
+					  <VALUE valeur="0.12" deb="2005-01-01" fin="2013-12-31"/>
+					  <VALUE valeur="0.105" deb="2004-01-01" fin="2004-12-31"/>
+					  <VALUE valeur="0.09" deb="2002-01-01" fin="2003-12-31"/>
+					  <VALUE valeur="0.075" deb="2000-01-01" fin="2001-12-31"/>
+					  <VALUE valeur="0.045" deb="1999-01-01" fin="1999-12-31"/>
+					  <VALUE valeur="0.04125" deb="1998-01-01" fin="1998-12-31"/>
+					  <VALUE valeur="0.0375" deb="1997-01-01" fin="1997-12-31"/>
+					  <VALUE valeur="0.03375" deb="1996-01-01" fin="1996-12-31"/>
+					  <VALUE valeur="0.03" deb="1995-01-01" fin="1995-12-31"/>
+					  <VALUE valeur="0.03" deb="1992-01-01" fin="1994-12-31"/>
+					  <VALUE valeur="0.02952" deb="1991-01-01" fin="1991-12-31"/>
+					  <VALUE valeur="0.0288" deb="1990-01-01" fin="1990-12-31"/>
+					  <VALUE valeur="0.0288" deb="1988-01-01" fin="1989-12-31"/>
+					  <VALUE valeur="0.0282" deb="1987-01-01" fin="1987-12-31"/>
+					  <VALUE valeur="0.0276" deb="1986-01-01" fin="1986-12-31"/>
+					  <VALUE valeur="0.0276" deb="1983-01-01" fin="1985-12-31"/>
+					  <VALUE valeur="0.0264" deb="1982-01-01" fin="1982-12-31"/>
+					  <VALUE valeur="0.0264" deb="1974-01-01" fin="1981-12-31"/>
+					  <VALUE valeur="0.0258" deb="1973-01-01" fin="1973-12-31"/>
+					  <VALUE valeur="0.0252" deb="1972-01-01" fin="1972-12-31"/>
+					  <VALUE valeur="0.0246" deb="1971-01-01" fin="1971-12-31"/>
+					  <VALUE valeur="0.024" deb="1970-01-01" fin="1970-12-31"/>
+					  <VALUE valeur="0.024" deb="1967-01-01" fin="1969-12-31"/>
+					  <VALUE valeur="0.015" deb="1962-01-01" fin="1966-12-31"/>
+					  <VALUE valeur="0.0" deb="1949-10-01" fin="1961-12-31"/>
+			 		</TAUX>
+				</TRANCHE>
+				<TRANCHE code="tranche2">
+					<SEUIL description= "Plancher tranche 3 (à multiplier par le PSS)">
+				  		<VALUE valeur="3" deb="1949-01-01" fin="2100-12-01"/>
+				 	</SEUIL>
+			 		<TAUX>
+			 			<VALUE valeur="0.0" deb="1949-10-01" fin="1961-12-31"/>
+			 		</TAUX>
+			 	</TRANCHE>
+			</BAREME>
+			<BAREME description="Cotisations retraites employeurs ARRCO, entreprises créées après 1997" code="cot_pat" format="float">
+				<TRANCHE code="tranche0">
+					<SEUIL description= "Plancher tranche 1 (à multiplier par le PSS)">
+				  		<VALUE valeur="0" deb="1949-01-01" fin="2100-12-01"/>
+				 	</SEUIL>
+			 		<TAUX>
+			  		   <VALUE valeur="0.0465" deb="2015-01-01" fin="2100-12-01"/>
+					  <VALUE valeur="0.04575" deb="2014-01-01" fin="2014-12-31"/>
+					  <VALUE valeur="0.045" deb="2005-01-01" fin="2013-12-31"/>
+					  <VALUE valeur="0.045" deb="2004-01-01" fin="2004-12-31"/>
+					  <VALUE valeur="0.045" deb="2002-01-01" fin="2003-12-31"/>
+					  <VALUE valeur="0.045" deb="2000-01-01" fin="2001-12-31"/>
+					  <VALUE valeur="0.045" deb="1999-01-01" fin="1999-12-31"/>
+					  <VALUE valeur="0.04125" deb="1998-01-01" fin="1998-12-31"/>
+					  <VALUE valeur="0.0375" deb="1997-01-01" fin="1997-12-31"/>
+			 		</TAUX>
+				</TRANCHE>
+				<TRANCHE code="tranche1">
+					<SEUIL description= "Plancher tranche 2 (à multiplier par le PSS)">
+				  		<VALUE valeur="1" deb="1949-01-01" fin="2100-12-01"/>
+				 	</SEUIL>
+			 		<TAUX>
+					      <VALUE valeur="0.1215" deb="2015-01-01" fin="2100-12-01"/>
+						  <VALUE valeur="0.12075" deb="2014-01-01" fin="2014-12-31"/>
+						  <VALUE valeur="0.12" deb="2005-01-01" fin="2013-12-31"/>
+						  <VALUE valeur="0.12" deb="2004-01-01" fin="2004-12-31"/>
+						  <VALUE valeur="0.12" deb="2002-01-01" fin="2003-12-31"/>
+						  <VALUE valeur="0.12" deb="2000-01-01" fin="2001-12-31"/>
+						  <VALUE valeur="0.1125" deb="1999-01-01" fin="1999-12-31"/>
+						  <VALUE valeur="0.105" deb="1998-01-01" fin="1998-12-31"/>
+						  <VALUE valeur="0.105" deb="1997-01-01" fin="1997-12-31"/>
+			 		</TAUX>
+				</TRANCHE>
+				<TRANCHE code="tranche2">
+					<SEUIL description= "Plancher tranche 3 (à multiplier par le PSS)">
+				  		<VALUE valeur="3" deb="1949-01-01" fin="2100-12-01"/>
+				 	</SEUIL>
+			 		<TAUX>
+			 			<VALUE valeur="0.0" deb="1949-10-01" fin="1961-12-31"/>
+			 		</TAUX>
+			 	</TRANCHE>
+			</BAREME>
+		</NODE>
+		<NODE description="Retraites complémentaires des cadres : AGIRC" code="agirc">
+		<BAREME description="Cotisations retraites salariales AGIRC, entreprises créées avant 1981" code="cot_sal" format="float">
+			<TRANCHE code="tranche0">
+				<SEUIL description= "Plancher tranche b (à multiplier par le PSS)">
+			  		<VALUE valeur="1" deb="1949-01-01" fin="2100-12-01"/>
+			 	</SEUIL>
+		 		<TAUX>
+		  		    <VALUE valeur="0.077" deb="2015-01-01" fin="2100-12-01"/>
+				  <VALUE valeur="0.077" deb="2014-01-01" fin="2014-12-31"/>
+				  <VALUE valeur="0.077" deb="2006-01-01" fin="2013-12-31"/>
+				  <VALUE valeur="0.075" deb="1999-01-01" fin="2005-12-31"/>
+				  <VALUE valeur="0.06875" deb="1998-01-01" fin="1998-12-31"/>
+				  <VALUE valeur="0.0625" deb="1997-01-01" fin="1997-12-31"/>
+				  <VALUE valeur="0.05625" deb="1996-01-01" fin="1996-12-31"/>
+				  <VALUE valeur="0.05" deb="1995-01-01" fin="1995-12-31"/>
+				  <VALUE valeur="0.0363" deb="1994-01-01" fin="1994-12-31"/>
+				  <VALUE valeur="0.0234" deb="1990-01-01" fin="1993-12-31"/>
+				  <VALUE valeur="0.02268" deb="1989-01-01" fin="1989-12-31"/>
+				  <VALUE valeur="0.022" deb="1988-01-01" fin="1988-12-31"/>
+				  <VALUE valeur="0.022" deb="1987-01-01" fin="1987-12-31"/>
+				  <VALUE valeur="0.0212" deb="1986-01-01" fin="1986-12-31"/>
+				  <VALUE valeur="0.0206" deb="1984-01-01" fin="1985-12-31"/>
+				  <VALUE valeur="0.0206" deb="1983-01-01" fin="1983-12-31"/>
+				  <VALUE valeur="0.0206" deb="1981-01-01" fin="1982-12-31"/>
+				  <VALUE valeur="0.0206" deb="1979-01-01" fin="1980-12-31"/>
+				  <VALUE valeur="0.02" deb="1976-01-01" fin="1978-12-31"/>
+				  <VALUE valeur="0.02" deb="1966-01-01" fin="1975-12-31"/>
+				  <VALUE valeur="0.019" deb="1965-01-01" fin="1965-12-31"/>
+				  <VALUE valeur="0.018" deb="1961-01-01" fin="1964-12-31"/>
+				  <VALUE valeur="0.017" deb="1955-01-01" fin="1960-12-31"/>
+				  <VALUE valeur="0.016" deb="1953-01-01" fin="1954-12-31"/>
+				  <VALUE valeur="0.0156" deb="1952-01-01" fin="1952-12-31"/>
+				  <VALUE valeur="0.02" deb="1948-01-01" fin="1951-12-31"/>
+		 		</TAUX>
+			</TRANCHE>
+			<TRANCHE code="tranche1">
+				<SEUIL description= "Plancher tranche C (à multiplier par le PSS)">
+			  		<VALUE valeur="4" deb="1949-01-01" fin="2100-12-01"/>
+			 	</SEUIL>
+		 		<TAUX>
+				  <VALUE valeur="0.077" deb="2015-01-01" fin="2100-12-01"/>
+				  <VALUE valeur="0.077" deb="2014-01-01" fin="2014-12-31"/>
+				  <VALUE valeur="0.077" deb="2006-01-01" fin="2013-12-31"/>
+				  <VALUE valeur="0.075" deb="1999-01-01" fin="2005-12-31"/>
+				  <VALUE valeur="0.06875" deb="1998-01-01" fin="1998-12-31"/>
+				  <VALUE valeur="0.0625" deb="1997-01-01" fin="1997-12-31"/>
+				  <VALUE valeur="0.05625" deb="1996-01-01" fin="1996-12-31"/>
+				  <VALUE valeur="0.05" deb="1995-01-01" fin="1995-12-31"/>
+				  <VALUE valeur="0.0363" deb="1994-01-01" fin="1994-12-31"/>
+				  <VALUE valeur="0.0234" deb="1990-01-01" fin="1993-12-31"/>
+				  <VALUE valeur="0.02268" deb="1989-01-01" fin="1989-12-31"/>
+				  <VALUE valeur="0.022" deb="1988-01-01" fin="1988-12-31"/>
+				  <VALUE valeur="0.0" deb="1949-10-01" fin="1987-12-31"/>
+		 		</TAUX>
+			</TRANCHE>
+			<TRANCHE code="tranche2">
+				<SEUIL description= "Plancher tranche 3 (à multiplier par le PSS)">
+			  		<VALUE valeur="8" deb="1949-01-01" fin="2100-12-01"/>
+			 	</SEUIL>
+		 		<TAUX>
+		 			<VALUE valeur="0.0" deb="1949-10-01" fin="1961-12-31"/>
+		 		</TAUX>
+		 	</TRANCHE>
+		</BAREME>
+		<BAREME description="Cotisations retraites salariales AGIRC, entreprises créées après  1981" code="cot_sal_81" format="float">
+			<TRANCHE code="tranche0">
+				<SEUIL description= "Plancher tranche b (à multiplier par le PSS)">
+			  		<VALUE valeur="1" deb="1981-01-01" fin="2100-12-01"/>
+			 	</SEUIL>
+		 		<TAUX>
+		  		     <VALUE valeur="0.077" deb="2015-01-01" fin="2100-12-01"/>
+					  <VALUE valeur="0.077" deb="2014-01-01" fin="2014-12-31"/>
+					  <VALUE valeur="0.077" deb="2006-01-01" fin="2013-12-31"/>
+					  <VALUE valeur="0.075" deb="1999-01-01" fin="2005-12-31"/>
+					  <VALUE valeur="0.06875" deb="1998-01-01" fin="1998-12-31"/>
+					  <VALUE valeur="0.0625" deb="1997-01-01" fin="1997-12-31"/>
+					  <VALUE valeur="0.05625" deb="1996-01-01" fin="1996-12-31"/>
+					  <VALUE valeur="0.05" deb="1995-01-01" fin="1995-12-31"/>
+					  <VALUE valeur="0.0484" deb="1994-01-01" fin="1994-12-31"/>
+					  <VALUE valeur="0.0468" deb="1990-01-01" fin="1993-12-31"/>
+					  <VALUE valeur="0.04536" deb="1989-01-01" fin="1989-12-31"/>
+					  <VALUE valeur="0.044" deb="1988-01-01" fin="1988-12-31"/>
+					  <VALUE valeur="0.044" deb="1987-01-01" fin="1987-12-31"/>
+					  <VALUE valeur="0.0424" deb="1986-01-01" fin="1986-12-31"/>
+					  <VALUE valeur="0.0412" deb="1984-01-01" fin="1985-12-31"/>
+					  <VALUE valeur="0.0412" deb="1983-01-01" fin="1983-12-31"/>
+					  <VALUE valeur="0.0206" deb="1981-01-01" fin="1982-12-31"/>
+		 		</TAUX>
+			</TRANCHE>
+			<TRANCHE code="tranche1">
+				<SEUIL description= "Plancher tranche C (à multiplier par le PSS)">
+			  		<VALUE valeur="4" deb="1949-01-01" fin="2100-12-01"/>
+			 	</SEUIL>
+		 		<TAUX>
+				  <VALUE valeur="0.077" deb="2015-01-01" fin="2100-12-01"/>
+				  <VALUE valeur="0.077" deb="2014-01-01" fin="2014-12-31"/>
+				  <VALUE valeur="0.077" deb="2006-01-01" fin="2013-12-31"/>
+				  <VALUE valeur="0.075" deb="1999-01-01" fin="2005-12-31"/>
+				  <VALUE valeur="0.06875" deb="1998-01-01" fin="1998-12-31"/>
+				  <VALUE valeur="0.0625" deb="1997-01-01" fin="1997-12-31"/>
+				  <VALUE valeur="0.05625" deb="1996-01-01" fin="1996-12-31"/>
+				  <VALUE valeur="0.05" deb="1995-01-01" fin="1995-12-31"/>
+				  <VALUE valeur="0.0363" deb="1994-01-01" fin="1994-12-31"/>
+				  <VALUE valeur="0.0234" deb="1990-01-01" fin="1993-12-31"/>
+				  <VALUE valeur="0.02268" deb="1989-01-01" fin="1989-12-31"/>
+				  <VALUE valeur="0.022" deb="1988-01-01" fin="1988-12-31"/>
+				  <VALUE valeur="0.0" deb="1981-10-01" fin="1987-12-31"/>
+		 		</TAUX>
+			</TRANCHE>
+			<TRANCHE code="tranche2">
+				<SEUIL description= "Plancher tranche 3 (à multiplier par le PSS)">
+			  		<VALUE valeur="8" deb="1981-01-01" fin="2100-12-01"/>
+			 	</SEUIL>
+		 		<TAUX>
+		 			<VALUE valeur="0.0" deb="1981-10-01" fin="1961-12-31"/>
+		 		</TAUX>
+		 	</TRANCHE>
+		</BAREME>
+		
+		<BAREME description="Cotisations retraites employeurs AGIRC, entreprises créées avant 1981" code="cot_emp" format="float">
+			<TRANCHE code="tranche0">
+				<SEUIL description= "Plancher tranche b (à multiplier par le PSS)">
+			  		<VALUE valeur="1" deb="1949-01-01" fin="2100-12-01"/>
+			 	</SEUIL>
+		 		<TAUX>
+				  <VALUE valeur="0.126" deb="2015-01-01" fin="2100-12-01"/>
+				  <VALUE valeur="0.126" deb="2014-01-01" fin="2014-12-31"/>
+				  <VALUE valeur="0.126" deb="2006-01-01" fin="2013-12-31"/>
+				  <VALUE valeur="0.125" deb="1999-01-01" fin="2005-12-31"/>
+				  <VALUE valeur="0.11875" deb="1998-01-01" fin="1998-12-31"/>
+				  <VALUE valeur="0.1125" deb="1997-01-01" fin="1997-12-31"/>
+				  <VALUE valeur="0.10625" deb="1996-01-01" fin="1996-12-31"/>
+				  <VALUE valeur="0.1" deb="1995-01-01" fin="1995-12-31"/>
+				  <VALUE valeur="0.0843" deb="1994-01-01" fin="1994-12-31"/>
+				  <VALUE valeur="0.0702" deb="1990-01-01" fin="1993-12-31"/>
+				  <VALUE valeur="0.06804" deb="1989-01-01" fin="1989-12-31"/>
+				  <VALUE valeur="0.066" deb="1988-01-01" fin="1988-12-31"/>
+				  <VALUE valeur="0.066" deb="1987-01-01" fin="1987-12-31"/>
+				  <VALUE valeur="0.0636" deb="1986-01-01" fin="1986-12-31"/>
+				  <VALUE valeur="0.0618" deb="1984-01-01" fin="1985-12-31"/>
+				  <VALUE valeur="0.0618" deb="1983-01-01" fin="1983-12-31"/>
+				  <VALUE valeur="0.0618" deb="1981-01-01" fin="1982-12-31"/>
+				  <VALUE valeur="0.0618" deb="1979-01-01" fin="1980-12-31"/>
+				  <VALUE valeur="0.06" deb="1976-01-01" fin="1978-12-31"/>
+				  <VALUE valeur="0.06" deb="1966-01-01" fin="1975-12-31"/>
+				  <VALUE valeur="0.057" deb="1965-01-01" fin="1965-12-31"/>
+				  <VALUE valeur="0.054" deb="1961-01-01" fin="1964-12-31"/>
+				  <VALUE valeur="0.051" deb="1955-01-01" fin="1960-12-31"/>
+				  <VALUE valeur="0.048" deb="1953-01-01" fin="1954-12-31"/>
+				  <VALUE valeur="0.0468" deb="1952-01-01" fin="1952-12-31"/>
+				  <VALUE valeur="0.06" deb="1948-01-01" fin="1951-12-31"/>
+		 		</TAUX>
+			</TRANCHE>
+			<TRANCHE code="tranche1">
+				<SEUIL description= "Plancher tranche C (à multiplier par le PSS)">
+			  		<VALUE valeur="4" deb="1949-01-01" fin="2100-12-01"/>
+			 	</SEUIL>
+		 		<TAUX>
+				  <VALUE valeur="0.126" deb="2015-01-01" fin="2100-12-01"/>
+				  <VALUE valeur="0.126" deb="2014-01-01" fin="2014-12-31"/>
+				  <VALUE valeur="0.126" deb="2006-01-01" fin="2013-12-31"/>
+				  <VALUE valeur="0.125" deb="1999-01-01" fin="2005-12-31"/>
+				  <VALUE valeur="0.11875" deb="1998-01-01" fin="1998-12-31"/>
+				  <VALUE valeur="0.1125" deb="1997-01-01" fin="1997-12-31"/>
+				  <VALUE valeur="0.10625" deb="1996-01-01" fin="1996-12-31"/>
+				  <VALUE valeur="0.1" deb="1995-01-01" fin="1995-12-31"/>
+				  <VALUE valeur="0.0843" deb="1994-01-01" fin="1994-12-31"/>
+				  <VALUE valeur="0.0702" deb="1990-01-01" fin="1993-12-31"/>
+				  <VALUE valeur="0.06804" deb="1989-01-01" fin="1989-12-31"/>
+				  <VALUE valeur="0.066" deb="1988-01-01" fin="1988-12-31"/>
+				  <VALUE valeur="0.0" deb="1949-10-01" fin="1987-12-31"/>
+		 		</TAUX>
+			</TRANCHE>
+			<TRANCHE code="tranche2">
+				<SEUIL description= "Plancher tranche 3 (à multiplier par le PSS)">
+			  		<VALUE valeur="8" deb="1949-01-01" fin="2100-12-01"/>
+			 	</SEUIL>
+		 		<TAUX>
+		 			<VALUE valeur="0.0" deb="1949-10-01" fin="1961-12-31"/>
+		 		</TAUX>
+		 	</TRANCHE>
+		</BAREME>
+		
+		<BAREME description="Cotisations retraites employeurs AGIRC, entreprises créées après 1981" code="cot_emp_81" format="float">
+			<TRANCHE code="tranche0">
+				<SEUIL description= "Plancher tranche b (à multiplier par le PSS)">
+			  		<VALUE valeur="1" deb="1981-01-01" fin="2100-12-01"/>
+			 	</SEUIL>
+		 		<TAUX>
+				  <VALUE valeur="0.126" deb="2015-01-01" fin="2100-12-01"/>
+				  <VALUE valeur="0.126" deb="2014-01-01" fin="2014-12-31"/>
+				  <VALUE valeur="0.126" deb="2006-01-01" fin="2013-12-31"/>
+				  <VALUE valeur="0.125" deb="1999-01-01" fin="2005-12-31"/>
+				  <VALUE valeur="0.11875" deb="1998-01-01" fin="1998-12-31"/>
+				  <VALUE valeur="0.1125" deb="1997-01-01" fin="1997-12-31"/>
+				  <VALUE valeur="0.10625" deb="1996-01-01" fin="1996-12-31"/>
+				  <VALUE valeur="0.1" deb="1995-01-01" fin="1995-12-31"/>
+				  <VALUE valeur="0.0968" deb="1994-01-01" fin="1994-12-31"/>
+				  <VALUE valeur="0.0936" deb="1990-01-01" fin="1993-12-31"/>
+				  <VALUE valeur="0.09072" deb="1989-01-01" fin="1989-12-31"/>
+				  <VALUE valeur="0.088" deb="1988-01-01" fin="1988-12-31"/>
+				  <VALUE valeur="0.088" deb="1987-01-01" fin="1987-12-31"/>
+				  <VALUE valeur="0.0848" deb="1986-01-01" fin="1986-12-31"/>
+				  <VALUE valeur="0.0824" deb="1984-01-01" fin="1985-12-31"/>
+				  <VALUE valeur="0.0824" deb="1983-01-01" fin="1983-12-31"/>
+				   <VALUE valeur="0.0618" deb="1981-01-01" fin="1982-12-31"/>
+		 		</TAUX>
+			</TRANCHE>
+			<TRANCHE code="tranche1">
+				<SEUIL description= "Plancher tranche C (à multiplier par le PSS)">
+			  		<VALUE valeur="4" deb="1949-01-01" fin="2100-12-01"/>
+			 	</SEUIL>
+		 		<TAUX>
+				  <VALUE valeur="0.126" deb="2015-01-01" fin="2100-12-01"/>
+				  <VALUE valeur="0.126" deb="2014-01-01" fin="2014-12-31"/>
+				  <VALUE valeur="0.126" deb="2006-01-01" fin="2013-12-31"/>
+				  <VALUE valeur="0.125" deb="1999-01-01" fin="2005-12-31"/>
+				  <VALUE valeur="0.11875" deb="1998-01-01" fin="1998-12-31"/>
+				  <VALUE valeur="0.1125" deb="1997-01-01" fin="1997-12-31"/>
+				  <VALUE valeur="0.10625" deb="1996-01-01" fin="1996-12-31"/>
+				  <VALUE valeur="0.1" deb="1995-01-01" fin="1995-12-31"/>
+				  <VALUE valeur="0.0843" deb="1994-01-01" fin="1994-12-31"/>
+				  <VALUE valeur="0.0702" deb="1990-01-01" fin="1993-12-31"/>
+				  <VALUE valeur="0.06804" deb="1989-01-01" fin="1989-12-31"/>
+				  <VALUE valeur="0.066" deb="1988-01-01" fin="1988-12-31"/>
+				  <VALUE valeur="0.0" deb="1981-01-01" fin="1987-12-31"/>
+		 		</TAUX>
+			</TRANCHE>
+			<TRANCHE code="tranche2">
+				<SEUIL description= "Plancher tranche 3 (à multiplier par le PSS)">
+			  		<VALUE valeur="8" deb="1981-01-01" fin="2100-12-01"/>
+			 	</SEUIL>
+		 		<TAUX>
+		 			<VALUE valeur="0.0" deb="1981-01-01" fin="1961-12-31"/>
+		 		</TAUX>
+		 	</TRANCHE>
+		</BAREME>
+		<CODE description="Cotisation Exceptionnelle et Temporaire, cotisation salariale pour les cadres du régime Agirc" code="cet_sal" format="float">
+		  <VALUE valeur="0.0013" deb="2001-01-01" fin="2100-12-01"/>
+		  <VALUE valeur="0.0011" deb="2000-01-01" fin="2000-12-31"/>
+		  <VALUE valeur="0.0008" deb="1999-01-01" fin="1999-12-31"/>
+		  <VALUE valeur="0.0005" deb="1998-01-01" fin="1998-12-31"/>
+		  <VALUE valeur="0.00025" deb="1997-01-01" fin="1997-12-31"/>
+		   <VALUE valeur="0.00025" deb="1997-01-01" fin="1997-12-31"/>
+		</CODE>
+		
+		<CODE description="Cotisation Exceptionnelle et Temporaire, cotisation employeur pour les cadres du régime Agirc" code="cet_pat" format="float">
+		  <VALUE valeur="0.0022" deb="2001-01-01" fin="2100-12-01"/>
+		  <VALUE valeur="0.0017" deb="2000-01-01" fin="2000-12-31"/>
+		  <VALUE valeur="0.0013" deb="1999-01-01" fin="1999-12-31"/>
+		  <VALUE valeur="0.0009" deb="1998-01-01" fin="1998-12-31"/>
+		  <VALUE valeur="0.00045" deb="1997-01-01" fin="1997-12-31"/>
+		</CODE>
+	</NODE>
+   </NODE>
+  </NODE>
+  <NODE description="Retraite des non-salariés" code="indep" >
+	<CODE description="Cotisations à l'assurance-vieillesse des professions artisanales" code="cot_arti" format="float">
+	  <VALUE valeur="0.1705" deb="2015-01-01" fin="2100-12-01"/>
+	  <VALUE valeur="0.1695" deb="2014-01-01" fin="2014-12-31"/>
+	  <VALUE valeur="0.1685" deb="2012-11-01" fin="2013-12-31"/>
+	  <VALUE valeur="0.1665" deb="2006-01-01" fin="2012-10-31"/>
+	  <VALUE valeur="0.1645" deb="2004-07-01" fin="2005-12-31"/>
+	  <VALUE valeur="0.1635" deb="1991-02-01" fin="2004-06-30"/>
+	  <VALUE valeur="0.158" deb="1989-01-01" fin="1991-01-31"/>
+	  <VALUE valeur="0.148" deb="1987-07-01" fin="1988-12-31"/>
+	  <VALUE valeur="0.146" deb="1986-08-01" fin="1987-06-30"/>
+	  <VALUE valeur="0.139" deb="1984-01-01" fin="1986-07-31"/>
+	  <VALUE valeur="0.129" deb="1979-01-01" fin="1983-12-31"/>
+	  <VALUE valeur="0.1115" deb="1976-10-01" fin="1978-12-31"/>
+	  <VALUE valeur="0.1075" deb="1976-01-01" fin="1976-09-30"/>
+	  <VALUE valeur="0.1025" deb="1974-01-01" fin="1975-12-31"/>
+	  <VALUE valeur="0.0875" deb="1973-01-01" fin="1973-12-31"/>
+	</CODE>
+	<CODE description="Cotisations à l'assurance-vieillesse des professions industrielles et commerciales" code="cot_indus" format="float">
+	  <VALUE valeur="0.1705" deb="2015-01-01" fin="2100-12-01"/>
+	  <VALUE valeur="0.1695" deb="2014-01-01" fin="2014-12-31"/>
+	  <VALUE valeur="0.1685" deb="2012-11-01" fin="2013-12-31"/>
+	  <VALUE valeur="0.1665" deb="2006-01-01" fin="2012-10-31"/>
+	  <VALUE valeur="0.1645" deb="2004-07-01" fin="2005-12-31"/>
+	  <VALUE valeur="0.1635" deb="1991-02-01" fin="2004-06-30"/>
+	  <VALUE valeur="0.158" deb="1989-01-01" fin="1991-01-31"/>
+	  <VALUE valeur="0.148" deb="1987-07-01" fin="1988-12-31"/>
+	  <VALUE valeur="0.146" deb="1986-08-01" fin="1987-06-30"/>
+	  <VALUE valeur="0.139" deb="1984-01-01" fin="1986-07-31"/>
+	  <VALUE valeur="0.129" deb="1979-01-01" fin="1983-12-31"/>
+	  <VALUE valeur="0.1115" deb="1976-10-01" fin="1978-12-31"/>
+	  <VALUE valeur="0.1075" deb="1976-01-01" fin="1976-09-30"/>
+	  <VALUE valeur="0.1025" deb="1974-01-01" fin="1975-12-31"/>
+	  <VALUE valeur="0.0875" deb="1973-01-01" fin="1973-12-31"/>
+	</CODE>
+  </NODE>
+  <NODE description="Retraite du secteur public" code="public">
+  	 <NODE description="Retraite de base de la fonction publique" code="fp">
+	<CODE description="Retenue pour pension : contribution versée par les titulaires de la Fonction publique d'Etat pour financer leurs prestations de retraite" code="cot_sal" format="float">
+	  <VALUE valeur="0.1086" deb="2020-01-01" fin="2100-12-01"/>
+	  <VALUE valeur="0.1059" deb="2019-01-01" fin="2019-12-31"/>
+	  <VALUE valeur="0.1032" deb="2018-01-01" fin="2018-12-31"/>
+	  <VALUE valeur="0.1005" deb="2017-01-01" fin="2017-12-31"/>
+	  <VALUE valeur="0.0978" deb="2016-01-01" fin="2016-12-31"/>
+	  <VALUE valeur="0.0946" deb="2015-01-01" fin="2015-12-31"/>
+	  <VALUE valeur="0.0914" deb="2014-01-01" fin="2014-12-31"/>
+	  <VALUE valeur="0.0876" deb="2013-01-01" fin="2013-12-31"/>
+	  <VALUE valeur="0.0849" deb="2012-11-01" fin="2012-12-31"/>
+	  <VALUE valeur="0.0839" deb="2012-01-01" fin="2012-10-31"/>
+	  <VALUE valeur="0.0812" deb="2011-01-01" fin="2011-12-31"/>
+	  <VALUE valeur="0.0785" deb="1991-02-01" fin="2010-12-31"/>
+	  <VALUE valeur="0.089" deb="1989-01-01" fin="1991-01-31"/>
+	  <VALUE valeur="0.079" deb="1987-07-01" fin="1988-12-31"/>
+	  <VALUE valeur="0.077" deb="1986-08-01" fin="1987-06-30"/>
+	  <VALUE valeur="0.07" deb="1984-01-01" fin="1986-07-31"/>
+	  <VALUE valeur="0.06" deb="1925-01-01" fin="1983-12-31"/>
+	</CODE>
+	
+	<CODE description="Cotisation retraite de l'Etat employeur, implicite (jusqu'en 2005)" code="cot_pat_impl" format="float">
+	  <VALUE valeur="0.594" deb="2005-01-01" fin="2100-12-01"/>
+	  <VALUE valeur="0.568" deb="2004-01-01" fin="2004-12-31"/>
+	  <VALUE valeur="0.527" deb="2003-01-01" fin="2003-12-31"/>
+	  <VALUE valeur="0.523" deb="2002-01-01" fin="2002-12-31"/>
+	  <VALUE valeur="0.487" deb="2001-01-01" fin="2001-12-31"/>
+	  <VALUE valeur="0.492" deb="2000-01-01" fin="2000-12-31"/>
+	  <VALUE valeur="0.486" deb="1999-01-01" fin="1999-12-31"/>
+	  <VALUE valeur="0.474" deb="1998-01-01" fin="1998-12-31"/>
+	  <VALUE valeur="0.474" deb="1997-01-01" fin="1997-12-31"/>
+	  <VALUE valeur="0.462" deb="1996-01-01" fin="1996-12-31"/>
+	  <VALUE valeur="0.486" deb="1995-01-01" fin="1995-12-31"/>
+	</CODE>
+	
+	<CODE description="Cotisation retraite de l'Etat employeur, pensions civiles taux explicite" code="cot_pat_pc" format="float">
+	  <VALUE valeur="0.7428" deb="2014-01-01" fin="2100-12-01"/>
+	  <VALUE valeur="0.4428" deb="2013-12-01" fin="2013-12-31"/>
+	  <VALUE valeur="0.7428" deb="2013-01-01" fin="2013-11-30"/>
+	  <VALUE valeur="0.6859" deb="2012-01-01" fin="2012-12-31"/>
+	  <VALUE valeur="0.6539" deb="2011-01-01" fin="2011-12-31"/>
+	  <VALUE valeur="0.6214" deb="2010-01-01" fin="2010-12-31"/>
+	  <VALUE valeur="0.4014" deb="2009-12-01" fin="2009-12-31"/>
+	  <VALUE valeur="0.6014" deb="2009-01-01" fin="2009-11-30"/>
+	  <VALUE valeur="0.5571" deb="2008-01-01" fin="2008-12-31"/>
+	  <VALUE valeur="0.5074" deb="2007-01-01" fin="2007-12-31"/>
+	  <VALUE valeur="0.499" deb="2006-01-01" fin="2006-12-31"/>
+	</CODE>
+	
+	<CODE description="Cotisation retraite de l'Etat employeur, pensions militaires taux explicite" code="cot_pat_pm" format="float">
+	  <VALUE valeur="1.2607" deb="2014-01-01" fin="2100-12-01"/>
+	  <VALUE valeur="1.2607" deb="2013-12-01" fin="2013-12-31"/>
+	  <VALUE valeur="1.2607" deb="2013-01-01" fin="2013-11-30"/>
+	  <VALUE valeur="1.2155" deb="2012-01-01" fin="2012-12-31"/>
+	  <VALUE valeur="1.1414" deb="2011-01-01" fin="2011-12-31"/>
+	  <VALUE valeur="1.0863" deb="2010-01-01" fin="2010-12-31"/>
+	  <VALUE valeur="1.0839" deb="2009-12-01" fin="2009-12-31"/>
+	  <VALUE valeur="1.0839" deb="2009-01-01" fin="2009-11-30"/>
+	  <VALUE valeur="1.035" deb="2008-01-01" fin="2008-12-31"/>
+	  <VALUE valeur="1.0105" deb="2007-01-01" fin="2007-12-31"/>
+	  <VALUE valeur="1.0" deb="2006-01-01" fin="2006-12-31"/>
+	</CODE>
+  </NODE>
+	 <NODE description="Retraite complémentaire de la fonction publique (depuis 2005)" code="rafp">
+		<CODE description="Retenue pour pension : cotisations salariales RAFP" code="cot_sal" format="float">
+		  <VALUE valeur="0.5" deb="2005-01-01" fin="2100-12-01"/>
+		 </CODE>
+		<CODE description="Retenue pour pension : cotisations patronales RAFP" code="cot_pat" format="float">
+		  <VALUE valeur="0.5" deb="2005-01-01" fin="2100-12-01"/>
+		 </CODE>
+	 </NODE>
