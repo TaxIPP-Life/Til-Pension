@@ -1,8 +1,164 @@
 
 <NODE description= "Cotisations retraites" code="cot">
+	 <NODE description="Commun à tous les régimes" code="common">
+	 	 <CODE description= "Plafond de la sécurité sociale" code="plaf_ss" format="float" longitudinal="true">
+	  <VALUE valeur= "131004.945715" deb="2100-01-01" fin="2100-12-01"/>
+	  <VALUE valeur= "129068.912034" deb="2099-01-01" fin="2099-12-31"/>
+	  <VALUE valeur= "127161.489689" deb="2098-01-01" fin="2098-12-31"/>
+	  <VALUE valeur= "125282.255851" deb="2097-01-01" fin="2097-12-31"/>
+	  <VALUE valeur= "123430.793942" deb="2096-01-01" fin="2096-12-31"/>
+	  <VALUE valeur= "121606.693539" deb="2095-01-01" fin="2095-12-31"/>
+	  <VALUE valeur= "119809.550285" deb="2094-01-01" fin="2094-12-31"/>
+	  <VALUE valeur= "118038.965798" deb="2093-01-01" fin="2093-12-31"/>
+	  <VALUE valeur= "116294.547584" deb="2092-01-01" fin="2092-12-31"/>
+	  <VALUE valeur= "114575.90895" deb="2091-01-01" fin="2091-12-31"/>
+	  <VALUE valeur= "112882.668916" deb="2090-01-01" fin="2090-12-31"/>
+	  <VALUE valeur= "111214.452134" deb="2089-01-01" fin="2089-12-31"/>
+	  <VALUE valeur= "109570.888802" deb="2088-01-01" fin="2088-12-31"/>
+	  <VALUE valeur= "107951.614583" deb="2087-01-01" fin="2087-12-31"/>
+	  <VALUE valeur= "106356.270525" deb="2086-01-01" fin="2086-12-31"/>
+	  <VALUE valeur= "104784.502981" deb="2085-01-01" fin="2085-12-31"/>
+	  <VALUE valeur= "103235.963528" deb="2084-01-01" fin="2084-12-31"/>
+	  <VALUE valeur= "101710.308894" deb="2083-01-01" fin="2083-12-31"/>
+	  <VALUE valeur= "100207.200881" deb="2082-01-01" fin="2082-12-31"/>
+	  <VALUE valeur= "98726.3062868" deb="2081-01-01" fin="2081-12-31"/>
+	  <VALUE valeur= "97267.2968343" deb="2080-01-01" fin="2080-12-31"/>
+	  <VALUE valeur= "95829.8490978" deb="2079-01-01" fin="2079-12-31"/>
+	  <VALUE valeur= "94413.6444314" deb="2078-01-01" fin="2078-12-31"/>
+	  <VALUE valeur= "93018.3688979" deb="2077-01-01" fin="2077-12-31"/>
+	  <VALUE valeur= "91643.7131999" deb="2076-01-01" fin="2076-12-31"/>
+	  <VALUE valeur= "90289.3726107" deb="2075-01-01" fin="2075-12-31"/>
+	  <VALUE valeur= "88955.0469071" deb="2074-01-01" fin="2074-12-31"/>
+	  <VALUE valeur= "87640.4403026" deb="2073-01-01" fin="2073-12-31"/>
+	  <VALUE valeur= "86345.2613819" deb="2072-01-01" fin="2072-12-31"/>
+	  <VALUE valeur= "85069.2230363" deb="2071-01-01" fin="2071-12-31"/>
+	  <VALUE valeur= "83812.0424003" deb="2070-01-01" fin="2070-12-31"/>
+	  <VALUE valeur= "82573.4407885" deb="2069-01-01" fin="2069-12-31"/>
+	  <VALUE valeur= "81353.143634" deb="2068-01-01" fin="2068-12-31"/>
+	  <VALUE valeur= "80150.8804276" deb="2067-01-01" fin="2067-12-31"/>
+	  <VALUE valeur= "78966.3846577" deb="2066-01-01" fin="2066-12-31"/>
+	  <VALUE valeur= "77799.3937514" deb="2065-01-01" fin="2065-12-31"/>
+	  <VALUE valeur= "76649.6490162" deb="2064-01-01" fin="2064-12-31"/>
+	  <VALUE valeur= "75516.8955824" deb="2063-01-01" fin="2063-12-31"/>
+	  <VALUE valeur= "74400.8823472" deb="2062-01-01" fin="2062-12-31"/>
+	  <VALUE valeur= "73301.3619185" deb="2061-01-01" fin="2061-12-31"/>
+	  <VALUE valeur= "72218.0905601" deb="2060-01-01" fin="2060-12-31"/>
+	  <VALUE valeur= "71150.828138" deb="2059-01-01" fin="2059-12-31"/>
+	  <VALUE valeur= "70099.338067" deb="2058-01-01" fin="2058-12-31"/>
+	  <VALUE valeur= "69063.3872581" deb="2057-01-01" fin="2057-12-31"/>
+	  <VALUE valeur= "68042.7460671" deb="2056-01-01" fin="2056-12-31"/>
+	  <VALUE valeur= "67037.1882435" deb="2055-01-01" fin="2055-12-31"/>
+	  <VALUE valeur= "66046.4908802" deb="2054-01-01" fin="2054-12-31"/>
+	  <VALUE valeur= "65070.4343648" deb="2053-01-01" fin="2053-12-31"/>
+	  <VALUE valeur= "64108.8023298" deb="2052-01-01" fin="2052-12-31"/>
+	  <VALUE valeur= "63161.3816057" deb="2051-01-01" fin="2051-12-31"/>
+	  <VALUE valeur= "62227.9621731" deb="2050-01-01" fin="2050-12-31"/>
+	  <VALUE valeur= "61308.3371164" deb="2049-01-01" fin="2049-12-31"/>
+	  <VALUE valeur= "60402.3025777" deb="2048-01-01" fin="2048-12-31"/>
+	  <VALUE valeur= "59509.6577121" deb="2047-01-01" fin="2047-12-31"/>
+	  <VALUE valeur= "58630.2046424" deb="2046-01-01" fin="2046-12-31"/>
+	  <VALUE valeur= "57763.7484162" deb="2045-01-01" fin="2045-12-31"/>
+	  <VALUE valeur= "56910.0969617" deb="2044-01-01" fin="2044-12-31"/>
+	  <VALUE valeur= "56069.0610461" deb="2043-01-01" fin="2043-12-31"/>
+	  <VALUE valeur= "55240.4542326" deb="2042-01-01" fin="2042-12-31"/>
+	  <VALUE valeur= "54424.09284" deb="2041-01-01" fin="2041-12-31"/>
+	  <VALUE valeur= "53619.7959014" deb="2040-01-01" fin="2040-12-31"/>
+	  <VALUE valeur= "52827.3851246" deb="2039-01-01" fin="2039-12-31"/>
+	  <VALUE valeur= "52046.6848518" deb="2038-01-01" fin="2038-12-31"/>
+	  <VALUE valeur= "51277.5220215" deb="2037-01-01" fin="2037-12-31"/>
+	  <VALUE valeur= "50519.7261295" deb="2036-01-01" fin="2036-12-31"/>
+	  <VALUE valeur= "49773.1291917" deb="2035-01-01" fin="2035-12-31"/>
+	  <VALUE valeur= "49037.5657061" deb="2034-01-01" fin="2034-12-31"/>
+	  <VALUE valeur= "48312.8726168" deb="2033-01-01" fin="2033-12-31"/>
+	  <VALUE valeur= "47598.8892777" deb="2032-01-01" fin="2032-12-31"/>
+	  <VALUE valeur= "46895.4574164" deb="2031-01-01" fin="2031-12-31"/>
+	  <VALUE valeur= "46202.4210999" deb="2030-01-01" fin="2030-12-31"/>
+	  <VALUE valeur= "45519.6266994" deb="2029-01-01" fin="2029-12-31"/>
+	  <VALUE valeur= "44846.9228566" deb="2028-01-01" fin="2028-12-31"/>
+	  <VALUE valeur= "44184.1604498" deb="2027-01-01" fin="2027-12-31"/>
+	  <VALUE valeur= "43531.1925614" deb="2026-01-01" fin="2026-12-31"/>
+	  <VALUE valeur= "42887.8744447" deb="2025-01-01" fin="2025-12-31"/>
+	  <VALUE valeur= "42254.0634923" deb="2024-01-01" fin="2024-12-31"/>
+	  <VALUE valeur= "41547.7517132" deb="2023-01-01" fin="2023-12-31"/>
+	  <VALUE valeur= "40893.4564106" deb="2022-01-01" fin="2022-12-31"/>
+	  <VALUE valeur= "40289.1196164" deb="2021-01-01" fin="2021-12-31"/>
+	  <VALUE valeur= "39693.7139078" deb="2020-01-01" fin="2020-12-31"/>
+	  <VALUE valeur= "39030.2004993" deb="2019-01-01" fin="2019-12-31"/>
+	  <VALUE valeur= "38415.5516725" deb="2018-01-01" fin="2018-12-31"/>
+	  <VALUE valeur= "38148.5120879" deb="2017-01-01" fin="2017-12-31"/>
+	  <VALUE valeur= "37883.3287864" deb="2016-01-01" fin="2016-12-31"/>
+	  <VALUE valeur= "37657.3844795" deb="2015-01-01" fin="2015-12-31"/>
+	  <VALUE valeur= "37321.49106" deb="2014-01-01" fin="2014-12-31"/>
+	  <VALUE valeur= "37135.812" deb="2013-01-01" fin="2013-12-31"/>
+	  <VALUE valeur= "36372.0" deb="2012-01-01" fin="2012-12-31"/>
+	  <VALUE valeur= "35352.0" deb="2011-01-01" fin="2011-12-31"/>
+	  <VALUE valeur= "34620.0" deb="2010-01-01" fin="2010-12-31"/>
+	  <VALUE valeur= "34308.0" deb="2009-01-01" fin="2009-12-31"/>
+	  <VALUE valeur= "33276.0" deb="2008-01-01" fin="2008-12-31"/>
+	  <VALUE valeur= "32184.0" deb="2007-01-01" fin="2007-12-31"/>
+	  <VALUE valeur= "31068.0" deb="2006-01-01" fin="2006-12-31"/>
+	  <VALUE valeur= "30192.0" deb="2005-01-01" fin="2005-12-31"/>
+	  <VALUE valeur= "29712.0" deb="2004-01-01" fin="2004-12-31"/>
+	  <VALUE valeur= "29184.0" deb="2003-01-01" fin="2003-12-31"/>
+	  <VALUE valeur= "28224.0" deb="2002-01-01" fin="2002-12-31"/>
+	  <VALUE valeur= "27349.3536924" deb="2001-01-01" fin="2001-12-31"/>
+	  <VALUE valeur= "26892.0066407" deb="2000-01-01" fin="2000-12-31"/>
+	  <VALUE valeur= "26471.2473531" deb="1999-01-01" fin="1999-12-31"/>
+	  <VALUE valeur= "25776.0798345" deb="1998-01-01" fin="1998-12-31"/>
+	  <VALUE valeur= "25099.206198" deb="1997-01-01" fin="1997-12-31"/>
+	  <VALUE valeur= "24577.830559" deb="1996-01-01" fin="1996-12-31"/>
+	  <VALUE valeur= "23772.899748" deb="1995-01-01" fin="1995-12-31"/>
+	  <VALUE valeur= "23342.9935194" deb="1994-01-01" fin="1994-12-31"/>
+	  <VALUE valeur= "22839.9117625" deb="1993-01-01" fin="1993-12-31"/>
+	  <VALUE valeur= "21970.9523643" deb="1992-01-01" fin="1992-12-31"/>
+	  <VALUE valeur= "21001.3766146" deb="1991-01-01" fin="1991-12-31"/>
+	  <VALUE valeur= "19976.9192188" deb="1990-01-01" fin="1990-12-31"/>
+	  <VALUE valeur= "19098.8128795" deb="1989-01-01" fin="1989-12-31"/>
+	  <VALUE valeur= "18348.7637147" deb="1988-01-01" fin="1988-12-31"/>
+	  <VALUE valeur= "17809.0941937" deb="1987-01-01" fin="1987-12-31"/>
+	  <VALUE valeur= "17104.779734" deb="1986-01-01" fin="1986-12-31"/>
+	  <VALUE valeur= "16272.4080999" deb="1985-01-01" fin="1985-12-31"/>
+	  <VALUE valeur= "15183.9221168" deb="1984-01-01" fin="1984-12-31"/>
+	  <VALUE valeur= "13976.5259003" deb="1983-01-01" fin="1983-12-31"/>
+	  <VALUE valeur= "12503.8683938" deb="1982-01-01" fin="1982-12-31"/>
+	  <VALUE valeur= "10482.3944252" deb="1981-01-01" fin="1981-12-31"/>
+	  <VALUE valeur= "9165.23491631" deb="1980-01-01" fin="1980-12-31"/>
+	  <VALUE valeur= "8177.36528461" deb="1979-01-01" fin="1979-12-31"/>
+	  <VALUE valeur= "7317.5528274" deb="1978-01-01" fin="1978-12-31"/>
+	  <VALUE valeur= "6604.09142672" deb="1977-01-01" fin="1977-12-31"/>
+	  <VALUE valeur= "5780.86673364" deb="1976-01-01" fin="1976-12-31"/>
+	  <VALUE valeur= "5030.81756883" deb="1975-01-01" fin="1975-12-31"/>
+	  <VALUE valeur= "4244.18063989" deb="1974-01-01" fin="1974-12-31"/>
+	  <VALUE valeur= "3731.95194197" deb="1973-01-01" fin="1973-12-31"/>
+	  <VALUE valeur= "3347.78041853" deb="1972-01-01" fin="1972-12-31"/>
+	  <VALUE valeur= "3018.4905413" deb="1971-01-01" fin="1971-12-31"/>
+	  <VALUE valeur= "2744.08231027" deb="1970-01-01" fin="1970-12-31"/>
+	  <VALUE valeur= "2487.96796131" deb="1969-01-01" fin="1969-12-31"/>
+	  <VALUE valeur= "2195.26584822" deb="1968-01-01" fin="1968-12-31"/>
+	  <VALUE valeur= "2085.50255581" deb="1967-01-01" fin="1967-12-31"/>
+	  <VALUE valeur= "1975.7392634" deb="1966-01-01" fin="1966-12-31"/>
+	  <VALUE valeur= "1865.97597099" deb="1965-01-01" fin="1965-12-31"/>
+	  <VALUE valeur= "1737.91879651" deb="1964-01-01" fin="1964-12-31"/>
+	  <VALUE valeur= "1591.56773996" deb="1963-01-01" fin="1963-12-31"/>
+	  <VALUE valeur= "1463.51056548" deb="1962-01-01" fin="1962-12-31"/>
+	  <VALUE valeur= "1234.83703962" deb="1961-01-01" fin="1961-12-31"/>
+	  <VALUE valeur= "1042.7512779" deb="1960-01-01" fin="1960-12-31"/>
+	  <VALUE valeur= "1006.16351377" deb="1959-01-01" fin="1959-12-31"/>
+	  <VALUE valeur= "914.694103424" deb="1958-01-01" fin="1958-12-31"/>
+	  <VALUE valeur= "804.930811014" deb="1957-01-01" fin="1957-12-31"/>
+	  <VALUE valeur= "804.930811014" deb="1956-01-01" fin="1956-12-31"/>
+	  <VALUE valeur= "722.608341705" deb="1955-01-01" fin="1955-12-31"/>
+	  <VALUE valeur= "695.167518603" deb="1954-01-01" fin="1954-12-31"/>
+	  <VALUE valeur= "695.167518603" deb="1953-01-01" fin="1953-12-31"/>
+	  <VALUE valeur= "676.873636534" deb="1952-01-01" fin="1952-12-31"/>
+	  <VALUE valeur= "525.949109469" deb="1951-01-01" fin="1951-12-31"/>
+	  <VALUE valeur= "402.465405507" deb="1950-01-01" fin="1950-12-31"/>
+	  <VALUE valeur= "393.318464473" deb="1949-01-01" fin="1949-12-31"/>
+	</CODE>
+	</NODE>
 	  <NODE description="Retraite du secteur privé" code="prive" >
 	  	<NODE description="Régime général (retraites de base)" code="RG" >
-		 <BAREME description="Cotisations retraites salariales du Régime Général (agrégation de la cotisation inférieur à 1PSS + tout salaire)" code="cot_sal" format="float">
+		 <BAREME description="Cotisations retraites salariales du Régime Général (agrégation de la cotisation inférieur à 1PSS + tout salaire)" code="cot_sal" format="float" longitudinal="true">
 			<TRANCHE code="tranche0">
 				<SEUIL description= "Plancher tranche 1 (à multiplier par le PSS)">
 			  		<VALUE valeur="0" deb="1949-01-01" fin="2100-12-01"/>
@@ -39,7 +195,7 @@
 		 		</TAUX>
 			</TRANCHE>
 		</BAREME>
-		 <BAREME description="Cotisations retraites employeurs du Régime Général (agrégation de la cotisation inférieur à 1PSS + tout salaire)" code="cot_pat" format="float">
+		 <BAREME description="Cotisations retraites employeurs du Régime Général (agrégation de la cotisation inférieur à 1PSS + tout salaire)" code="cot_pat" format="float" longitudinal="true">
 			<TRANCHE code="tranche0">
 				<SEUIL description= "Plancher tranche 1 (à multiplier par le PSS)">
 			  		<VALUE valeur="0" deb="1949-01-01" fin="2100-12-01"/>
@@ -80,7 +236,7 @@
 	  </NODE>
 	  <NODE description="Retraites complémentaires " code="complementaire">
 	 	<NODE description="Retraites complémentaires des salariés du privés : ARCCO" code="arrco">
-			 <BAREME description="Cotisations retraites salariales ARRCO, entreprises créées avant 1997" code="cot_sal" format="float">
+			 <BAREME description="Cotisations retraites salariales ARRCO, entreprises créées avant 1997" code="cot_sal" format="float" longitudinal="true">
 				<TRANCHE code="tranche0">
 					<SEUIL description= "Plancher tranche 1 (à multiplier par le PSS)">
 				  		<VALUE valeur="0" deb="1949-01-01" fin="2100-12-01"/>
@@ -159,7 +315,7 @@
 			 	</TRANCHE>
 			</BAREME>
 			
-			 <BAREME description="Cotisations retraites salariales ARRCO, entreprises créées après 1997" code="cot_sal_97" format="float">
+			 <BAREME description="Cotisations retraites salariales ARRCO, entreprises créées après 1997" code="cot_sal_97" format="float" longitudinal="true">
 				<TRANCHE code="tranche0">
 					<SEUIL description= "Plancher tranche 1 (à multiplier par le PSS)">
 				  		<VALUE valeur="0" deb="1949-01-01" fin="2100-12-01"/>
@@ -198,7 +354,7 @@
 			 	</TRANCHE>
 			</BAREME>
 			
-			<BAREME description="Cotisations retraites employeurs ARRCO, entreprises créées avant 1997" code="cot_pat" format="float">
+			<BAREME description="Cotisations retraites employeurs ARRCO, entreprises créées avant 1997" code="cot_pat" format="float" longitudinal="true">
 				<TRANCHE code="tranche0">
 					<SEUIL description= "Plancher tranche 1 (à multiplier par le PSS)">
 				  		<VALUE valeur="0" deb="1949-01-01" fin="2100-12-01"/>
@@ -276,7 +432,7 @@
 			 		</TAUX>
 			 	</TRANCHE>
 			</BAREME>
-			<BAREME description="Cotisations retraites employeurs ARRCO, entreprises créées après 1997" code="cot_pat" format="float">
+			<BAREME description="Cotisations retraites employeurs ARRCO, entreprises créées après 1997" code="cot_pat" format="float" longitudinal="true">
 				<TRANCHE code="tranche0">
 					<SEUIL description= "Plancher tranche 1 (à multiplier par le PSS)">
 				  		<VALUE valeur="0" deb="1949-01-01" fin="2100-12-01"/>
@@ -320,7 +476,7 @@
 			</BAREME>
 		</NODE>
 		<NODE description="Retraites complémentaires des cadres : AGIRC" code="agirc">
-		<BAREME description="Cotisations retraites salariales AGIRC, entreprises créées avant 1981" code="cot_sal" format="float">
+		<BAREME description="Cotisations retraites salariales AGIRC, entreprises créées avant 1981" code="cot_sal" format="float" longitudinal="true">
 			<TRANCHE code="tranche0">
 				<SEUIL description= "Plancher tranche b (à multiplier par le PSS)">
 			  		<VALUE valeur="1" deb="1949-01-01" fin="2100-12-01"/>
@@ -383,7 +539,7 @@
 		 		</TAUX>
 		 	</TRANCHE>
 		</BAREME>
-		<BAREME description="Cotisations retraites salariales AGIRC, entreprises créées après  1981" code="cot_sal_81" format="float">
+		<BAREME description="Cotisations retraites salariales AGIRC, entreprises créées après  1981" code="cot_sal_81" format="float" longitudinal="true">
 			<TRANCHE code="tranche0">
 				<SEUIL description= "Plancher tranche b (à multiplier par le PSS)">
 			  		<VALUE valeur="1" deb="1981-01-01" fin="2100-12-01"/>
@@ -438,7 +594,7 @@
 		 	</TRANCHE>
 		</BAREME>
 		
-		<BAREME description="Cotisations retraites employeurs AGIRC, entreprises créées avant 1981" code="cot_emp" format="float">
+		<BAREME description="Cotisations retraites employeurs AGIRC, entreprises créées avant 1981" code="cot_pat" format="float" longitudinal="true">
 			<TRANCHE code="tranche0">
 				<SEUIL description= "Plancher tranche b (à multiplier par le PSS)">
 			  		<VALUE valeur="1" deb="1949-01-01" fin="2100-12-01"/>
@@ -502,7 +658,7 @@
 		 	</TRANCHE>
 		</BAREME>
 		
-		<BAREME description="Cotisations retraites employeurs AGIRC, entreprises créées après 1981" code="cot_emp_81" format="float">
+		<BAREME description="Cotisations retraites employeurs AGIRC, entreprises créées après 1981" code="cot_pat_81" format="float" longitudinal="true">
 			<TRANCHE code="tranche0">
 				<SEUIL description= "Plancher tranche b (à multiplier par le PSS)">
 			  		<VALUE valeur="1" deb="1981-01-01" fin="2100-12-01"/>
@@ -556,7 +712,7 @@
 		 		</TAUX>
 		 	</TRANCHE>
 		</BAREME>
-		<CODE description="Cotisation Exceptionnelle et Temporaire, cotisation salariale pour les cadres du régime Agirc" code="cet_sal" format="float">
+		<CODE description="Cotisation Exceptionnelle et Temporaire, cotisation salariale pour les cadres du régime Agirc" code="cet_sal" format="float" longitudinal="true">
 		  <VALUE valeur="0.0013" deb="2001-01-01" fin="2100-12-01"/>
 		  <VALUE valeur="0.0011" deb="2000-01-01" fin="2000-12-31"/>
 		  <VALUE valeur="0.0008" deb="1999-01-01" fin="1999-12-31"/>
@@ -565,7 +721,7 @@
 		   <VALUE valeur="0.00025" deb="1997-01-01" fin="1997-12-31"/>
 		</CODE>
 		
-		<CODE description="Cotisation Exceptionnelle et Temporaire, cotisation employeur pour les cadres du régime Agirc" code="cet_pat" format="float">
+		<CODE description="Cotisation Exceptionnelle et Temporaire, cotisation employeur pour les cadres du régime Agirc" code="cet_pat" format="float" longitudinal="true">
 		  <VALUE valeur="0.0022" deb="2001-01-01" fin="2100-12-01"/>
 		  <VALUE valeur="0.0017" deb="2000-01-01" fin="2000-12-31"/>
 		  <VALUE valeur="0.0013" deb="1999-01-01" fin="1999-12-31"/>
@@ -576,7 +732,7 @@
    </NODE>
   </NODE>
   <NODE description="Retraite des non-salariés" code="indep" >
-	<CODE description="Cotisations à l'assurance-vieillesse des professions artisanales" code="cot_arti" format="float">
+	<CODE description="Cotisations à l'assurance-vieillesse des professions artisanales" code="cot_arti" format="float" longitudinal="true">
 	  <VALUE valeur="0.1705" deb="2015-01-01" fin="2100-12-01"/>
 	  <VALUE valeur="0.1695" deb="2014-01-01" fin="2014-12-31"/>
 	  <VALUE valeur="0.1685" deb="2012-11-01" fin="2013-12-31"/>
@@ -593,7 +749,7 @@
 	  <VALUE valeur="0.1025" deb="1974-01-01" fin="1975-12-31"/>
 	  <VALUE valeur="0.0875" deb="1973-01-01" fin="1973-12-31"/>
 	</CODE>
-	<CODE description="Cotisations à l'assurance-vieillesse des professions industrielles et commerciales" code="cot_indus" format="float">
+	<CODE description="Cotisations à l'assurance-vieillesse des professions industrielles et commerciales" code="cot_indus" format="float" longitudinal="true">
 	  <VALUE valeur="0.1705" deb="2015-01-01" fin="2100-12-01"/>
 	  <VALUE valeur="0.1695" deb="2014-01-01" fin="2014-12-31"/>
 	  <VALUE valeur="0.1685" deb="2012-11-01" fin="2013-12-31"/>
@@ -613,7 +769,7 @@
   </NODE>
   <NODE description="Retraite du secteur public" code="public">
   	 <NODE description="Retraite de base de la fonction publique" code="fp">
-	<CODE description="Retenue pour pension : contribution versée par les titulaires de la Fonction publique d'Etat pour financer leurs prestations de retraite" code="cot_sal" format="float">
+	<CODE description="Contribution versée par les titulaires de la Fonction publique" code="cot_sal" format="float" longitudinal="true">
 	  <VALUE valeur="0.1086" deb="2020-01-01" fin="2100-12-01"/>
 	  <VALUE valeur="0.1059" deb="2019-01-01" fin="2019-12-31"/>
 	  <VALUE valeur="0.1032" deb="2018-01-01" fin="2018-12-31"/>
@@ -632,9 +788,19 @@
 	  <VALUE valeur="0.07" deb="1984-01-01" fin="1986-07-31"/>
 	  <VALUE valeur="0.06" deb="1925-01-01" fin="1983-12-31"/>
 	</CODE>
-	
-	<CODE description="Cotisation retraite de l'Etat employeur, implicite (jusqu'en 2005)" code="cot_pat_impl" format="float">
-	  <VALUE valeur="0.594" deb="2005-01-01" fin="2100-12-01"/>
+	<CODE description="Cotisation retraite de l'Etat employeur pensions civiles, implicites jusqu'en 2005" code="cot_pat" format="float" longitudinal="true">
+	  <VALUE valeur="0.7428" deb="2014-01-01" fin="2100-12-01"/>
+	  <VALUE valeur="0.4428" deb="2013-12-01" fin="2013-12-31"/>
+	  <VALUE valeur="0.7428" deb="2013-01-01" fin="2013-11-30"/>
+	  <VALUE valeur="0.6859" deb="2012-01-01" fin="2012-12-31"/>
+	  <VALUE valeur="0.6539" deb="2011-01-01" fin="2011-12-31"/>
+	  <VALUE valeur="0.6214" deb="2010-01-01" fin="2010-12-31"/>
+	  <VALUE valeur="0.4014" deb="2009-12-01" fin="2009-12-31"/>
+	  <VALUE valeur="0.6014" deb="2009-01-01" fin="2009-11-30"/>
+	  <VALUE valeur="0.5571" deb="2008-01-01" fin="2008-12-31"/>
+	  <VALUE valeur="0.5074" deb="2007-01-01" fin="2007-12-31"/>
+	  <VALUE valeur="0.499" deb="2006-01-01" fin="2006-12-31"/>
+	  <VALUE valeur="0.594" deb="2005-01-01" fin="2005-12-01"/>
 	  <VALUE valeur="0.568" deb="2004-01-01" fin="2004-12-31"/>
 	  <VALUE valeur="0.527" deb="2003-01-01" fin="2003-12-31"/>
 	  <VALUE valeur="0.523" deb="2002-01-01" fin="2002-12-31"/>
@@ -646,8 +812,7 @@
 	  <VALUE valeur="0.462" deb="1996-01-01" fin="1996-12-31"/>
 	  <VALUE valeur="0.486" deb="1995-01-01" fin="1995-12-31"/>
 	</CODE>
-	
-	<CODE description="Cotisation retraite de l'Etat employeur, pensions civiles taux explicite" code="cot_pat_pc" format="float">
+	<CODE description="Cotisation retraite de l'Etat employeur, pensions civiles taux explicite" code="cot_pat_pc" format="float" longitudinal="true">
 	  <VALUE valeur="0.7428" deb="2014-01-01" fin="2100-12-01"/>
 	  <VALUE valeur="0.4428" deb="2013-12-01" fin="2013-12-31"/>
 	  <VALUE valeur="0.7428" deb="2013-01-01" fin="2013-11-30"/>
@@ -660,8 +825,7 @@
 	  <VALUE valeur="0.5074" deb="2007-01-01" fin="2007-12-31"/>
 	  <VALUE valeur="0.499" deb="2006-01-01" fin="2006-12-31"/>
 	</CODE>
-	
-	<CODE description="Cotisation retraite de l'Etat employeur, pensions militaires taux explicite" code="cot_pat_pm" format="float">
+	<CODE description="Cotisation retraite de l'Etat employeur, pensions militaires taux explicite" code="cot_pat_pm" format="float" longitudinal="true">
 	  <VALUE valeur="1.2607" deb="2014-01-01" fin="2100-12-01"/>
 	  <VALUE valeur="1.2607" deb="2013-12-01" fin="2013-12-31"/>
 	  <VALUE valeur="1.2607" deb="2013-01-01" fin="2013-11-30"/>
@@ -675,11 +839,15 @@
 	  <VALUE valeur="1.0" deb="2006-01-01" fin="2006-12-31"/>
 	</CODE>
   </NODE>
-	 <NODE description="Retraite complémentaire de la fonction publique (depuis 2005)" code="rafp">
-		<CODE description="Retenue pour pension : cotisations salariales RAFP" code="cot_sal" format="float">
+ <NODE description="Retraite complémentaire de la fonction publique (depuis 2005)" code="rafp">
+		<CODE description="Retenue pour pension : cotisations salariales RAFP" code="cot_sal" format="float" longitudinal="true">
 		  <VALUE valeur="0.5" deb="2005-01-01" fin="2100-12-01"/>
+		   <VALUE valeur="0" deb="1949-01-01" fin="2004-12-01"/>
 		 </CODE>
-		<CODE description="Retenue pour pension : cotisations patronales RAFP" code="cot_pat" format="float">
+		<CODE description="Retenue pour pension : cotisations patronales RAFP" code="cot_pat" format="float" longitudinal="true">
 		  <VALUE valeur="0.5" deb="2005-01-01" fin="2100-12-01"/>
+		  <VALUE valeur="0" deb="1949-01-01" fin="2004-12-01"/>
 		 </CODE>
 	 </NODE>
+	</NODE>
+</NODE>
