@@ -22,6 +22,7 @@ class PensionSimulation(object):
         #adapt longitudinal parameter to data
         duration_sim = data.last_date.year - data.first_date.year
         self.legislation.P_longit = legislation.long_param_builder(duration_sim)
+        self.legislation.P_cot = legislation.cot_param_builder(duration_sim)
         self.legislation.P = legislation.param.P
 
         self.trimesters_wages = dict()
@@ -84,9 +85,10 @@ class PensionSimulation(object):
         dict_to_check = dict()
         P = self.legislation.P
         P_longit = self.legislation.P_longit
+        P_cot = self.legislation.P_cot
         yearleg = self.legislation.date.year
         #TODO: remove yearleg
-        config = {'dateleg' : yearleg, 'P': P, 'P_longit': P_longit, 'time_step': time_step}
+        config = {'dateleg' : yearleg, 'P': P, 'P_longit': P_longit, 'time_step': time_step, 'P_cot': P_cot}
 
         data = self.data
         regimes = self.legislation.regimes
@@ -125,12 +127,15 @@ class PensionSimulation(object):
         # 2 - Calcul des pensions brutes par régime (de base et complémentaire)
         pensions = self.pensions
         trim_decote = dict()
+        contributions = dict()
         if len(pensions) == 0:
             for reg in base_regimes:
                 reg.set_config(**config)
                 reg = update_methods(reg)
                 pension_reg, decote_reg = reg.calculate_pension(data, trimesters_wages[reg.name], trimesters_wages['all_regime'],
                                                                 dict_to_check)
+                if output == "pensions and contributions":
+                    contributions[reg.name] = reg.cotisations(data)
                 trim_decote[reg.name] = decote_reg
                 pensions[reg.name] = pension_reg
 
@@ -165,6 +170,8 @@ class PensionSimulation(object):
             for key, value in self.pensions.iteritems():
                 output['pension_' + key] = value
             return DataFrame(output, index = self.data.info_ind['index'])
+        if output == "pensions and contributions":
+            return self.pensions, contributions
         else:
             return self.pensions['tot'] # TODO: define the output : for the moment a dic with pensions by regime
 

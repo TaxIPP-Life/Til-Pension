@@ -64,9 +64,8 @@ class PensionParam(object):
         self.date = DateTil(dateleg)
         self.P = None
         self.P_longit = None
+        self.P_cot = None
 
-#         def load_param(self):
-#             ''' should run after having a data '''
         assert data is not None
         path_pension = os.path.dirname(os.path.abspath(__file__))
         param_file = os.path.join(path_pension, 'France', 'param.xml')
@@ -86,6 +85,18 @@ class PensionParam(object):
         long_dated_legislation_json = legislations.generate_long_legislation_json(legislation_json, self.date.datetime)
         compact_legislation_long = legislations.compact_long_dated_node_json(long_dated_legislation_json)
         self.P_longit = compact_legislation_long
+        
+        path_pension = os.path.dirname(os.path.abspath(__file__))
+        param_cot = os.path.join(path_pension, 'France', 'param_cot.xml')
+        legislation_tree = ElementTree.parse(param_cot)
+        legislation_xml_json = conv.check(legislationsxml.xml_legislation_to_json)(legislation_tree.getroot(),
+                                                                                   state = conv.default_state)
+        _, legislation_json = legislationsxml.transform_node_xml_json_to_json(legislation_xml_json)
+
+        cot_dated_legislation_json = legislations.generate_long_legislation_json(legislation_json, self.date.datetime)
+        compact_legislation_cot = legislations.compact_long_dated_node_json(cot_dated_legislation_json)
+        self.P_cot = compact_legislation_cot
+        
 
         #Travail sur Salref
         #
@@ -203,27 +214,49 @@ class PensionLegislation(object):
             setattr(eval('P_longit.prive.complementaire.' + regime), 'taux_cot_moy', taux_cot_long)
 
         return P_longit
+    
+    def cot_param_builder(self, duration_sim):
+        ''' Cette fonction permet de traduire les paramètres longitudinaux en vecteur numpy
+        comportant une valeur par année comprise entre first_year_sim et last_year_sim '''
+        yearleg = self.date.year
+        P_cot = self.param.P_cot
+        first_year_sim = yearleg - 1 - duration_sim
+        last_year_sim = yearleg
+        
+        param_codes = ['common.plaf_ss', 'indep.cot_indus','prive.complementaire.agirc.cet_sal', 'prive.complementaire.agirc.cet_pat', 'indep.cot_arti', 'public.fp.cot_pat', 'public.rafp.cot_pat', 'public.rafp.cot_sal']
+        param_baremes = ['prive.RG.cot_sal', 'prive.RG.cot_pat', 'prive.complementaire.arrco.cot_sal', 'prive.complementaire.arrco.cot_pat', 
+                         'prive.complementaire.agirc.cot_sal', 'prive.complementaire.agirc.cot_pat']
+        
+        for param_name in param_codes:
+            param_name = param_name.split('.')
+            param = reduce(getattr, param_name, P_cot)
+            param = build_long_values(param_long=param, first=first_year_sim, last=last_year_sim)
+            setattr(eval('P_cot.' + '.'.join(param_name[:-1])), param_name[-1], param)
 
+        for param_name in param_baremes:
+            param_name = param_name.split('.')
+            param = reduce(getattr, param_name, P_cot)
+            param = build_long_values(param_long=param, first=first_year_sim, last=last_year_sim)
+            param = scales_long_baremes(baremes=param, scales=P_cot.common.plaf_ss)
+            setattr(eval('P_cot.' + '.'.join(param_name[:-1])), param_name[-1], param)
+
+        return P_cot
 
 if __name__ == '__main__':
     from pension_data import PensionData
     import datetime
     from pandas import DataFrame
-    
-    data = DataFrame()
-    info_ind = array([ (186L, 2.0, 1.0, datetime.date(1941, 1, 1), 756.0, 0.0, 2.0),
+
+    info_ind = DataFrame(array([ (186L, 2.0, 1.0, datetime.date(1941, 1, 1), 756.0, 0.0, 2.0),
        (376L, 1.0, 1.0, datetime.date(1941, 1, 1), 756.0, 0.0, 1.0),
        (833L, 3.0, 0.0, datetime.date(1941, 1, 1), 756.0, 0.0, 3.0),
        (834L, 3.0, 1.0, datetime.date(1941, 1, 1), 756.0, 0.0, 3.0),
-       (956L, 0.0, 0.0, datetime.date(1941, 1, 1), 756.0, 0.0, 0.0)],
-      dtype=[('index', '<i8'), ('n_enf', '<f8'), ('sexe', '<f8'), ('naiss', 'O'), ('agem', '<f8'), ('nb_pac', '<f8'), ('nb_born', '<f8'), ('date_liquidation', 'O')])
-    sali = DataFrame(0, index=info_ind['index'], columns=[201301,201401])
+       (956L, 0.0, 0.0, datetime.date(1941, 1, 1), 756.0, 0.0, 0.0)]),
+       columns = ['ind', 'n_enf', 'sexe', 'naiss', 'agem', 'nb_pac', 'nb_born'])
+
+ #     colu=[('index', '<i8'), ('n_enf', '<f8'), ('sexe', '<f8'), ('naiss', 'O'), ('agem', '<f8'), ('nb_pac', '<f8'), ('nb_born', '<f8')])
+    sali = DataFrame(0, index=info_ind.index, columns=[201301,201401])
     data = PensionData.from_arrays(sali, sali, info_ind)
 
     param = PensionParam(2015, data)
-    print param.param.prive.RG.prorat
-    print param.param.prive.RG.prorat
-
-    legislation = PensionLegislation(param)
-    legislation.salref_RG_builder(1000)
-
+    print param.P_cot
