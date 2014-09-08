@@ -147,10 +147,10 @@ class PensionSimulation(object):
                                                     trim_decote[regime_base], dict_to_check)
                 pensions[reg.name] = pension_reg
 
-            output = np.zeros(len(pension_reg))
+            tot_pension = np.zeros(len(pension_reg))
             for val in pensions.values():
-                output += val
-            pensions['tot'] = output
+                tot_pension += val
+            pensions['tot'] = tot_pension
             self.pensions = pensions
 
         # 3 - Application des minimums de pensions et majorations postérieures
@@ -170,7 +170,7 @@ class PensionSimulation(object):
             for key, value in self.pensions.iteritems():
                 output['pension_' + key] = value
             return DataFrame(output, index = self.data.info_ind['index'])
-        if output == "pensions and contributions":
+        elif output == "pensions and contributions":
             return self.pensions, contributions
         else:
             return self.pensions['tot'] # TODO: define the output : for the moment a dic with pensions by regime
