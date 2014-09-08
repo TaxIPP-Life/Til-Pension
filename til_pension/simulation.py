@@ -27,6 +27,7 @@ class PensionSimulation(object):
         self.trimesters_wages = dict()
         self.pensions = dict()
         self.check()
+        self.calculated = dict()
 
     def check(self):
         ''' Cette fonction vérifie que le data d'entrée comporte toute l'information nécessaire au
@@ -41,6 +42,20 @@ class PensionSimulation(object):
                 print("La variable {} doit être renseignée dans info_ind pour que la simulation puisse tourner, \n seules {} sont connues").format(var, info_ind.columns)
                 import pdb
                 pdb.set_trace()
+
+    def calculate(self, varname, regime='all'):
+        assert regime in ['all'] + self.legislation.regimes
+        assert varname in 
+        if regime == 'all':
+            if varname not in self.calculated:
+                results = [regime.calculate(varname)
+                           for regimes in self.legislation.regimes]
+                self.calculated[varname] = sum(results)
+            return self.calculated[varname]
+        else: 
+            regime = self.legislation.regimes[regime]
+            return regime.calculate(varname)
+                
 
     def evaluate(self, time_step='year', to_check=False, output='pension', to_print=(None,None,True)):
         ''' to print commande ce que va afficher le calcul, c'est un tuple de longueur 3 :

@@ -28,6 +28,8 @@ class Regime(object):
         self.P = None
         self.P_longit = None
 
+        self.calculated = dict()
+
     def set_config(self, **kwargs):
         """
         Configures the Regime
@@ -305,3 +307,9 @@ class RegimeComplementaires(Regime):
             to_check['nb_points_' + name] = nb_points
             to_check['coeff_age_' + name] = coeff_age
         return pension*coeff_age
+
+    def calculate(self, varname):
+        if varname not in self.calculated:
+            self.calculated[varname] = eval('self.' + varname +'()')
+        return self.calculated[varname]
+
