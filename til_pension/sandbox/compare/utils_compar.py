@@ -24,7 +24,7 @@ def calculate_age(birth_date, date):
     return birth_date.apply(_age)
 
 def count_enf_pac(info_child, index):
-    info_child['enf_pac'] = ( info_child['age_enf'] <= 18)*( info_child['age_enf'] >= 0 )*info_child['nb_enf']
+    info_child['enf_pac'] = (( info_child['age_enf'] <= 18)&( info_child['age_enf'] >= 0 )).astype(int)*info_child['nb_enf']
     info = info_child.groupby(['id_parent'])['enf_pac'].sum().reset_index()
     info.columns = ['id_parent', 'nb_pac']
     info.index = info['id_parent']
@@ -53,8 +53,10 @@ def count_enf_by_year(workstate, info_ind, info_enf):
     id_ix = [list(list_ident).index(ident) for ident in id_par]
 
     list_dates = workstate.dates
+    print min(list_dates), max(list_dates)
     datenaiss = info['naiss_liam']
-    naiss_ix = [list(list_dates).index(date) for date in datenaiss]
+    print min(datenaiss), max(datenaiss)
+    naiss_ix = [list(list_dates).index(date) for date in datenaiss if date <= max(list_dates) and date > min(list_dates)]
     list_ix = sorted([(ident, year) for ident, year in zip(id_ix, naiss_ix)])
 
     count_by_ix = [(i, list_ix.count(i)) for i,_ in groupby(list_ix)]

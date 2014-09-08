@@ -56,6 +56,7 @@ class PensionSimulation(object):
         idx_to_print = to_print[1]
         ident_to_print = to_print[1]
         index = self.data.info_ind['index']
+        print len(index)
         if to_print[1] is None:
             idx_to_print = range(len(index))
             ident_to_print = index
@@ -134,10 +135,10 @@ class PensionSimulation(object):
                 reg = update_methods(reg)
                 pension_reg, decote_reg = reg.calculate_pension(data, trimesters_wages[reg.name], trimesters_wages['all_regime'],
                                                                 dict_to_check)
-                if output == "pensions and contributions":
-                    contributions[reg.name] = reg.cotisations(data)
                 trim_decote[reg.name] = decote_reg
                 pensions[reg.name] = pension_reg
+                if output == "pensions and contributions":
+                    contributions[reg.name] = reg.cotisations(data)
 
             for reg in complementaire_regimes:
                 reg.set_config(**config)
@@ -146,11 +147,14 @@ class PensionSimulation(object):
                 pension_reg = reg.calculate_pension(data, trimesters_wages[regime_base], trimesters_wages['all_regime'],
                                                     trim_decote[regime_base], dict_to_check)
                 pensions[reg.name] = pension_reg
+                if output == "pensions and contributions":
+                    contributions[reg.name] = reg.cotisations(data)
 
             tot_pension = np.zeros(len(pension_reg))
             for val in pensions.values():
                 tot_pension += val
-            pensions['tot'] = tot_pension
+            if output != "pensions and contributions":
+                pensions['tot'] = tot_pension
             self.pensions = pensions
 
         # 3 - Application des minimums de pensions et majorations postérieures

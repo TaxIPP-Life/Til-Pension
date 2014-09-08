@@ -71,7 +71,7 @@ def load_from_Rdata(path, to_csv=False):
 
     return info, info_child, salaire, statut
 
-def load_pensipp_data(pensipp_path, yearsim, first_year_sal, selection_id=False):
+def load_pensipp_data(pensipp_path, yearsim, first_year_sal, selection_id=False, behavior_depart = "exogene"):
     try:
         info, info_child, salaire, statut = load_from_csv(pensipp_comparison_path)
     except:
@@ -86,6 +86,10 @@ def load_pensipp_data(pensipp_path, yearsim, first_year_sal, selection_id=False)
     id_selected = select_id_depart[select_id_depart == True].index
     if selection_id:
         id_selected =  selection_id
+    if behavior_depart == "taux_plein":
+        select_id_depart = ((info.loc[:,'agem'] >  12*55) & (info.loc[:,'agem'] <  12*70))
+        id_selected = select_id_depart[select_id_depart == True].index
+        
     ix_selected = [int(ident) - 1 for ident in id_selected]
     sali = salaire.iloc[ix_selected, :]
     workstate = statut.iloc[ix_selected, :]
