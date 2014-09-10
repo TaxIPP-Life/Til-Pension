@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
 from datetime import date
+
+import pdb
 from numpy import maximum, array, nan_to_num, greater, divide, around, zeros, minimum, multiply
 from til_pension.time_array import TimeArray
 from til_pension.datetil import DateTil
@@ -28,6 +30,7 @@ class Regime(object):
         self.P = None
         self.P_longit = None
 
+        self.data = None
         self.calculated = dict()
 
     def set_config(self, **kwargs):
@@ -35,49 +38,43 @@ class Regime(object):
         Configures the Regime
         """
         # Setting general attributes and getting the specific ones
+        # TODO: peut-être supprimer des choses si tout est dans calculated
         for key, val in kwargs.iteritems():
             if hasattr(self, key):
                 setattr(self, key, val)
+                self.calculated[key] = val
         if 'dateleg' in kwargs.keys():
             date = DateTil(kwargs['dateleg'])
             self.dateleg = date
+            self.calculated['dateleg'] = date
 
-    def surcote(self, data, trim_wage_regime, trim_wage_all):
-        trimesters = trim_wage_all['trimesters']
-        trim_maj = trim_wage_all['maj']
-        agem = data.info_ind['agem']
-        trim_by_year_tot = trimesters['tot']
-        trim_maj = trim_maj['tot']
-        age_start_surcote = self._age_min_retirement(data)
-        date_start_surcote = self._date_start_surcote(trim_by_year_tot, trim_maj, agem, age_start_surcote)
-        return self._calculate_surcote(trim_wage_regime, trim_wage_all, date_start_surcote, agem)
+            
+    def info_ind(self):
+        return self.data.info_ind
 
-    def _calculate_surcote(self, trimesters, date_start_surcote, age):
-        #TODO: remove trim_by_year_tot from arguments
-        raise NotImplementedError
 
-    def _date_start_surcote(self, trim_by_year_tot, trim_maj, agem, age_start_surcote):
+    def date_start_surcote(self, data, trimesters_tot, trim_maj_tot, age_min_retirement):
         ''' Détermine la date individuelle a partir de laquelle on atteint la surcote
         (a atteint l'âge légal de départ en retraite + côtisé le nombre de trimestres cible)
         Rq : pour l'instant on pourrait ne renvoyer que l'année'''
-
+        agem = data.info_ind['agem']
         #TODO: do something better with datesim
         datesim = self.dateleg.liam
         P = reduce(getattr, self.param_name.split('.'), self.P)
         if P.surcote.exist == 0:
             # Si pas de dispositif de surcote
-            return [2100*100 + 1]*len(trim_maj)
+            return [2100*100 + 1]*len(trim_maj_tot)
         else:
             # 1. Construction de la matrice des booléens indiquant si l'année est surcotée selon critère trimestres
             n_trim = array(P.plein.n_trim)
-            cumul_trim = trim_by_year_tot.cumsum(axis=1)
-            trim_limit = array((n_trim - nan_to_num(trim_maj)))
+            cumul_trim = trimesters_tot.cumsum(axis=1)
+            trim_limit = array((n_trim - nan_to_num(trim_maj_tot)))
             years_surcote_trim = greater(cumul_trim.T,trim_limit).T
             nb_years = years_surcote_trim.shape[1]
 
             # 2. Construction de la matrice des booléens indiquant si l'année est surcotée selon critère âge
             age_by_year = array([array(agem) - 12*i for i in reversed(range(nb_years))])
-            years_surcote_age =  greater(age_by_year, array(age_start_surcote)).T
+            years_surcote_age =  greater(age_by_year, array(age_min_retirement)).T
 
             # 3. Décompte du nombre d'années répondant aux deux critères
             years_surcote = years_surcote_trim*years_surcote_age
@@ -85,11 +82,11 @@ class Regime(object):
             start_surcote = [datesim - nb_years*100
                              if nb_years > 0 else 2100*100 + 1
                              for nb_years in nb_years_surcote]
-
             return start_surcote
 
 
-    def date_start_taux_plein(self, data, trim_wage_all):
+    def date_start_taux_plein(self, data, trimesters_tot, trim_maj_tot,
+                               age_min_retirement, date_start_surcote):
         ''' Détermine la date individuelle a partir de laquelle on atteint le taux plein
         condition date_surcote ou si atteint l'âge du taux plein
         Rq : pour l'instant on pourrait ne renvoyer que l'année'''
@@ -97,19 +94,15 @@ class Regime(object):
         datesim = self.dateleg.liam
         age_taux_plein = self.age_annulation_decote(data)
 
-        trim_by_year = trim_wage_all['trimesters']['tot']
-        trim_maj = trim_wage_all['maj']['tot']
         # Condition sur l'âge -> automatique si on atteint l'âge du taux plein
         age_taux_plein[age_taux_plein == 0] = 999
         start_taux_plein_age = [ int(datesim - months//12*100 - months%12)
                                 if months> 0 else 2100*100 + 1
                                 for months in (agem - age_taux_plein) ]
         # Condition sur les trimestres -> même que celle pour la surcote
-        age_start_surcote = self._age_min_retirement(data)
-        start_taux_plein_trim = self._date_start_surcote(trim_by_year, trim_maj, agem, age_start_surcote)
-        return minimum(start_taux_plein_age, start_taux_plein_trim)
+        return minimum(start_taux_plein_age, date_start_surcote)
 
-    def calculate_taux(self, decote, surcote):
+    def taux(self, decote, surcote):
         ''' Détérmination du taux de liquidation à appliquer à la pension
             La formule générale est taux pondéré par (1+surcote-decote)
             _surcote and _decote are called
@@ -119,10 +112,10 @@ class Regime(object):
         P = reduce(getattr, self.param_name.split('.'), self.P)
         return P.plein.taux*(1 - decote + surcote)
 
-    def calculate_coeff_proratisation(self):
+    def coeff_proratisation(self):
         raise NotImplementedError
 
-    def calculate_salref(self):
+    def salref(self):
 #         self.sal_regime = sali*_isin(self.workstate.array,self.code_regime)
         raise NotImplementedError
 
@@ -132,7 +125,17 @@ class Regime(object):
         pension += self.majoration_pension(data, pension)
         return pension
 
+
 class RegimeBase(Regime):
+    
+    def trimester(self):
+        return 0
+        
+    def trim_maj_mda(self):
+        return 0
+        
+    def trim_maj(self):
+        return 0
 
     def revenu_valides(self, workstate, sali, code=None): #sali,
         ''' Cette fonction pertmet de calculer des nombres par trimesters
@@ -149,8 +152,6 @@ class RegimeBase(Regime):
         trim = divide(wk_selection.sum(axis=1), 4).astype(int)
         return trim
 
-    def get_trimester(self, workstate, sali):
-        raise NotImplementedError
 
     def majoration_pension(self, data, pension):
         P = reduce(getattr, self.param_name.split('.'), self.P)
@@ -163,56 +164,84 @@ class RegimeBase(Regime):
 
         maj_enf = _taux_enf(nb_enf, P)*pension
         return maj_enf
+    
+    def trimesters_tot(self, regime='all'):
+        pass
 
-    def calculate_pension(self, data, trim_wage_regime, trim_wage_all, to_check=None):
+    def trim_maj_tot(self, regime='all'):
+        pass
+    
+    def trim_maj_enf_tot(self, regime='all'):
+        pass
+    
+    def decote(self, trim_decote, nb_trimesters):
+        P = reduce(getattr, self.param_name.split('.'), self.P)
+        taux_plein = P.plein.taux
+        decote = P.decote.taux*trim_decote
+        return taux_plein*decote*(nb_trimesters > 0)
+        
+
+    def pension_brute(self, data, trim_decote, surcote, taux, coeff_proratisation, 
+                    salref):
         info_ind = data.info_ind
         name = self.name
         P = reduce(getattr, self.param_name.split('.'), self.P)
-        trim_decote = self.trim_decote(data, trim_wage_all)
         decote = P.decote.taux*trim_decote
-        surcote = self.surcote(data, trim_wage_regime, trim_wage_all)
-        taux = self.calculate_taux(decote, surcote)
-        cp = self.calculate_coeff_proratisation(info_ind, trim_wage_regime, trim_wage_all)
-        salref = self.calculate_salref(data, trim_wage_regime['wages'])
-
-        pension_brute = cp*salref*taux
-        pension = self.plafond_pension(pension_brute, salref, cp, surcote)
+        return coeff_proratisation*salref*taux
+    
+    def pension_majoree(self, pension_brute, salref, coeff_proratisation, surcote):
+        return self.plafond_pension(pension_brute, salref, coeff_proratisation, surcote)
+    
+    def pension(self, data, pension_majoree):
         # Remarque : la majoration de pension s'applique à la pension rapportée au maximum ou au minimum
-        pension += self.majoration_pension(data, pension) # TODO: delete because in bonif_pension
+        return pension_majoree + self.majoration_pension(data, pension_majoree) # TODO: delete because in bonif_pension
+# 
+#         if to_check is not None:
+#             P = reduce(getattr, self.param_name.split('.'), self.P)
+#             taux_plein = P.plein.taux
+#             trimesters = trim_wage_regime['trimesters']
+#             trim_regime = trimesters['regime'].sum(axis=1)
+#             to_check['decote_' + name] = taux_plein*decote*(trim_regime > 0)
+#             to_check['surcote_' + name] = taux_plein*surcote*(trim_regime > 0)
+#             to_check['CP_' + name] = cp*(trim_regime > 0)
+#             to_check['taux_' + name] = taux*(trim_regime>0)
+#             to_check['salref_' + name] = salref*(trim_regime>0)
+#             P = reduce(getattr, self.param_name.split('.'), self.P)
+#             to_check['n_trim_' + name] = P.plein.n_trim / 4
+#             if self.name == 'RG':
+#                 to_check['N_CP_' + name] = P.prorat.n_trim / 4
+#         return pension, trim_decote
+#     
+    def N_CP(self):
+        P = reduce(getattr, self.param_name.split('.'), self.P)
+        return P.prorat.n_trim / 4
 
-        if to_check is not None:
-            P = reduce(getattr, self.param_name.split('.'), self.P)
-            taux_plein = P.plein.taux
-            trimesters = trim_wage_regime['trimesters']
-            trim_regime = trimesters['regime'].sum(axis=1)
-            to_check['decote_' + name] = taux_plein*decote*(trim_regime > 0)
-            to_check['surcote_' + name] = taux_plein*surcote*(trim_regime > 0)
-            to_check['CP_' + name] = cp*(trim_regime > 0)
-            to_check['taux_' + name] = taux*(trim_regime>0)
-            to_check['salref_' + name] = salref*(trim_regime>0)
-            P = reduce(getattr, self.param_name.split('.'), self.P)
-            to_check['n_trim_' + name] = P.plein.n_trim / 4
-            if self.name == 'RG':
-                to_check['N_CP_' + name] = P.prorat.n_trim / 4
-        return pension, trim_decote
+    def n_trim(self):
+        P = reduce(getattr, self.param_name.split('.'), self.P)
+        return P.plein.n_trim / 4
+    
+    def DA(self, nb_trimesters, trim_maj):
+        return (nb_trimesters + trim_maj)/4
 
 class RegimeComplementaires(Regime):
 
     def __init__(self):
         Regime.__init__(self)
         self.param_base = None
+        self.regime_base = None
+
 
     def sali_for_regime(self, data):
         raise NotImplementedError
 
-    def nombre_points(self, data, trim_wages):
+    def nombre_points(self, data, sali_for_regime):
         ''' Détermine le nombre de point à liquidation de la pension dans les régimes complémentaires (pour l'instant Ok pour ARRCO/AGIRC)
         Pour calculer ces points, il faut diviser la cotisation annuelle ouvrant des droits par le salaire de référence de l'année concernée
         et multiplier par le taux d'acquisition des points'''
-        sali_plaf = self.sali_for_regime(data, trim_wages)
         Plong_regime = reduce(getattr, self.param_name.split('.'), self.P_longit) #getattr(self.P_longit.prive.complementaire,  self.name)
         salref = Plong_regime.sal_ref
         taux_cot = Plong_regime.taux_cot_moy
+        sali_plaf = sali_for_regime
         assert len(salref) == sali_plaf.shape[1] == len(taux_cot)
         nb_points_by_year = zeros(sali_plaf.shape)
         for ix_year in range(sali_plaf.shape[1]):
@@ -221,17 +250,18 @@ class RegimeComplementaires(Regime):
         nb_points_by_year = nb_points_by_year.round(2)
         return nb_points_by_year
 
-    def minimum_points(self, nb_points_by_year):
+    def minimum_points(self, nombre_points):
         ''' Application de la garantie minimum de points '''
         P = reduce(getattr, self.param_name.split('.'), self.P)
         gmp = P.gmp
-        nb_points = maximum(nb_points_by_year, gmp)*(nb_points_by_year > 0)
+        nb_points = maximum(nombre_points, gmp)*(nombre_points > 0)
         return nb_points.sum(axis=1)
 
-    def coefficient_age(self, agem, trim):
+    def coefficient_age(self, data, nb_trimesters):
         ''' TODO: add surcote  pour avant 1955 '''
         P = reduce(getattr, self.param_name.split('.'), self.P)
         coef_mino = P.coef_mino
+        agem = data.info_ind['agem']
         age_annulation_decote = self.P.prive.RG.decote.age_null
         diff_age = divide(age_annulation_decote - agem, 12)*(age_annulation_decote > agem)
         coeff_min = zeros(len(agem))
@@ -242,7 +272,7 @@ class RegimeComplementaires(Regime):
         if P.cond_taux_plein == 1:
             # Dans ce cas, la minoration ne s'applique que si la durée de cotisation au régime général est inférieure à celle requise pour le taux plein
             n_trim = self.P.prive.RG.plein.n_trim
-            coeff_min = coeff_min*(n_trim > trim) + (n_trim <= trim)
+            coeff_min = coeff_min*(n_trim > nb_trimesters) + (n_trim <= nb_trimesters)
         return coeff_min
 
     def _majoration_enf(self, data, nb_points_by_year):
@@ -288,28 +318,21 @@ class RegimeComplementaires(Regime):
         maj_enf = self._majoration_enf(data, nb_points_by_year)
         return maj_enf
 
-    def calculate_pension(self, data, trim_wage_base, trim_wage_all, trim_decote_base, to_check=None):
-        info_ind = data.info_ind
-        name = self.name
+    def nb_points(self, nombre_points):
+        return nombre_points.sum(axis=1)
+
+    def pension(self, data, coefficient_age, nombre_points, minimum_points, trim_decote):
         P = reduce(getattr, self.param_name.split('.'), self.P)
-        nb_points_by_year = self.nombre_points(data, trim_wage_base)
-        nb_points = nb_points_by_year.sum(axis=1)
-        coeff_age = self.coefficient_age(info_ind['agem'], trim_wage_base)
         val_point = P.val_point
         if compare_destinie:
             val_point = P.val_point_proj
-        pension = self.minimum_points(nb_points_by_year)*val_point
+        pension = minimum_points*val_point
         P = reduce(getattr, self.param_name.split('.'), self.P)
-        decote = trim_decote_base*P.taux_decote
-        pension = pension + self.majoration_pension(data, nb_points_by_year)
-        pension = (1-decote)*pension
-        if to_check is not None:
-            to_check['nb_points_' + name] = nb_points
-            to_check['coeff_age_' + name] = coeff_age
-        return pension*coeff_age
-
-    def calculate(self, varname):
-        if varname not in self.calculated:
-            self.calculated[varname] = eval('self.' + varname +'()')
-        return self.calculated[varname]
+        decote = trim_decote*P.taux_decote
+        pension = pension + self.majoration_pension(data, nombre_points)
+        pension = (1 - decote)*pension
+#         if to_check is not None:
+#             to_check['nb_points_' + name] = nb_points
+#             to_check['coeff_age_' + name] = coeff_age
+        return pension*coefficient_age
 

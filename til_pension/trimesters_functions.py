@@ -56,7 +56,7 @@ def trim_ass_by_year(data, code, compare_destinie):
     trim_by_year_ass = trim_by_year_chom #+...
     if compare_destinie:
         trim_by_year_ass = (workstate.isin([code_chomage, code_preretraite]))*4
-    return trim_by_year_ass, None
+    return trim_by_year_ass
 
 #TODO: remove ?
 def validation_trimestre(data, code, salref, frequency='year', name=''):
@@ -134,7 +134,7 @@ def nb_trim_surcote(trim_by_year, selected_dates, date_start_surcote):
             nb_trim += trim_by_year[:,i]*to_keep
     return nb_trim
 
-def nb_trim_decote(trimesters, trim_maj, agem, P):
+def nb_trim_decote(trimesters, trim_maj_enf, agem, P):
     ''' Cette fonction renvoie le vecteur numpy du nombre de trimestres décotés
     Lorsque les deux règles (d'âge et de nombre de trimestres cibles) jouent
     -> Ref : Article L351-1-2 : les bonifications de durée de services et majorations de durée d'assurance,
@@ -146,7 +146,7 @@ def nb_trim_decote(trimesters, trim_maj, agem, P):
     n_trim = array(P.plein.n_trim)
     trim_decote_age = divide(age_annulation - agem, 3)
 
-    trim_tot = trimesters['tot'].sum(axis=1) + trim_maj['enf']
+    trim_tot = trimesters.sum(axis=1) + trim_maj_enf
     trim_decote_cot = n_trim - trim_tot
     assert len(trim_decote_age) == len(trim_decote_cot)
     trim_plaf = minimum(minimum(trim_decote_age, trim_decote_cot), plafond)

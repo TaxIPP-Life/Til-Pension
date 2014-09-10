@@ -27,27 +27,27 @@ def _to_print(key, val, selection_id, selection_ix, cache, intermediate=False):
         elif isinstance(val, DataFrame):
             if selection_ix is None:
                 selection_ix = range(len(val))
-            print "    - La table pandas {} {} vaut: \n{}".format(key, add_print, val.iloc[selection_ix,:].to_string())
+            print("    - La table pandas {} {} vaut: \n{}".format(key, add_print, val.iloc[selection_ix,:].to_string()))
             cache.append(key)
         elif isinstance(val, TimeArray):
             val_to_print =  DataFrame(val.array[selection_ix,:], columns=val.dates, index=selection_id)
-            print "    - Le TimeArray {} {} vaut: \n{}".format(key, add_print, val_to_print.to_string())
+            print("    - Le TimeArray {} {} vaut: \n{}".format(key, add_print, val_to_print.to_string()))
             cache.append(key)
         elif isinstance(val, ndarray):
             #It has to be a vetor, numpy matrix should be timearrays
             try:
                 val_to_print = DataFrame(val[selection_ix], index=selection_id).to_string()
-                print "    - Le vecteur {} {} vaut: \n {}".format(key, add_print, val_to_print) #only for parameter ?
+                print("    - Le vecteur {} {} vaut: \n {}".format(key, add_print, val_to_print)) #only for parameter ?
             except:
                 pass
         elif isinstance(val, Series):
             if selection_ix is None:
                 selection_ix = range(len(val))
             val_to_print = DataFrame(val.iloc[selection_ix], index=selection_id).to_string()
-            print "    - Le vecteur {} {} vaut: \n {}".format(key, add_print, val_to_print)
+            print("    - Le vecteur {} {} vaut: \n {}".format(key, add_print, val_to_print))
         else:
             if key != 'self':
-                print "    - L'objet {}".format(key)
+                print("    - L'objet {}".format(key))
             #cache.append(key) : probleme
         return cache
 
@@ -85,7 +85,7 @@ class AddPrint(object):
             return res
 
         def wrapper(*args, **kwargs):
-            print "Pour la fonction {}, les arguments appelés sont : ".format(fname)
+            print("Pour la fonction {}, les arguments appelés sont : ".format(fname))
             arg_name = ''
             args_names = []
             for arg in args:

@@ -10,7 +10,7 @@ first_year_sal = 1949
 
 
 def compare_til_pensipp(pensipp_comparison_path, var_to_check_montant, var_to_check_taux, threshold, to_print=(None,None,True)):
-    result_pensipp = load_pensipp_result(pensipp_comparison_path, to_csv=True)
+    result_pensipp = load_pensipp_result(pensipp_comparison_path, to_csv=False)
     result_til = pd.DataFrame(columns = var_to_check_montant + var_to_check_taux, index = result_pensipp.index)
     result_til['yearliq'] = -1
     for yearsim in range(2004,2005):
@@ -19,7 +19,30 @@ def compare_til_pensipp(pensipp_comparison_path, var_to_check_montant, var_to_ch
         param = PensionParam(yearsim, data_bounded)
         legislation = PensionLegislation(param)
         simul_til = PensionSimulation(data_bounded, legislation)
-        result_til_year = simul_til.profile_evaluate(to_check=True, to_print=to_print)
+        simul_til.set_config()
+        vars_to_calculate = dict()
+        result_til_year = dict()
+        for regime in ['FP', 'RG', 'RSI']:
+            for varname in ['coeff_proratisation', 'DA', 'decote', 'n_trim', 'salref', 'surcote', 'taux', 'pension']:
+                if varname == 'coeff_proratisation':
+                    result_til_year['CP_' + regime] = simul_til.calculate(varname, regime)
+                else:
+                    result_til_year[varname + '_' + regime] = simul_til.calculate(varname, regime)
+        for regime in ['agirc', 'arrco']:
+            for varname in ['coefficient_age', 'nb_points', 'pension']:
+                if varname == 'coefficient_age':
+                    result_til_year['coeff_age_' + regime] = simul_til.calculate(varname, regime)
+                if varname == 'nombre_points':
+                    result_til_year['nb_points_' + regime] = simul_til.calculate(varname, regime)
+                else:
+                    result_til_year[varname + '_' + regime] = simul_til.calculate(varname, regime)
+        result_til_year['N_CP_RG'] = simul_til.calculate('N_CP', 'RG') 
+        result_til_year['pension_tot'] = simul_til.calculate('pension', 'all')
+        import pdb
+        pdb.set_trace()
+        result_til_year = pd.DataFrame(result_til_year, index=data_bounded.info_ind['index'])
+#         result_til_year = simul_til.evaluate(to_check=True, to_print=to_print)
+
         id_year_in_initial = [ident for ident in result_til_year.index if ident in result_til.index]
         assert (id_year_in_initial == result_til_year.index).all()
         result_til.loc[result_til_year.index, :] = result_til_year
@@ -43,13 +66,13 @@ def compare_til_pensipp(pensipp_comparison_path, var_to_check_montant, var_to_ch
         conflict = ((til_var.abs() - pensipp_var.abs()).abs() > threshold)
         if conflict.any():
             var_conflict += [var]
-            print u"Le calcul de {} pose problème pour {} personne(s) sur {}: ".format(var, sum(conflict), sum(result_til['yearliq'] == 2004))
-            print pd.DataFrame({
+            print (u"Le calcul de {} pose problème pour {} personne(s) sur {}: ".format(var, sum(conflict), sum(result_til['yearliq'] == 2004)))
+            print (pd.DataFrame({
                 "TIL": til_var[conflict],
                 "PENSIPP": pensipp_var[conflict],
                 "diff.": til_var[conflict].abs() - pensipp_var[conflict].abs(),
                 "year_liq": til_compare.loc[conflict, 'yearliq']
-                }).to_string()
+                }).to_string())
         return sum(conflict)
 
     var_conflict = []
@@ -64,7 +87,7 @@ def compare_til_pensipp(pensipp_comparison_path, var_to_check_montant, var_to_ch
     print( u"Avec un seuil de {}, le calcul est faux pour les variables suivantes : {} \n Il est mal implémenté dans : \n - Til: {} \n - Pensipp : {}\n Il ne pose aucun problème pour : {}").format(threshold, var_conflict, var_not_implemented['til'], var_not_implemented['pensipp'], no_conflict)
     for var, prob in taille_prob.iteritems():
         if prob !=0 :
-            print 'Pour ' + var + ', on a ' + str(prob) + ' différences'
+            print ('Pour ' + var + ', on a ' + str(prob) + ' différences')
 
 if __name__ == '__main__':
 
