@@ -108,7 +108,6 @@ class Regime(object):
             _surcote and _decote are called
             _date_start_surcote is a general method helping surcote
             '''
-
         P = reduce(getattr, self.param_name.split('.'), self.P)
         return P.plein.taux*(1 - decote + surcote)
 
@@ -176,10 +175,9 @@ class RegimeBase(Regime):
     
     def decote(self, trim_decote, nb_trimesters):
         P = reduce(getattr, self.param_name.split('.'), self.P)
-        taux_plein = P.plein.taux
         decote = P.decote.taux*trim_decote
-        return taux_plein*decote*(nb_trimesters > 0)
-        
+        return decote*(nb_trimesters > 0)
+
 
     def pension_brute(self, data, trim_decote, surcote, taux, coeff_proratisation, 
                     salref):
@@ -220,8 +218,8 @@ class RegimeBase(Regime):
         P = reduce(getattr, self.param_name.split('.'), self.P)
         return P.plein.n_trim / 4
     
-    def DA(self, nb_trimesters, trim_maj):
-        return (nb_trimesters + trim_maj)/4
+    def DA(self, nb_trimesters, trim_maj_ini):
+        return (nb_trimesters + trim_maj_ini)/4
 
 class RegimeComplementaires(Regime):
 

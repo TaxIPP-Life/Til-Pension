@@ -8,6 +8,8 @@ from til_pension.trimesters_functions import nb_trim_surcote, nb_trim_decote, tr
 from til_pension.regime import compare_destinie
 code_chomage = 5
 
+# TODO: clear wages and sal_regime
+
 class FonctionPublique(RegimeBase):
 
     def __init__(self):
@@ -45,7 +47,7 @@ class FonctionPublique(RegimeBase):
         return trim_valide, sal_regime
     
     def FP_to_RG(self, data, trim_cot_by_year_regime):
-        trim_to_RG, sal_to_RG = self.select_to_RG(data, trim_cot_by_year_regime[0], trim_cot_by_year_regime[1])
+        trim_to_RG, sal_to_RG = self.select_to_RG(data, trim_cot_by_year_regime[0].copy(), trim_cot_by_year_regime[1].copy())
         return trim_to_RG, sal_to_RG
 
     def wages(self, trim_cot_by_year_regime, FP_to_RG):
@@ -60,21 +62,28 @@ class FonctionPublique(RegimeBase):
     
     def trim_maj_mda_ini(self, info_ind, nb_trimesters):
         P_mda = self.P.public.fp.mda
-        return trim_mda(info_ind, self.name, P_mda)*(nb_trimesters > 0)
+        return trim_mda(info_ind, self.name, P_mda)*(nb_trimesters > 0)   
     
     def trim_maj_mda_RG(self, regime='RG'):
         pass
+    
+    def trim_maj_mda_RSI(self, regime='RSI'):
+        pass
 
-    def trim_maj_mda(self, trim_maj_mda_ini, nb_trimesters, trim_maj_mda_RG):
+    def trim_maj_mda(self, trim_maj_mda_ini, nb_trimesters, trim_maj_mda_RG, trim_maj_mda_RSI):
         ''' La Mda (attribuée par tous les régimes de base), ne peut être accordé par plus d'un régime.
         Régle d'attribution : a cotisé au régime + si polypensionnés -> ordre d'attribution : RG, RSI, FP
         Rq : Pas beau mais temporaire, pour comparaison Destinie'''
-        if sum(trim_maj_mda_RG) > 0: 
+        if sum(trim_maj_mda_RG) + sum(trim_maj_mda_RSI) > 0: 
             return 0*trim_maj_mda_RG
-        return trim_maj_mda_ini*(nb_trimesters > 0)
+        return trim_maj_mda_ini*(nb_trimesters > 0)   
+
 
     def trim_maj_5eme(self, nb_trimesters):
         return nb_trim_bonif_5eme(nb_trimesters)*(nb_trimesters>0)
+ 
+    def trim_maj_ini(self, trim_maj_mda_ini, trim_maj_5eme):
+        return trim_maj_mda_ini + trim_maj_5eme
     
     def trim_maj(self, trim_maj_mda, trim_maj_5eme):
         return trim_maj_mda + trim_maj_5eme
@@ -84,17 +93,17 @@ class FonctionPublique(RegimeBase):
         N_CP = self.P.public.fp.plein.n_trim
         return minimum(divide(nb_trimesters + trim_maj_5eme, N_CP), 1)
 
-    def CP_CPCM(self, nb_trimesters, trim_maj_mda):
+    def CP_CPCM(self, nb_trimesters, trim_maj_mda_ini): # TODO: change to not ini ? 
         P = self.P.public.fp
         N_CP = P.plein.n_trim
         taux = P.plein.taux
         taux_bonif = P.taux_bonif
-        return minimum(divide(maximum(nb_trimesters, N_CP) + trim_maj_mda, N_CP), divide(taux_bonif, taux))    
+        return minimum(divide(maximum(nb_trimesters, N_CP) + trim_maj_mda_ini, N_CP), divide(taux_bonif, taux))    
     
-    def coeff_proratisation_Destinie(self, nb_trimesters, trim_maj_mda):
+    def coeff_proratisation_Destinie(self, nb_trimesters, trim_maj_mda_ini):  #TODO: should be trim maj ? 
         P = self.P.public.fp
         N_CP = P.plein.n_trim
-        return minimum(divide(nb_trimesters + trim_maj_mda, N_CP), 1)
+        return minimum(divide(nb_trimesters + trim_maj_mda_ini, N_CP), 1)
         
     def coeff_proratisation(self, CP_5eme, CP_CPCM, coeff_proratisation_Destinie):  # TODO: remove coeff_proratisation_Destinie
         ''' on a le choix entre deux bonifications,

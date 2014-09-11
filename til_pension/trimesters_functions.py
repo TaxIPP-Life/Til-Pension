@@ -98,16 +98,15 @@ def imput_sali_avpf(data, code, P_longit, compare_destinie):
 
 def trim_mda(info_ind, name_regime, P):
     ''' Majoration pour enfant : nombre de trimestres acquis'''
-    child_mother = info_ind['nb_enf_' + name_regime][info_ind['sexe'] == 1]
+    child_mother = info_ind['nb_enf_' + name_regime]
     if compare_destinie and name_regime != 'FP':
-        child_mother = info_ind['nb_enf_all'][info_ind['sexe'] == 1]
-    mda = zeros(info_ind.shape)
-    # TODO: distinguer selon l'âge des enfants après 2003
+        child_mother = info_ind['nb_enf_all']
+    # TODO: distinguer selon l'âge des enfants après 2003:  Réforme de 2003 : min(1 trimestre à la naissance + 1 à chaque anniv
     # ligne suivante seulement if child_mother['age_enf'].min() > 16 :
-    mda[info_ind['sexe'] == 1] = P.trim_per_child*child_mother
+    mda = P.trim_per_child*child_mother
     cond_enf_min = child_mother >= P.nb_enf_min
     mda[~cond_enf_min] = 0
-    #TODO:  Réforme de 2003 : min(1 trimestre à la naissance + 1 à chaque anniv, 8)
+    mda[info_ind['sexe'] != 1] = 0
     return mda
 
 def nb_trim_bonif_5eme(trim):

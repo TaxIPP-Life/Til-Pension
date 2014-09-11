@@ -120,8 +120,8 @@ def load_pensipp_data(pensipp_path, yearsim, first_year_sal, selection_id=False)
     return data_bounded
 
 def load_pensipp_result(pensipp_path, to_csv=False):
+    path = os.path.join(pensipp_path, 'result_pensipp.csv')
     try:
-        path = os.path.join(pensipp_path, 'result_pensipp.csv')
         result_pensipp = read_table(path, sep=',', index_col=0)
     except:
         import pandas.rpy.common as com
@@ -137,6 +137,6 @@ def load_pensipp_result(pensipp_path, to_csv=False):
                                          'DAcible_rg': 'n_trim_RG', 'DAcible_fp':'n_trim_FP', 'CPcible_rg':'N_CP_RG', 'sam_fp':'salref_FP'},
                                         inplace = True)
     if to_csv:
-        result_pensipp.to_csv(pensipp_path + 'result_pensipp.csv', sep =',')
-
+        result_pensipp.to_csv(path, sep =',')
+        
     return result_pensipp

@@ -9,7 +9,7 @@ os.sys.path.insert(0,parentdir)
 from numpy import minimum, maximum, array, divide, multiply
 
 from til_pension.regime import RegimeBase
-from til_pension.trimesters_functions import nb_trim_surcote, nb_trim_decote, validation_trimestre, trim_mda
+from til_pension.trimesters_functions import nb_trim_surcote, nb_trim_decote, validation_trimestre
 
 def date_(year, month, day):
     return datetime.date(year, month, day)
@@ -21,10 +21,6 @@ class RegimePrive(RegimeBase):
         self.param_name = 'prive.RG' #TODO: move P.prive.RG used in the subclass RegimePrive in P.prive
         self.param_name_bis = None
 
-    def age_min_retirement(self):
-        P = reduce(getattr, self.param_name.split('.'), self.P)
-        return P.age_min
-
     def trim_cot_by_year_regime(self, data):
         P_long = reduce(getattr, self.param_name.split('.'), self.P_longit)
         salref = P_long.salref
@@ -33,15 +29,16 @@ class RegimePrive(RegimeBase):
 
     def nb_trimesters(self, trimesters):
         return trimesters.sum(axis=1)
-       
-    def trim_maj_mda_ini(self, data, nb_trimesters):
-        P_mda = self.P.prive.RG.mda
-        info_ind = data.info_ind
-        return trim_mda(info_ind, self.name, P_mda)*(nb_trimesters > 0)
+
+    def trim_maj_ini(self, trim_maj_mda_ini):  ## sert à comparer avec pensipp, # TODO: remove
+        return trim_maj_mda_ini
     
-    ## sal_regime should be wages ? 
-    def sal_regime(self, trim_cot_by_year_regime):
-        return trim_cot_by_year_regime[1]
+    def trim_maj(self, trim_maj_mda):
+        return trim_maj_mda
+
+    def age_min_retirement(self):
+        P = reduce(getattr, self.param_name.split('.'), self.P)
+        return P.age_min
     
     def salref(self, data, sal_regime):
         ''' SAM : Calcul du salaire annuel moyen de référence :
@@ -110,9 +107,8 @@ class RegimePrive(RegimeBase):
                 return trim_regime
 
         P =  reduce(getattr, self.param_name.split('.'), self.P)
-        trim_regime = nb_trimesters
         agem = info_ind['agem']
-        trim_regime = trim_maj + trim_regime  # _assurance_corrigee(trim_regime, agem)
+        trim_regime = trim_maj + nb_trimesters  # _assurance_corrigee(trim_regime, agem)
         #disposition pour montée en charge de la loi Boulin (ne s'applique qu'entre 72 et 74) :
         if P.prorat.application_plaf == 1:
             trim_regime = minimum(trim_regime, P.prorat.plaf)
