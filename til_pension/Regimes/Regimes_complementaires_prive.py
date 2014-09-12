@@ -25,7 +25,7 @@ class AGIRC(RegimeComplementaires):
     
     def cotisations(self, data):
         ''' Détermine les cotisations payées au cours de la carrière : même fonction que dans régime mais cet en plus'''
-        sali = data.sali.isin(self.code_regime)
+        sali = data.sali*data.workstate.isin(self.code_regime).astype(int)
         Pcot_regime = reduce(getattr, self.param_name.split('.'), self.P_cot) #getattr(self.P_longit.prive.complementaire,  self.name)
         taux_pat = Pcot_regime.cot_pat
         taux_sal = Pcot_regime.cot_sal

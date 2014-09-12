@@ -76,7 +76,8 @@ class FonctionPublique(RegimeBase):
 
     def calculate_coeff_proratisation(self, info_ind, trim_wage_regime, trim_wage_all):
         ''' on a le choix entre deux bonifications,
-                chacune plafonnée à sa façon '''
+                chacune plafonnée à sa façon 
+                Voir réforme 2004 et 2010 pour non-prise en compte de la mda dans prorat'''
         P = self.P.public.fp
         trimesters = trim_wage_regime['trimesters']
         trim_maj = trim_wage_regime['maj']
@@ -154,7 +155,7 @@ class FonctionPublique(RegimeBase):
     
     def cotisations(self, data):
         ''' Calcul des cotisations passées par année'''
-        sali = data.sali.isin(self.code_regime)
+        sali = data.sali*data.workstate.isin(self.code_regime).astype(int)
         Pcot_regime = reduce(getattr, self.param_name.split('.'), self.P_cot) #getattr(self.P_longit.prive.complementaire,  self.name)
         taux_pat = Pcot_regime.cot_pat
         taux_sal = Pcot_regime.cot_sal
