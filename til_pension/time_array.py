@@ -1,16 +1,19 @@
 # -*- coding: utf-8 -*-
 import numpy as np
-from numpy import array, divide, around, in1d, repeat, sort, apply_along_axis, zeros
+from numpy import array, divide, around, in1d, repeat, sort, \
+    apply_along_axis, zeros
+
 
 def determine_frequency(dates):
     ''' fonction qui lit les dates et devine quelle
         est la frequence
     '''
-    if (array(dates) % 100 == 1).all() :
+    if (array(dates) % 100 == 1).all():
         frequency = 'year'
     else:
         frequency = 'month'
     return frequency
+
 
 class TimeArray(np.ndarray):
     ''' numpy array with dates '''
@@ -23,7 +26,8 @@ class TimeArray(np.ndarray):
 
     def __array_finalize__(self, obj):
         # see InfoArray.__array_finalize__ for comments
-        if obj is None: return
+        if obj is None:
+            return
         self.dates = getattr(obj, 'dates', None)
         self.frequency = getattr(obj, 'frequency', None)
         self.name = getattr(obj, 'name', None)
@@ -31,7 +35,7 @@ class TimeArray(np.ndarray):
     def __array_wrap__(self, out_arr, context=None):
         if not isinstance(out_arr, TimeArray):
             assert out_arr.shape == self.shape
-            assert isinstance(out_arr, np.ndarray) #could be extend to pandas, but we don't want pandas
+            assert isinstance(out_arr, np.ndarray)
         if isinstance(out_arr, TimeArray):
             assert out_arr.shape == self.shape
             assert out_arr.dates == self.dates
@@ -39,12 +43,6 @@ class TimeArray(np.ndarray):
         # then just call the parent
         return np.ndarray.__array_wrap__(self, out_arr, context)
 
-#     def __repr__(self):
-#         return self.__repr__() + self.dates.__repr__()
-#
-#     def copy(self):
-#         return TimeArray(self.copy(), self.dates)
-#
     def isin(self, code):
         ''' return a boolean array with True if
             and only if in code
@@ -52,18 +50,11 @@ class TimeArray(np.ndarray):
         array_selection = in1d(self.copy(), code).reshape(self.shape)
         return TimeArray(array_selection, self.dates)
 
-#     def sum(self, axis=1):
-#         ''' Cette fonction renvoie un vecteur (de longueur le nb de ligne de l'array)
-#         donnant :
-#         - axis = 1 : la somme des colonnes de l'array
-#         - axis = 0 : la somme des lignes de l'array '''
-#         return self.sum(axis=axis)
-
-    def selected_dates(self, first=None, last=None, date_type='year', inplace=False):
-        ''' La table d'input dont les colonnes sont des dates est renvoyées amputée
-            des années postérieures à first (first incluse)
-            et antérieures strictement à last
-            date_type est month ou year
+    def selected_dates(self, first=None, last=None,
+                       date_type='year', inplace=False):
+        ''' La table d'input dont les colonnes sont des dates est renvoyées
+            amputée des années postérieures à first (first incluse)
+            et antérieures strictement à last date_type est month ou year
             '''
         dates = self.dates
         if first is None:
@@ -77,45 +68,51 @@ class TimeArray(np.ndarray):
                 last = 100*last + 1
         array_dates = [i
                        for i in range(len(dates))
-                            if first <= dates[i] and dates[i] < last
-                        ]
+                       if first <= dates[i] and dates[i] < last
+                       ]
         dates = [dates[i] for i in array_dates]
         if inplace:
-            self = self[:,array_dates]
+            self = self[:, array_dates]
             self.dates = dates
         else:
-            return TimeArray(self[:,array_dates], dates, self.name)
+            return TimeArray(self[:, array_dates], dates, self.name)
 
-    def translate_frequency(self, output_frequency='month', method=None, inplace=False):
-        '''method should eventually control how to switch from month based table to year based table
-            so far we assume year is True if January is True
-            idea : format_table as an argument instead of testing with isinstance
+    def translate_frequency(self, output_frequency='month', method=None,
+                            inplace=False):
+        '''method should eventually control how to switch from month based
+           table to year based table
+           so far we assume year is True if January is True
+           idea : format_table as an argument instead of testing with isinstance
             '''
+        # TODO: generaliser...
         input_frequency = self.frequency
         if input_frequency == output_frequency:
-            if inplace == True:
-                return 'rien'
+            if inplace:
+                return
+
             else:
                 return TimeArray(self, self.dates)
-        if output_frequency == 'year': # if True here, input_frequency=='month'
-            assert len(self.dates) % 12 == 0 #TODO: to remove eventually
+
+        if output_frequency == 'year':  # if so then input_frequency=='month'
+            assert len(self.dates) % 12 == 0  # TODO: to remove eventually
             nb_years = len(self.dates) // 12
             output_dates = [date for date in self.dates if date % 100 == 1]
-            output_dates_ix = [self.dates.index(output_date) for output_date in output_dates]
-            #here we could do more complex
-            if method is None: #first month of each year
+            output_dates_ix = [self.dates.index(output_date)
+                               for output_date in output_dates]
+            # here we could do more complex
+            if method is None:  # first month of each year
                 output = self[:, output_dates_ix]
             if method is 'sum':
                 output = self[:, output_dates_ix]
-                for month in range(1,12):
-                    month_to_add = [year*12 + month for year in xrange(nb_years)]
+                for month in range(1, 12):
+                    month_to_add = [12*year + month for year in xrange(nb_years)]
                     output += self[:, month_to_add]
-        elif output_frequency == 'month': # if True here, input_frequency=='year'
+        elif output_frequency == 'month':  # if so then input_frequency=='year'
             output_dates = [year + month for year in self.dates for month in range(12)]
             output = repeat(self, 12, axis=1)
             if method == 'divide':
                 output = around(divide(output, 12), decimals=3)
-        if inplace == True:
+        if inplace:
             self = output
             self.dates = output_dates
             self.frequency = output_frequency
@@ -127,15 +124,15 @@ class TimeArray(np.ndarray):
         meilleures états de la matrice associée au TimeArray'''
         def mean_best_dates_row(row):
             nb_best = row[-1]
-            if nb_best == 0 :
+            if nb_best == 0:
                 return 0
             row = sort(row[:-1])
             row = row[-nb_best:]
             return row.sum()/nb_best
 
         array_ = zeros((self.shape[0], self.shape[1]+1))
-        array_[:,:-1] = self
-        array_[:,-1] = nb_best_dates
+        array_[:, :-1] = self
+        array_[:, -1] = nb_best_dates
         return apply_along_axis(mean_best_dates_row, axis=1, arr=array_)
 
 #     def __add__(self, other):
@@ -196,24 +193,29 @@ class TimeArray(np.ndarray):
 #             return TimeArray(array, self.dates)
 
     def idx_last_time_in(self, in_what):
-        ''' Retourne les coordonnées de la dernière fois que l'individu a été dans l'état in_what :
+        ''' Retourne les coordonnées de la dernière fois que l'individu a été
+        dans l'état in_what :
         Il s'agit en fait de deux listes de même taille :
-        - la première renvoie les nméros des lignes (qui s'apparentent aux ident individuels) des personnes ayant au
+        - la première renvoie les nméros des lignes (qui s'apparentent aux
+        ident individuels) des personnes ayant au
         moins eu un état in_what au cours de leur vie
-        - la seconde renvoit les numéros de colonnes (qui s'apparentent aux années) permetant d'identifier la dernière
+        - la seconde renvoit les numéros de colonnes (qui s'apparentent aux
+        années) permetant d'identifier la dernière
         année où l'individu est dans l'état in_what'''
         selection = self.isin(in_what)
 
         nrows = selection.shape[0]
         output = zeros(nrows)
         for date in reversed(range(len(self.dates))):
-            cond = selection[:,date] != 0
+            cond = selection[:, date] != 0
             cond = cond & (output == 0)
             output[cond] = date
 
 #             # some ideas to optimize the calculation
 #         output = selection.argmax(axis=1)
-#         obvious_case1 = (selection.max(axis=1) == 0) | (selection.max(axis=1) == min(self.code_regime)) #on a directement la valeur
+#         obvious_case1 = ((selection.max(axis=1) == 0) |
+#                          (selection.max(axis=1) == min(self.code_regime)))
+          #on a directement la valeur
                                                                                                             # et avec argmac l'indice
 #         obvious_case2 = selection[:,-1] != 0 # on sait que c'est le dernier
 #         output[obvious_case2] = len_dates - 1 #-1 because it's the index of last column
@@ -230,20 +232,22 @@ class TimeArray(np.ndarray):
         return selected_rows.tolist(), selected_output.tolist()
 
     def last_time_in(self, in_what):
-        ''' Return les coordonnées de la dernière fois que l'individu a été dans l'état in_what '''
+        ''' Return les coordonnées de la dernière fois
+        que l'individu a été dans l'état in_what '''
         last_fp_idx = self.idx_last_time_in(in_what)
         last_fp = zeros(self.shape[0])
         last_fp[last_fp_idx[0]] = self[last_fp_idx]
         return last_fp
 
-    def select_code_after_period(self, code1, code2):
-        ''' returns values value in code2 if the period before was in code1
+    def select_code_after_period(self, event, code):
+        ''' returns values value in code if the period before was in event
         usefull for unemployment
         Rq : don't consider True in t=0'''
         output = zeros(self.shape)
 #         output[:,0] = (self[:,0] == code2)
-        previous = in1d(self[:,:-1], [code1, code2]).reshape(self[:,:-1].shape)
-        in_code2 = (self[:,1:] == code2)
-        selected = previous*in_code2
-        output[:,1:] = selected
+        previous = in1d(self[:, :-1],
+                        [event, code]).reshape(self[:, :-1].shape)
+        in_code = (self[:, 1:] == code)
+        selected = previous*in_code
+        output[:, 1:] = selected
         return output

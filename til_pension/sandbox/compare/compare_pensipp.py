@@ -9,7 +9,6 @@ from til_pension.sandbox.compare.load_pensipp import load_pensipp_data, load_pen
 
 first_year_sal = 1949
 
-
 def load_til_pensipp(pensipp_comparison_path, years, to_print=(None,None,True)):
     result_pensipp = load_pensipp_result(pensipp_comparison_path, to_csv=False)
     result_til = pd.DataFrame(columns = var_to_check_montant + var_to_check_taux, index = result_pensipp.index)
@@ -121,7 +120,7 @@ if __name__ == '__main__':
                             u'n_trim_RG', 'N_CP_RG', 'n_trim_FP', 'salref_FP']
     var_to_check_taux = [u'taux_RG', u'decote_RG', u'CP_RG', u'surcote_RG',
                          u'taux_FP', u'decote_FP', u'CP_FP', u'surcote_FP']
-    threshold = {'montant' : 0.05, 'taux' : 0.0005}
+    threshold = {'montant' : 1, 'taux' : 0.0005}
     to_print = ({'FP':['calculate_coeff_proratisation']}, [17917,21310,28332,28607], True)
     
     til_compare, pensipp_compare, simul_til = load_til_pensipp(pensipp_comparison_path, [2004], to_print=(None,None,True))
@@ -130,29 +129,34 @@ if __name__ == '__main__':
     #surcote RG
     
     
-    voir = prob['salref_RG']
-    simul_til.calculate('salref', 'RG')[voir.values]
-    simul_til.calculate('salref', 'RG')[voir.values]
     
+    voir = prob['pension_agirc']
+    simul_til.calculate('trim_decote', 'agirc')[voir.values]
+    simul_til.calculate('minimum_points', 'agirc')[voir.values]
     
-    tt = pensipp_compare
-    tt['taux_RG']
-    tt['decote_RG'] - tt['surcote_RG']
-    
-    
-    import pdb
-    pdb.set_trace()
-    voir = prob['DA_RSI']
-    (simul_til.calculate('nb_trimesters', 'RSI'))[voir.values]
-    (simul_til.calculate('trim_maj', 'RSI'))[voir.values]
-    (simul_til.calculate('trim_maj_mda_ini', 'RSI'))[voir.values]    
-   
-    data = simul_til.data
-    info_ind = data.info_ind
-    
-
-    import pdb
-    pdb.set_trace()
+#     import pdb
+#     pdb.set_trace()
+#        
+#     voir = prob['salref_RG']
+#     simul_til.calculate('salref', 'RG')[voir.values]
+#     simul_til.calculate('salref', 'RG')[voir.values]
+#     
+#     
+#     tt = pensipp_compare
+#     tt['taux_RG']
+#     tt['decote_RG'] - tt['surcote_RG']
+# 
+#     voir = prob['DA_RSI']
+#     (simul_til.calculate('nb_trimesters', 'RSI'))[voir.values]
+#     (simul_til.calculate('trim_maj', 'RSI'))[voir.values]
+#     (simul_til.calculate('trim_maj_mda_ini', 'RSI'))[voir.values]    
+#    
+#     data = simul_til.data
+#     info_ind = data.info_ind
+#     
+# 
+#     import pdb
+#     pdb.set_trace()
     
 
 #    or to have a profiler :

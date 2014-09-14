@@ -3,25 +3,6 @@
 from til_pension.time_array import TimeArray
 from numpy import zeros, minimum
 
-def sum_from_dict(dictionnary, key='', plafond=None):
-    ''' Somme les TimeArray contenus dans un dictionnaire et dont le nom contient la 'key' '''
-    timearray_with_key = [trim for name, trim in dictionnary.items() if key in name]
-    first = timearray_with_key[0]
-    trim_tot = TimeArray(zeros(first.shape), first.dates)
-    for timearray in timearray_with_key:
-        trim_tot += timearray
-    if plafond is not None:
-        trim_tot = minimum(trim_tot, plafond)
-    return trim_tot
-
-def sum_by_regime(trimesters_wages, to_other):
-    for regime, dict_regime in to_other.iteritems():
-        for type in dict_regime.keys():
-            trimesters_wages[regime][type].update(dict_regime[type])
-    for regime in trimesters_wages.keys() :
-        trimesters_wages[regime]['wages'].update({ 'regime' : sum_from_dict(trimesters_wages[regime]['wages'])})
-        trimesters_wages[regime]['trimesters'].update({ 'regime' : sum_from_dict(trimesters_wages[regime]['trimesters'])})
-    return trimesters_wages
 
 def attribution_mda(trimesters_wages):
     ''' La Mda (attribuée par tous les régimes de base), ne peut être accordé par plus d'un régime.

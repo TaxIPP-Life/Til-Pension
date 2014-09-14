@@ -7,6 +7,7 @@ from til_pension.datetil import DateTil
 
 compare_destinie = True
 
+
 class PensionData(object):
     '''
     Class à envoyer à Simulation de Til-pension
@@ -18,8 +19,8 @@ class PensionData(object):
         self.sali = sali
         self.info_ind = info_ind
         if isinstance(info_ind, DataFrame):
-            self.info_ind = info_ind.to_records(index=True)     
-                     
+            self.info_ind = info_ind.to_records(index=True)
+
         assert workstate.dates == sali.dates
         dates = sali.dates
         assert sorted(dates) == dates
@@ -79,7 +80,8 @@ class PensionData(object):
                 assert len(sali) == len(info_ind)
                 sal = sali.index
                 idx = info_ind.index
-                assert all(sal[sal.isin(idx)] == idx[idx.isin(sal)]) #ici c'est que l'ordre change
+                assert all(sal[sal.isin(idx)] == idx[idx.isin(sal)])
+                # si on coince à ce assert ici c'est que l'ordre change
                 print(sal[~sal.isin(idx)])
                 print(idx[~idx.isin(sal)])
                 # un décalage ?
@@ -87,7 +89,7 @@ class PensionData(object):
                 import pdb
                 pdb.set_trace()
 
-            #TODO: should be done before
+            # TODO: should be done before
             assert sali.columns.tolist() == workstate.columns.tolist()
             assert sali.columns.tolist() == (sorted(sali.columns))
             dates = sali.columns.tolist()
@@ -99,5 +101,5 @@ class PensionData(object):
             sali = TimeArray(sali, dates, name='sali')
             workstate = TimeArray(workstate, dates, name='workstate')
 
-        assert in1d(info_ind['sexe'],[0,1]).all()
+        assert in1d(info_ind['sexe'], [0, 1]).all()
         return PensionData(workstate, sali, info_ind)

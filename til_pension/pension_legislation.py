@@ -4,11 +4,11 @@ import datetime as dt
 import os
 
 from datetil import DateTil
-from numpy import array, ones
+from numpy import array
 
 from xml.etree import ElementTree
 from til_pension.Param import legislations_add_pension as legislations
-from til_pension.Param import legislationsxml_add_pension as  legislationsxml
+from til_pension.Param import legislationsxml_add_pension as legislationsxml
 from openfisca_core import conv
 
 from til_pension.Regimes.Fonction_publique import FonctionPublique
@@ -16,22 +16,26 @@ from til_pension.Regimes.Regimes_complementaires_prive import AGIRC, ARRCO
 from til_pension.Regimes.Regimes_prives import RegimeGeneral, RegimeSocialIndependants
 from til_pension.regime import compare_destinie
 
+
 def build_long_values(param_long, first, last, time_scale='year'):
-    ''' Cette fonction permet de traduire les paramètres longitudinaux en vecteur numpy
-    comportant une valeur par année comprise en first_year et last_year '''
-    #TODO: Idea : return a TimeArray and use select if needed
+    ''' Cette fonction permet de traduire les paramètres longitudinaux en
+        vecteur numpy comportant une valeur par année comprise en first_year
+        et last_year
+    '''
+    # TODO: Idea : return a TimeArray and use select if needed
     param_dates = sorted(param_long.keys())
+    
     def _convert_date(x):
         date = dt.datetime.strptime(x, "%Y-%m-%d")
         return 100*date.year + date.month
-    #TODO: convert here all param in dates
+    # TODO: convert here all param in dates
     param_dates_liam = [_convert_date(x) for x in param_dates]
     param_dates_liam += [210001]
 
-    if time_scale=='year':
-        list_dates = [100*x + 1  for x in range(first, last)]
+    if time_scale == 'year':
+        list_dates = [100*x + 1 for x in range(first, last)]
     else:
-        #TODO: create a function...
+        # TODO: create a function...
         raise Exception("Not implemented yet for time_scale not year")
 
     output = []
@@ -42,19 +46,22 @@ def build_long_values(param_long, first, last, time_scale='year'):
         output += [param_long[param_dates[k]]]
     return output
 
+
 def scales_long_baremes(baremes, scales):
-    ''' Cette fonction permet de traduire les barèmes longitudinaux en dictionnaire de bareme
-    comportant un barème par année comprise en first_year et last_year'''
+    ''' Cette fonction permet de traduire les barèmes longitudinaux en 
+        dictionnaire de bareme comportant un barème par année comprise en
+        first_year et last_year
+    '''
     from Param.Scales import scaleBaremes
     assert len(scales) == len(baremes)
     for date in range(len(baremes)):
         baremes[date] = scaleBaremes(baremes[date], scales[date])
     return baremes
 
-class PensionParam(object):
 
+class PensionParam(object):
     def __init__(self, dateleg, data):
-        #TODO: use all attrbutes except data in a PensionParam class
+        # TODO: use all attrbutes except data in a PensionParam class
         # example:
         #     duration = data.last_year - data.first_year
         #     self.param = PensionParam.builder(dateleg, data.info_ind, duration)
@@ -111,8 +118,8 @@ class PensionParam(object):
         param_long = self.P_longit
         smic = param_long.common.smic
         avts = param_long.common.avts.montant
-        if compare_destinie == True:
-            smic = dict((key,val / (52*35)) for key, val in param_long.common.smic_proj.iteritems())
+        if compare_destinie:
+            smic = dict((key, val / (52*35)) for key, val in param_long.common.smic_proj.iteritems())
         smic_key = sorted(smic.keys())
         avts_key = sorted(avts.keys())
         debut_annee = '-01-01'
@@ -133,14 +140,14 @@ class PensionParam(object):
         while year < 2014 and year < self.date.year:
             date = str(year) + debut_annee
             while smic_key[k+1] <= date:
-                k +=1
+                k += 1
             salref[date] = 200*smic[smic_key[k]]
             year += 1
 
         while year < 2014 and year < self.date.year:
             date = str(year) + debut_annee
             while smic_key[k+1] <= date:
-                k +=1
+                k += 1
             salref[date] = 150*smic[smic_key[k]]
             year += 1
 
@@ -155,7 +162,7 @@ class PensionLegislation(object):
     - la structure des tables sali/workstate (pour ajuster la longueur des paramètres long)
     '''
     def __init__(self, param):
-        #TODO: use all attrbutes except data in a PensionParam class
+        # TODO: use all attrbutes except data in a PensionParam class
         # example:
         #     duration = data.last_year - data.first_year
         #     self.param = PensionParam.builder(dateleg, data.info_ind, duration)
@@ -209,7 +216,7 @@ if __name__ == '__main__':
     from pension_data import PensionData
     import datetime
     from pandas import DataFrame
-    
+
     data = DataFrame()
     info_ind = array([ (186, 2.0, 1.0, datetime.date(1941, 1, 1), 756.0, 0.0, 2.0),
        (376, 1.0, 1.0, datetime.date(1941, 1, 1), 756.0, 0.0, 1.0),
