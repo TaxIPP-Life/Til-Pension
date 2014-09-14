@@ -78,14 +78,14 @@ class Regime(object):
         Rq : pour l'instant on pourrait ne renvoyer que l'année'''
         agem = data.info_ind['agem']
         datesim = self.dateleg.liam
-
-        # Condition sur l'âge -> automatique si on atteint l'âge du taux plein
-        age_annulation_decote[age_annulation_decote == 0] = 999
-        start_taux_plein_age = [int(datesim - months//12*100 - months % 12)
-                                if months > 0 else 2100*100 + 1
-                                for months in (agem - age_annulation_decote)]
-        # Condition sur les trimestres -> même que celle pour la surcote
-        return minimum(start_taux_plein_age, date_start_surcote)
+        # TODO: find the origin of that non int array
+        age_annulation_decote = age_annulation_decote.astype(int)
+        datesim_in_month = 12*(datesim // 100) + datesim % 100
+        start_taux_plein_in_month = agem - age_annulation_decote
+        datenaiss_in_month = datesim_in_month - start_taux_plein_in_month
+        start_taux_plein = 100*(datenaiss_in_month // 12) + datenaiss_in_month % 12 + 1
+        start_taux_plein[datenaiss_in_month < 0] = 2100*100 + 1  # =inf
+        return minimum(start_taux_plein, date_start_surcote)
 
     def taux(self, decote, surcote):
         ''' Détérmination du taux de liquidation à appliquer à la pension

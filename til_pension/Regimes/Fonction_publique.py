@@ -149,7 +149,6 @@ class FonctionPublique(RegimeBase):
     def age_annulation_decote(self, data, age_min_retirement):
         ''' Détermination de l'âge d'annulation de la décote '''
         P = reduce(getattr, self.param_name.split('.'), self.P)
-
         if P.decote.taux == 0:
             # le dispositif n'existe pas encore
             return age_min_retirement
@@ -187,7 +186,6 @@ class FonctionPublique(RegimeBase):
         last_fp_idx = data.workstate.idx_last_time_in(self.code_regime)
         last_fp = zeros(data.sali.shape[0])
         last_fp[last_fp_idx[0]] = data.sali[last_fp_idx]
-        taux_prime = array(data.info_ind['tauxprime'])
         P_long = reduce(getattr, self.param_name.split('.'), self.P_longit)
         P = reduce(getattr, self.param_name.split('.'), self.P)
         val_point = P_long.val_point
@@ -197,6 +195,7 @@ class FonctionPublique(RegimeBase):
         val_point_t = P.val_point
         coeff_revalo = val_point_t/val_point_last_fp
         coeff_revalo[coeff_revalo == inf] = 0
+        taux_prime = array(data.info_ind['tauxprime'])
         return last_fp*coeff_revalo/(1 + taux_prime)
 
     def plafond_pension(self, pension_brute):

@@ -46,6 +46,8 @@ class PensionSimulation(object):
                 print("La variable {} doit être renseignée dans info_ind " +
                       "pour que la simulation puisse tourner, \n seules" +
                       "{} sont connues").format(var, info_ind.columns)
+        assert min(info_ind['tauxprime']) >= 0
+        assert max(info_ind['tauxprime']) <= 1
 
     def get_regime(self, regime_name):
         # subtilité :
@@ -135,19 +137,19 @@ class PensionSimulation(object):
             except Exception, e:
                 print ("on est en train de calculer la variable " + varname +
                        " de " + regime_name)
-                print (dict_var)
                 print(varname)
                 print(arguments)
                 print str(e)
                 pdb.set_trace()
+                print (dict_var)
 
         return self.calculated[regime_name][varname]
 
     def _eval_for_regimes(self, varname, regimes):
         regimes_names = [reg.name for reg in regimes]
         result = []
-        for reg_name in regimes_names:
-            result += [self.calculate(varname, regime_name=reg_name)]
+        for reg_name in regimes_names:         
+            result += [self.calculate(varname, regime_name=reg_name)]          
         return result
 
     def data(self):
