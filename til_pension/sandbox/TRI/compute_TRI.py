@@ -101,12 +101,13 @@ def compute_TRI(yearmin, yearmax):
     pensions_contrib.loc[:,'n_enf'] = pensions_contrib.loc[:,'n_enf'].fillna(0)
     pensions_contrib.loc[:,'sexe'] = pensions_contrib.loc[:,'sexe'].fillna(0)
     pensions_contrib = pensions_contrib[~(pensions_contrib['pension'] == 0)]
-    
-    pensions_contrib['death'] = (pensions_contrib['year_dep'] - (pensions_contrib['age'] - 60) + 22).astype(int)
-    for var in ['pension'] + [str(year*100 + 1) for year in range(first_year_sal, last_year)]:
+    #TODO: Arbitrary for the moment -> add differential life expenctancy
+    pensions_contrib['death'] = (pensions_contrib['year_dep'] - (pensions_contrib['age'] - 60) + 22).astype(int) 
+    for var in ['pension'] + [str(year*100 + 1) for year in range(first_year_sal, yearmax)]:
         pensions_contrib.loc[:, var] = around(pensions_contrib[var].astype(double),2)
-    pensions_contrib['TRI'] =  pensions_contrib.apply(TRI, axis=1)
     pensions_contrib.loc[:,'age'] = pensions_contrib['age'] - 1
+    
+    pensions_contrib['TRI'] = pensions_contrib.apply(TRI, axis=1)
     return pensions_contrib
         
 if __name__ == '__main__':
@@ -114,10 +115,6 @@ if __name__ == '__main__':
     first_year = 2009
     last_year = 2019
     result = compute_TRI(first_year, last_year)
-    
-
-    #from pandas import read_csv
-    #result = read_csv('result.csv', sep=';')
     print result.groupby(['regime', 'sexe'])['TRI'].mean()
     print result.groupby(['regime', 'sexe'])['TRI'].median() 
     print result.groupby(['regime', 'sexe'])['age'].mean() 
