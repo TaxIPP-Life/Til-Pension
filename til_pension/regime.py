@@ -7,7 +7,7 @@ from til_pension.time_array import TimeArray
 from til_pension.datetil import DateTil
 
 first_year_sal = 1949
-compare_destinie = True
+compare_destinie = False
 
 
 class Regime(object):
@@ -244,10 +244,11 @@ class RegimeComplementaires(Regime):
         nb_points = maximum(nb_points_by_year, gmp)*(nb_points_by_year > 0)
         return nb_points.sum(axis=1)
 
-    def coefficient_age(self, agem, trim):
+    def coefficient_age(self, data, nb_trimesters):
         ''' TODO: add surcote  pour avant 1955 '''
         P = reduce(getattr, self.param_name.split('.'), self.P)
         coef_mino = P.coef_mino
+        agem = data.info_ind['agem']
         age_annulation_decote = self.P.prive.RG.decote.age_null
         diff_age = divide(age_annulation_decote - agem, 12)*(age_annulation_decote > agem)
         coeff_min = zeros(len(agem))
@@ -258,9 +259,11 @@ class RegimeComplementaires(Regime):
         if P.cond_taux_plein == 1:
             # Dans ce cas, la minoration ne s'applique que si la durée de cotisation au régime général est inférieure à celle requise pour le taux plein
             n_trim = self.P.prive.RG.plein.n_trim
-            coeff_min = coeff_min*(n_trim > trim) + (n_trim <= trim)
+            coeff_min = coeff_min*(n_trim > nb_trimesters) + (n_trim <= nb_trimesters)
+        if compare_destinie:
+            coeff_min = 1
         return coeff_min
-
+    
     def _majoration_enf(self, data, nb_points_by_year):
         ''' Application de la majoration pour enfants à charge. Deux types de majorations peuvent s'appliquer :
         ' pour enfant à charge au moment du départ en retraite
@@ -310,7 +313,7 @@ class RegimeComplementaires(Regime):
         P = reduce(getattr, self.param_name.split('.'), self.P)
         nb_points_by_year = self.nombre_points(data, trim_wage_base)
         nb_points = nb_points_by_year.sum(axis=1)
-        coeff_age = self.coefficient_age(info_ind['agem'], trim_wage_base)
+        coeff_age = self.coefficient_age(data, trim_wage_base)
         val_point = P.val_point
         if compare_destinie:
             val_point = P.val_point_proj
