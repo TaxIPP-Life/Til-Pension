@@ -111,7 +111,6 @@ def load_pensipp_data(pensipp_path, yearsim, first_year_sal, selection_id=False,
     rec = data_bounded.info_ind
     newdtype = [('nb_enf_' + name, '<i8') for name in dict_regime] + [('nb_enf_all', '<i8')]
     newdtype = np.dtype(rec.dtype.descr + newdtype)
-    print newdtype
     info_ind = np.empty(rec.shape, dtype=newdtype)
     for field in rec.dtype.fields:
         info_ind[field] = rec[field]
