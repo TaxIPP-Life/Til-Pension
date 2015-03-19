@@ -8,7 +8,7 @@ from til_pension.datetil import DateTil
 
 first_year_sal = 1949
 compare_destinie = False
-
+sal_nominal = False
 
 class Regime(object):
     """
@@ -126,10 +126,16 @@ class Regime(object):
 #         self.sal_regime = sali*_isin(self.workstate.array,self.code_regime)
         raise NotImplementedError
 
-    def bonif_pension(self, data, trim_wage_reg, trim_wage_all, pension_reg, pension_all):
-        pension = pension_reg + self.minimum_pension(trim_wage_reg, trim_wage_all, pension_reg, pension_all)
-        # Remarque : la majoration de pension s'applique à la pension rapportée au maximum ou au minimum
-        pension += self.majoration_pension(data, pension)
+    def bonif_pension(self, data, trim_wage_reg, trim_wage_all, pension_reg, pension_surcote_reg, pension_all, unactive=[]):
+        minimum = self.minimum_pension(trim_wage_reg, trim_wage_all, pension_reg - pension_surcote_reg, pension_all) 
+        if 'minimum' in unactive:
+            minimum = minimum*0
+        pension = pension_reg + minimum
+        # Remarque : les majorations de pension s'applique à la pension rapportée au maximum ou au minimum
+        majoration = self.majoration_pension(data, pension)
+        if 'maj' in unactive:
+            majoration = majoration*0
+        pension = pension + majoration
         return pension
     
     def cotisations(self, data):
@@ -145,6 +151,14 @@ class Regime(object):
         for ix_year in range(sali.shape[1]):
             cot_sal_by_year[:,ix_year] = taux_sal[ix_year].calc(sali[:,ix_year])
             cot_pat_by_year[:,ix_year] = taux_pat[ix_year].calc(sali[:,ix_year])
+            
+        if sal_nominal == False:
+            revalo = self.P_longit.prive.RG.revalo
+            revalo = array(revalo)
+            for i in range(1, len(revalo)) :
+                revalo[:i] *= revalo[i]
+            cot_sal_by_year = multiply(cot_sal_by_year, revalo)
+            cot_pat_by_year = multiply(cot_pat_by_year, revalo)
         return {'sal': cot_sal_by_year, 'pat':cot_pat_by_year}
 
     
@@ -176,26 +190,25 @@ class RegimeBase(Regime):
             taux_3enf = P.maj_3enf.taux
             taux_supp = P.maj_3enf.taux_sup
             return taux_3enf*(nb_enf >= 3) + (taux_supp*maximum(nb_enf - 3, 0))
-
         maj_enf = _taux_enf(nb_enf, P)*pension
         return maj_enf
 
-    def calculate_pension(self, data, trim_wage_regime, trim_wage_all, to_check=None):
+    def calculate_pension(self, data, trim_wage_regime, trim_wage_all, unactive=[], to_check=None):
         info_ind = data.info_ind
         name = self.name
         P = reduce(getattr, self.param_name.split('.'), self.P)
         trim_decote = self.trim_decote(data, trim_wage_all)
         decote = P.decote.taux*trim_decote
         surcote = self.surcote(data, trim_wage_regime, trim_wage_all)
+        
         taux = self.calculate_taux(decote, surcote)
         cp = self.calculate_coeff_proratisation(info_ind, trim_wage_regime, trim_wage_all)
         salref = self.calculate_salref(data, trim_wage_regime['wages'])
 
         pension_brute = cp*salref*taux
-        pension = self.plafond_pension(pension_brute, salref, cp, surcote)
-        # Remarque : la majoration de pension s'applique à la pension rapportée au maximum ou au minimum
-        pension += self.majoration_pension(data, pension) # TODO: delete because in bonif_pension
-
+        pension_surcote = P.plein.taux*salref*cp*surcote
+        pension = self.plafond_pension(pension_brute, pension_surcote)
+        
         if to_check is not None:
             P = reduce(getattr, self.param_name.split('.'), self.P)
             taux_plein = P.plein.taux
@@ -210,7 +223,8 @@ class RegimeBase(Regime):
             to_check['n_trim_' + name] = P.plein.n_trim / 4
             if self.name == 'RG':
                 to_check['N_CP_' + name] = P.prorat.n_trim / 4
-        return pension, trim_decote
+                
+        return pension, trim_decote, pension_surcote
 
 class RegimeComplementaires(Regime):
 
@@ -299,7 +313,6 @@ class RegimeComplementaires(Regime):
         val_point = P.val_point
         if compare_destinie:
             val_point = P.val_point_proj
-        if compare_destinie:
             return points_born*val_point
         return maximum(points_born, points_pac)*val_point
 
