@@ -8,9 +8,8 @@ os.sys.path.insert(0,parentdir)
 
 from numpy import minimum, maximum, array, divide, multiply
 
-from til_pension.regime import RegimeBase, sal_nominal
+from til_pension.regime import RegimeBase
 from til_pension.trimesters_functions import nb_trim_surcote, nb_trim_decote
-
 
 def date_(year, month, day):
     return datetime.date(year, month, day)
@@ -37,8 +36,7 @@ class RegimePrive(RegimeBase):
         revalo = array(revalo)
         for i in range(1, len(revalo)) :
             revalo[:i] *= revalo[i]
-        if sal_nominal:
-            revalo = [1]*len(revalo)
+
         sal_regime = wages['regime']
         sal_regime.translate_frequency(output_frequency='year', method='sum', inplace=True)
         years_sali = (sal_regime != 0).sum(axis=1)
@@ -144,8 +142,8 @@ class RegimePrive(RegimeBase):
         ''' MICO du régime général : allocation différentielle
         RQ : ASPA et minimum vieillesse sont gérés par OF
         Il est attribué quels que soient les revenus dont dispose le retraité en plus de ses pensions : loyers, revenus du capital, activité professionnelle...
-        TODO: coder toutes les évolutions et rebondissements 2004/2008
-        + mécanisme de répartition si cotisations à plusieurs régimes (a partir du 1er janvier 2012)'''
+        + mécanisme de répartition si cotisations à plusieurs régimes
+        TODO: coder toutes les évolutions et rebondissements 2004/2008'''
         P = reduce(getattr, self.param_name.split('.'), self.P)
         # pension_RG, pension, trim_RG, trim_cot, trim
         trimesters = trim_wages_reg['trimesters']
@@ -159,27 +157,24 @@ class RegimePrive(RegimeBase):
             # TODO: Voir comment gérer la limite de cumul relativement complexe (Doc n°5 du COR)
             mico = P.mico.entier
             return maximum(mico - pension_reg,0)*coeff
-        else:
+        elif P.mico.dispositif == 2:
             # A partir du 1er janvier 2004 les périodes cotisées interviennent (+ dispositif transitoire de 2004)
             nb_trim = P.prorat.n_trim
+            trim_regime = trimesters['regime'].sum(axis=1) #+ sum(trim_wages_regime['maj'].values())
             trim_cot_regime = sum(trimesters[key].sum(axis=1) for key in trimesters.keys() if 'cot' in key)
             mico_entier = P.mico.entier*minimum(divide(trim_regime, nb_trim), 1)
             maj = (P.mico.entier_maj - P.mico.entier)*divide(trim_cot_regime, nb_trim)
             mico = mico_entier + maj*(trim_cot_regime >= P.mico.trim_min)
-            mico = (mico - pension_reg)*(mico > pension_reg)*(pension_reg>0)
-            if P.mico.dispositif == 2:
-                return mico
-            if P.mico.dispositif == 3:
-                plaf = P.mico.plaf*12
-                return (pension_all + mico > plaf)*maximum(plaf - pension_all, 0) + pension_all + mico <= plaf*mico
-                
+            return (mico - pension_reg)*(mico > pension_reg)*(pension_reg>0)
 
 
-    def plafond_pension(self, pension_brute, pension_surcote):
+    def plafond_pension(self, pension_brute, salref, cp, surcote):
         ''' plafonnement à 50% du PSS
         TODO: gérer les plus de 65 ans au 1er janvier 1983'''
         PSS = self.P.common.plaf_ss
         P = reduce(getattr, self.param_name.split('.'), self.P)
+        taux_plein = P.plein.taux
         taux_PSS = P.plafond
-        return minimum(pension_brute - pension_surcote, taux_PSS*PSS) + pension_surcote
+        pension_surcote_RG = taux_plein*salref*cp*surcote
+        return minimum(pension_brute - pension_surcote_RG, taux_PSS*PSS) + pension_surcote_RG
 
