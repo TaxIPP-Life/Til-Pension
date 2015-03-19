@@ -307,10 +307,10 @@
 				</TRANCHE>
 				<TRANCHE code="tranche2">
 					<SEUIL description= "Plancher tranche 3 (à multiplier par le PSS)">
-				  		<VALUE valeur="3" deb="1949-01-01" fin="2100-12-01"/>
+				  		<VALUE valeur="3" deb="1949-01-01" fin="2100-12-31"/>
 				 	</SEUIL>
 			 		<TAUX>
-			 			<VALUE valeur="0.0" deb="1949-10-01" fin="1961-12-31"/>
+			 			<VALUE valeur="0.0" deb="1949-10-01" fin="2100-12-31"/>
 			 		</TAUX>
 			 	</TRANCHE>
 			</BAREME>
@@ -349,7 +349,7 @@
 				  		<VALUE valeur="3" deb="1949-01-01" fin="2100-12-01"/>
 				 	</SEUIL>
 			 		<TAUX>
-			 			<VALUE valeur="0.0" deb="1949-10-01" fin="1961-12-31"/>
+			 			<VALUE valeur="0.0" deb="1949-10-01" fin="2100-12-31"/>
 			 		</TAUX>
 			 	</TRANCHE>
 			</BAREME>
@@ -425,10 +425,10 @@
 				</TRANCHE>
 				<TRANCHE code="tranche2">
 					<SEUIL description= "Plancher tranche 3 (à multiplier par le PSS)">
-				  		<VALUE valeur="3" deb="1949-01-01" fin="2100-12-01"/>
+				  		<VALUE valeur="3" deb="1949-01-01" fin="2100-12-31"/>
 				 	</SEUIL>
 			 		<TAUX>
-			 			<VALUE valeur="0.0" deb="1949-10-01" fin="1961-12-31"/>
+			 			<VALUE valeur="0.0" deb="1949-10-01" fin="2100-12-31"/>
 			 		</TAUX>
 			 	</TRANCHE>
 			</BAREME>
@@ -470,7 +470,7 @@
 				  		<VALUE valeur="3" deb="1949-01-01" fin="2100-12-01"/>
 				 	</SEUIL>
 			 		<TAUX>
-			 			<VALUE valeur="0.0" deb="1949-10-01" fin="1961-12-31"/>
+			 			<VALUE valeur="0.0" deb="1949-10-01" fin="2100-12-31"/>
 			 		</TAUX>
 			 	</TRANCHE>
 			</BAREME>
@@ -535,7 +535,7 @@
 			  		<VALUE valeur="8" deb="1949-01-01" fin="2100-12-01"/>
 			 	</SEUIL>
 		 		<TAUX>
-		 			<VALUE valeur="0.0" deb="1949-10-01" fin="1961-12-31"/>
+		 			<VALUE valeur="0.0" deb="1949-10-01" fin="2100-12-31"/>
 		 		</TAUX>
 		 	</TRANCHE>
 		</BAREME>
@@ -586,10 +586,10 @@
 			</TRANCHE>
 			<TRANCHE code="tranche2">
 				<SEUIL description= "Plancher tranche 3 (à multiplier par le PSS)">
-			  		<VALUE valeur="8" deb="1981-01-01" fin="2100-12-01"/>
+			  		<VALUE valeur="8" deb="1981-01-01" fin="2100-12-31"/>
 			 	</SEUIL>
 		 		<TAUX>
-		 			<VALUE valeur="0.0" deb="1981-10-01" fin="1961-12-31"/>
+		 			<VALUE valeur="0.0" deb="1981-10-01" fin="2100-12-31"/>
 		 		</TAUX>
 		 	</TRANCHE>
 		</BAREME>
@@ -650,10 +650,10 @@
 			</TRANCHE>
 			<TRANCHE code="tranche2">
 				<SEUIL description= "Plancher tranche 3 (à multiplier par le PSS)">
-			  		<VALUE valeur="8" deb="1949-01-01" fin="2100-12-01"/>
+			  		<VALUE valeur="8" deb="1949-01-01" fin="2100-12-31"/>
 			 	</SEUIL>
 		 		<TAUX>
-		 			<VALUE valeur="0.0" deb="1949-10-01" fin="1961-12-31"/>
+		 			<VALUE valeur="0.0" deb="1949-10-01" fin="2100-12-31"/>
 		 		</TAUX>
 		 	</TRANCHE>
 		</BAREME>
@@ -705,10 +705,10 @@
 			</TRANCHE>
 			<TRANCHE code="tranche2">
 				<SEUIL description= "Plancher tranche 3 (à multiplier par le PSS)">
-			  		<VALUE valeur="8" deb="1981-01-01" fin="2100-12-01"/>
+			  		<VALUE valeur="8" deb="1981-01-01" fin="2100-12-31"/>
 			 	</SEUIL>
 		 		<TAUX>
-		 			<VALUE valeur="0.0" deb="1981-01-01" fin="1961-12-31"/>
+		 			<VALUE valeur="0.0" deb="1981-01-01" fin="2100-12-31"/>
 		 		</TAUX>
 		 	</TRANCHE>
 		</BAREME>
