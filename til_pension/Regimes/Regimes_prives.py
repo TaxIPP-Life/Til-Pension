@@ -20,7 +20,7 @@ class RegimeGeneral(RegimePrive):
         self.code_regime = [3,4]
         self.param_name_bis = 'prive.RG'
 
-    def get_trimesters_wages(self, data):
+    def get_trimesters_wages(self, data, unactive = []):
         trimesters = dict()
         wages = dict()
         trim_maj = dict()
@@ -32,15 +32,29 @@ class RegimeGeneral(RegimePrive):
         salref = P_long.salref
         trimesters['cot'], wages['cot'] = validation_trimestre(data, self.code_regime, salref, name='cot')
         trimesters['ass'], _ = trim_ass_by_year(data, self.code_regime, compare_destinie)
-
+        if 'trim_ass' in unactive:
+            print "Comptabilisation des trimestres assimilés désactivée"
+            trimesters['ass'] = 0*trimesters['ass']
+            
         #TODO: imput_sali_avpf should be much more upper in the code
         data_avpf = PensionData(data.workstate, data.sali, data.info_ind)
         data_avpf.sali = imput_sali_avpf(data_avpf, code_avpf, self.P_longit, compare_destinie)
 
         # Allocation vieillesse des parents au foyer : nombre de trimestres attribués
         trimesters['avpf'], wages['avpf'] = validation_trimestre(data_avpf, code_avpf, salref, name='avpf')
+        if 'trim_avpf' in unactive:
+            print "Comptabilisation des trimestres d'avpf désactivée"
+            trimesters['avpf'] = 0*trimesters['avpf']
+        if 'sal_avpf' in unactive:
+            print "Comptabilisation des salaires portés au compte pour l'avpf désactivée"
+            wages['avpf'] = 0*wages['avpf']
+            
+        # Majoration de la durée d'assurance (MDA)
         P_mda = self.P.prive.RG.mda
         trim_maj['DA'] = trim_mda(info_ind, self.name, P_mda)*(trimesters['cot'].sum(axis=1)+ trimesters['ass'].sum(axis=1)>0)
+        if 'trim_mda' in unactive:
+            print "Comptabilisation des trimestres de MDA désactivée"
+            trim_maj['DA'] = 0*trim_maj['DA']
         output = {'trimesters': trimesters, 'wages': wages, 'maj': trim_maj}
         #print_multi_info_numpy([data.workstate, data.sali, trimesters['cot'], wages['cot'], trimesters['avpf'], wages['avpf'], trimesters['ass']], 1882, data.info_ind.index)
         return output, to_other
@@ -54,7 +68,7 @@ class RegimeSocialIndependants(RegimePrive):
         self.code_regime = [7]
         self.param_name_bis = 'indep.rsi'
 
-    def get_trimesters_wages(self, data):
+    def get_trimesters_wages(self, data, unactive=[]):
         trimesters = dict()
         wages = dict()
         trim_maj = dict()
@@ -70,6 +84,9 @@ class RegimeSocialIndependants(RegimePrive):
 
         P_mda = self.P.prive.RG.mda
         trim_maj['DA'] = trim_mda(data.info_ind, self.name, P_mda)*(trimesters['cot'].sum(axis=1)>0)
+        if 'trim_mda' in unactive:
+            print "Comptabilisation des trimestres de MDA désactivée"
+            trim_maj['DA'] = 0*trim_maj['DA']
         output = {'trimesters': trimesters, 'wages': wages, 'maj': trim_maj}
         return output, to_other
       

@@ -6,7 +6,6 @@ from numpy import array, maximum, minimum, divide, zeros, inf
 from til_pension.regime import RegimeBase
 from til_pension.trimesters_functions import nb_trim_surcote, nb_trim_decote, trim_cot_by_year_FP, nb_trim_bonif_5eme, trim_mda
 from til_pension.regime import compare_destinie
-code_chomage = 5
 
 class FonctionPublique(RegimeBase):
 
@@ -19,7 +18,7 @@ class FonctionPublique(RegimeBase):
         self.code_sedentaire = 6
         self.code_actif = 5
 
-    def get_trimesters_wages(self, data):
+    def get_trimesters_wages(self, data, unactive=[]):
         trimesters = dict()
         wages = dict()
         trim_maj = dict()
@@ -36,6 +35,9 @@ class FonctionPublique(RegimeBase):
         trim_maj['DA'] = trim_mda(info_ind, self.name, P_mda)*(trim_cotises>0)
         trim_maj['5eme'] = nb_trim_bonif_5eme(trim_cotises)*(trim_cotises>0)
         to_other['RG'] = {'trimesters': {'cot_FP' : trim_to_RG}, 'wages': {'sal_FP' : sal_to_RG}}
+        if 'trim_mda' in unactive:
+            print "MDA désactivée"
+            trim_maj['DA'] = 0*trim_maj['DA']
         output = {'trimesters': trimesters, 'wages': wages, 'maj': trim_maj}
         return output, to_other
 
@@ -147,11 +149,11 @@ class FonctionPublique(RegimeBase):
         return last_fp*coeff_revalo/(1 + taux_prime)
 
 
-    def plafond_pension(self, pension_brute, salref, cp, surcote):
+    def plafond_pension(self, pension_brute, pension_surcote):
         return pension_brute
 
-    def minimum_pension(self, trim_regime, pension):
-        return 0*pension
+    def minimum_pension(self, trim_wages_reg, trim_wages_all, pension_reg, pension_all):
+        return 0*pension_reg
     
     def cotisations(self, data):
         ''' Calcul des cotisations passées par année'''
