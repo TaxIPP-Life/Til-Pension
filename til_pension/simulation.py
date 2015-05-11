@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+
+
 from til_pension.datetil import DateTil
 from numpy import minimum
 import pdb
@@ -23,7 +25,9 @@ class PensionSimulation(object):
         # adapt longitudinal parameter to data
         duration_sim = data.last_date.year - data.first_date.year
         self.legislation.P_longit = legislation.long_param_builder(duration_sim)
+        assert self.legislation.P_longit is not None
         self.legislation.P_cot = legislation.cot_param_builder(duration_sim)
+        assert self.legislation.P_cot is not None
         self.legislation.P = legislation.param.P
 
         self.trimesters_wages = dict()
@@ -60,14 +64,21 @@ class PensionSimulation(object):
             if regime_name in regimes_names:
                 return regimes[regimes_names.index(regime_name)]
 
-    def set_config(self, time_step='year',):
+    def set_config(self, time_step='year'):
         P = self.legislation.P
         P_longit = self.legislation.P_longit
+        assert P_longit is not None
         P_cot = self.legislation.P_cot
         yearleg = self.legislation.date.year
         # TODO: remove yearleg
-        config = {'dateleg': yearleg, 'P': P, 'P_longit': P_longit,
-                  'time_step': time_step, 'data': self.data}
+        config = dict(
+            dateleg = yearleg,
+            P = P,
+            P_longit = P_longit,
+            P_cot = P_cot,
+            time_step = time_step,
+            data = self.data,
+            )
         """
         Configures the Regime
         """
@@ -87,6 +98,7 @@ class PensionSimulation(object):
         for reg in regimes['bases'] + regimes['complementaires']:
             reg.P = P
             reg.P_longit = P_longit
+            reg.P_cot = P_cot
             reg.dateleg = date
 
     def calculate(self, varname, regime_name='all'):
@@ -110,10 +122,6 @@ class PensionSimulation(object):
                                 " ce n'est pas le cas pour " + varname +
                                 " dans " + regime_name)
             arguments = inspect.getargspec(method)
-            print arguments.args
-            print arguments.varargs
-            print arguments.keywords
-            print arguments.defaults
             # cas particulier quand on veut appeler une fonction d'un autre régime
             if arguments.args == ['self', 'regime']:
                 other_regime_name = arguments.defaults[0]
@@ -147,6 +155,7 @@ class PensionSimulation(object):
                 print(arguments)
                 print str(e)
                 print (dict_var)
+                pdb.set_trace()
 
         return self.calculated[regime_name][varname]
 

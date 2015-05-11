@@ -8,8 +8,9 @@ from til_pension.simulation import PensionSimulation
 from til_pension.pension_legislation import PensionParam, PensionLegislation
 from til_pension.sandbox.compare.load_pensipp import load_pensipp_data
 from math import pow
+import numpy as np
 try:
-    from scipy.optimize import fsolve, newton_krylov
+    from scipy.optimize import fsolve
 except:
     pass
 first_year_sal = 1949
@@ -36,7 +37,7 @@ def TRI(pensions_contrib, val0 = 1.3):
     sol = fsolve(flow, val0, args=(pensions_contrib),
                  maxfev = 400)
     try:
-        rate = [s for s in sol  if s > 1 / 2 and s < 1][0]
+        rate = [s for s in sol if s > 1 / 2 and s < 1][0]
     except:
         rate = -1
     if rate > 1:
@@ -45,7 +46,7 @@ def TRI(pensions_contrib, val0 = 1.3):
 
 
 def compute_TRI(yearmin, yearmax):
-    depart = dict()
+    depart_by_yearsim = dict()
     # Define dates du taux plein
     already_retired = []
     for yearsim in range(yearmin, yearmax):
@@ -56,39 +57,67 @@ def compute_TRI(yearmin, yearmax):
         param = PensionParam(yearsim, data_bounded)
         legislation = PensionLegislation(param)
         simul_til = PensionSimulation(data_bounded, legislation)
-        regimes = ['RG']  # TODO:, 'agirc', 'arrco', 'FP', 'RSI']
+        simul_til.set_config()
+        regimes = ['RG', 'FP', 'RSI']  # 'agirc', 'arrco',
         for regime in regimes:
-            dates_taux_plein = simul_til.calculate("pension", regime_name = regime)
+            dates_taux_plein = simul_til.calculate("date_start_taux_plein", regime_name = regime)
 
-        to_select = (dates_taux_plein == (yearsim - 1) * 100 + 1)
-        # vont partir en retraite à yearsim (=t) car ont satisfaits les conditions de taux plein à yearsim - 1 (=t-1)
-        ident_depart = simul_til.data.info_ind['index'][to_select]
-        ident_depart = [ident for ident in ident_depart if ident not in already_retired]
-        depart[yearsim] = ident_depart
+        dates_taux_plein = [
+            simul_til.calculate("date_start_taux_plein", regime_name = regime) for regime in regimes
+            ]
+
+        dates_taux_plein = reduce(np.minimum, dates_taux_plein)
+
+        # Selection des individus qui partent en retraite à yearsim (=t)
+        # car ils ont satisfaits les conditions de taux plein à yearsim - 1 (=t-1)
+        is_taux_plein = (dates_taux_plein == (yearsim - 1) * 100 + 1)
+        ident_depart = [
+            ident
+            for ident in simul_til.data.info_ind['index'][is_taux_plein]
+            if ident not in already_retired
+            ]
+        depart_by_yearsim[yearsim] = ident_depart
         already_retired += ident_depart
         print "Nb of retired people for ", yearsim, len(ident_depart)
 
     all_dates = [str(year * 100 + 1) for year in range(first_year_sal, yearmax)]
-    regimes = [ 'RG', 'agirc', 'arrco', 'FP', 'RSI']
+    regimes = ['RG', 'agirc', 'arrco', 'FP', 'RSI']
+
     nb_reg = len(regimes)
-    ident_index= [ident for ident in already_retired for i in range(nb_reg)]
-    reg_index = regimes*len(already_retired)
-    #index = pd.MultiIndex.from_arrays([ident_index, reg_index], names=['ident', 'regime'])
-    pensions_contrib = pd.DataFrame(0, index = ident_index, columns = ['ident', 'age', 'naiss', 'n_enf', 'findet', 'sexe', 'year_dep', 'regime', 'pension'] + all_dates )
+    ident_index = [ident for ident in already_retired for i in range(nb_reg)]
+    reg_index = regimes * len(already_retired)
+    # index = pd.MultiIndex.from_arrays([ident_index, reg_index], names=['ident', 'regime'])
+
+    pensions_contrib = pd.DataFrame(
+        0,
+        index = ident_index,
+        columns = ['ident', 'age', 'naiss', 'n_enf', 'findet', 'sexe', 'year_dep', 'regime', 'pension'] + all_dates,
+        )
     pensions_contrib['ident'] = ident_index
     pensions_contrib['regime'] = reg_index
+
     for yearsim in range(yearmin, yearmax):
         print(yearsim)
-        ident_depart = [int(ident) for ident in depart[yearsim]]
+
+        ident_depart = [int(ident) for ident in depart_by_yearsim[yearsim]]
         data_bounded = load_pensipp_data(pensipp_data_path, yearsim, first_year_sal, selection_id = ident_depart)
         print("Data loaded")
+
         param = PensionParam(yearsim, data_bounded)
         legislation = PensionLegislation(param)
+
         simul_til = PensionSimulation(data_bounded, legislation)
-        pensions_year, cotisations_year = simul_til.evaluate(output="pensions and contributions")
-        assert len(pensions_year['FP']) ==  len(cotisations_year['FP']['sal']) == len(depart[yearsim])
-        dates_yearsim =  [str(year*100 + 1) for year in range(first_year_sal, yearsim)]
-        for reg in pensions_year.keys():
+        simul_til.set_config()
+        # pensions_year = simul_til.calculate("pension")
+        # assert len(pensions_year['FP']) == len(cotisations_year['FP']['sal']) == len(depart_by_yearsim[yearsim])
+        dates_yearsim = [str(year * 100 + 1) for year in range(first_year_sal, yearsim)]
+
+        pensions_year = dict()
+        cotisations_year = dict()
+
+        for reg in regimes:
+            pensions_year[reg] = simul_til.calculate("pension", regime_name = reg)
+            cotisations_year[reg] = simul_til.calculate("cotisations", regime_name = reg)
             cond = (pensions_contrib['regime'] == reg) * (pensions_contrib['ident'].isin(ident_depart))
             pensions_contrib.loc[cond, 'pension'] = pensions_year[reg]
             if 'sal' in cotisations_year[reg].keys() and 'pat' in cotisations_year[reg].keys():
@@ -97,23 +126,24 @@ def compute_TRI(yearmin, yearmax):
                 pensions_contrib.loc[cond, dates_yearsim] = cotisations_year[reg]['tot']
         pensions_contrib['year_dep'][pensions_contrib['ident'].isin(ident_depart)] = yearsim
         cond = (pensions_contrib['ident'].isin(ident_depart)) & (pensions_contrib['regime'] == 'RG')
-        pensions_contrib.loc[cond,'age'] = data_bounded.info_ind['agem'][data_bounded.info_ind['index'] == ident_depart] // 12
+        pensions_contrib.loc[cond, 'age'] = \
+            data_bounded.info_ind['agem'][data_bounded.info_ind['index'] == ident_depart] // 12
         for var in ['naiss', 'n_enf', 'findet', 'sexe']:
-                pensions_contrib.loc[cond,var] = data_bounded.info_ind[var][data_bounded.info_ind['index'] == ident_depart]
+                pensions_contrib.loc[cond, var] = \
+                    data_bounded.info_ind[var][data_bounded.info_ind['index'] == ident_depart]
         pensions_contrib.index = range(len(ident_index))
 
     for var in ['age', 'naiss', 'n_enf', 'findet', 'sexe']:
-        pensions_contrib.loc[:,var] = pensions_contrib.loc[:,var].replace(0,nan)
-        pensions_contrib.loc[:,var] = pensions_contrib.groupby("ident")[var].fillna(method ='ffill')
-    pensions_contrib.loc[:,'n_enf'] = pensions_contrib.loc[:,'n_enf'].fillna(0)
-    pensions_contrib.loc[:,'sexe'] = pensions_contrib.loc[:,'sexe'].fillna(0)
+        pensions_contrib.loc[:, var] = pensions_contrib.loc[:, var].replace(0, nan)
+        pensions_contrib.loc[:, var] = pensions_contrib.groupby("ident")[var].fillna(method = 'ffill')
+    pensions_contrib.loc[:, 'n_enf'] = pensions_contrib.loc[:, 'n_enf'].fillna(0)
+    pensions_contrib.loc[:, 'sexe'] = pensions_contrib.loc[:, 'sexe'].fillna(0)
     pensions_contrib = pensions_contrib[~(pensions_contrib['pension'] == 0)]
-    #TODO: Arbitrary for the moment -> add differential life expenctancy
+    # TODO: Arbitrary for the moment -> add differential life expenctancy
     pensions_contrib['death'] = (pensions_contrib['year_dep'] - (pensions_contrib['age'] - 60) + 22).astype(int)
-    for var in ['pension'] + [str(year*100 + 1) for year in range(first_year_sal, yearmax)]:
-        pensions_contrib.loc[:, var] = around(pensions_contrib[var].astype(double),2)
-    pensions_contrib.loc[:,'age'] = pensions_contrib['age'] - 1
-
+    for var in ['pension'] + [str(year * 100 + 1) for year in range(first_year_sal, yearmax)]:
+        pensions_contrib.loc[:, var] = around(pensions_contrib[var].astype(double), 2)
+    pensions_contrib.loc[:, 'age'] = pensions_contrib['age'] - 1
     pensions_contrib['TRI'] = pensions_contrib.apply(TRI, axis=1)
     return pensions_contrib
 
@@ -128,4 +158,4 @@ if __name__ == '__main__':
     print result.groupby(['regime'])['age'].median()
     print result.groupby(['regime', 'naiss'])['age'].mean()
     print result.groupby(['regime', 'age'])['pension'].mean()
-    #result.to_csv('result.csv')
+    # result.to_csv('result.csv')

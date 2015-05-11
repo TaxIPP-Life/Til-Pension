@@ -114,6 +114,9 @@ class Regime(object):
     def cotisations(self, data):
         ''' Calcul des cotisations passées par année'''
         sali = data.sali*data.workstate.isin(self.code_regime).astype(int)
+        print 'coucou'
+        print self.param_name
+        assert self.P_cot is not None, 'self.P_cot should be not None'
         Pcot_regime = reduce(getattr, self.param_name.split('.'), self.P_cot) #getattr(self.P_longit.prive.complementaire,  self.name)
         taux_pat = Pcot_regime.cot_pat
         taux_sal = Pcot_regime.cot_sal
