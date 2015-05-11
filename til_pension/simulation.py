@@ -93,7 +93,7 @@ class PensionSimulation(object):
         ''' renvoie la variable calculée
             va chercher les arguments et les renvois
             Note: il y a une subtilité quand un régime a besoin d'infos qui viennnent
-            d'un autre régime. Il faut alors définir cette variable-focntion
+            d'un autre régime. Il faut alors définir cette variable-fonction
             en lui donnant comme paramètre uniquement (self, regime='')
             avec le nom du régime concerné ou bien 'all' si on veut une
             info tous régimes
@@ -110,6 +110,10 @@ class PensionSimulation(object):
                                 " ce n'est pas le cas pour " + varname +
                                 " dans " + regime_name)
             arguments = inspect.getargspec(method)
+            print arguments.args
+            print arguments.varargs
+            print arguments.keywords
+            print arguments.defaults
             # cas particulier quand on veut appeler une fonction d'un autre régime
             if arguments.args == ['self', 'regime']:
                 other_regime_name = arguments.defaults[0]
@@ -142,7 +146,6 @@ class PensionSimulation(object):
                 print(varname)
                 print(arguments)
                 print str(e)
-                pdb.set_trace()
                 print (dict_var)
 
         return self.calculated[regime_name][varname]

@@ -25,22 +25,24 @@ def flow(x, pensions_contrib):
         dates_contrib = [year * 100 + 1 for year in range(year_naiss + findet, year_dep)]
         nb_contrib = len(dates_contrib)
         nb_pensions = year_death - year_dep + 1
-        flow_contrib =  [- pensions_contrib.loc[str(year * 100 + 1)] for year in range(year_naiss + findet, year_dep)]
-        flow_pensions = [pension]*nb_pensions
+        flow_contrib = [- pensions_contrib.loc[str(year * 100 + 1)] for year in range(year_naiss + findet, year_dep)]
+        flow_pensions = [pension] * nb_pensions
         flows = flow_contrib + flow_pensions
-        actual = array([pow(x,p) for p in range(0,nb_contrib+nb_pensions)])
-        return sum(flows*actual)
+        actual = array([pow(x, p) for p in range(0, nb_contrib + nb_pensions)])
+        return sum(flows * actual)
+
 
 def TRI(pensions_contrib, val0 = 1.3):
-    sol = fsolve(flow,val0, args=(pensions_contrib),
+    sol = fsolve(flow, val0, args=(pensions_contrib),
                  maxfev = 400)
     try:
-        rate = [s for s in sol  if s>1/2 and s<1][0]
+        rate = [s for s in sol  if s > 1 / 2 and s < 1][0]
     except:
         rate = -1
-    if rate> 1:
+    if rate > 1:
         rate = -1
-    return 1/rate - 1
+    return 1 / rate - 1
+
 
 def compute_TRI(yearmin, yearmax):
     depart = dict()
@@ -48,23 +50,25 @@ def compute_TRI(yearmin, yearmax):
     already_retired = []
     for yearsim in range(yearmin, yearmax):
         print "Depart", yearsim
-        data_bounded = load_pensipp_data(pensipp_data_path, yearsim, first_year_sal, selection_naiss = [1948,1949,1950,1951,1952])
+        data_bounded = load_pensipp_data(
+            pensipp_data_path, yearsim, first_year_sal, selection_naiss = [1948, 1949, 1950, 1951, 1952])
         print("Data loaded")
         param = PensionParam(yearsim, data_bounded)
         legislation = PensionLegislation(param)
         simul_til = PensionSimulation(data_bounded, legislation)
-        regimes = [ 'RG']  # TODO:, 'agirc', 'arrco', 'FP', 'RSI']
+        regimes = ['RG']  # TODO:, 'agirc', 'arrco', 'FP', 'RSI']
         for regime in regimes:
-            dates_taux_plein = simul_til.calculate("date_start_taux_plein", regime_name = regime)
+            dates_taux_plein = simul_til.calculate("pension", regime_name = regime)
 
-        to_select = (dates_taux_plein == (yearsim - 1)*100 + 1) # vont partir en retraite à yearsim (=t) car ont satisfaits les conditions de taux plein à yearsim - 1 (=t-1)
+        to_select = (dates_taux_plein == (yearsim - 1) * 100 + 1)
+        # vont partir en retraite à yearsim (=t) car ont satisfaits les conditions de taux plein à yearsim - 1 (=t-1)
         ident_depart = simul_til.data.info_ind['index'][to_select]
         ident_depart = [ident for ident in ident_depart if ident not in already_retired]
         depart[yearsim] = ident_depart
         already_retired += ident_depart
-        print "Nb of retired people for ",yearsim, len(ident_depart)
+        print "Nb of retired people for ", yearsim, len(ident_depart)
 
-    all_dates = [str(year*100 + 1) for year in range(first_year_sal, yearmax)]
+    all_dates = [str(year * 100 + 1) for year in range(first_year_sal, yearmax)]
     regimes = [ 'RG', 'agirc', 'arrco', 'FP', 'RSI']
     nb_reg = len(regimes)
     ident_index= [ident for ident in already_retired for i in range(nb_reg)]
