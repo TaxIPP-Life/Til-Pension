@@ -1,6 +1,6 @@
 # -*- coding:utf-8 -*-
 
-from numpy import minimum
+from numpy import minimum, zeros
 from til_pension.regime import RegimeComplementaires, compare_destinie
 
 
@@ -28,7 +28,28 @@ class AGIRC(RegimeComplementaires):
         workstate = data.workstate
         sali = data.sali
         return sali*(workstate.isin(self.code_regime))
-
+    
+    def cotisations(self, data):
+        ''' Détermine les cotisations payées au cours de la carrière : même fonction que dans régime mais cet en plus'''
+        sali = data.sali*data.workstate.isin(self.code_regime).astype(int)
+        Pcot_regime = reduce(getattr, self.param_name.split('.'), self.P_cot) #getattr(self.P_longit.prive.complementaire,  self.name)
+        taux_pat = Pcot_regime.cot_pat
+        taux_sal = Pcot_regime.cot_sal
+        assert len(taux_pat) == sali.shape[1] == len(taux_sal)
+        cot_sal_by_year = zeros(sali.shape)
+        cot_pat_by_year = zeros(sali.shape)
+        for ix_year in range(sali.shape[1]):
+            cot_sal_by_year[:,ix_year] = taux_sal[ix_year].calc(sali[:,ix_year])
+            cot_pat_by_year[:,ix_year] = taux_pat[ix_year].calc(sali[:,ix_year])
+            
+        cet_pat = Pcot_regime.cet_pat
+        cet_sal = Pcot_regime.cet_sal
+        assert len(cet_pat) == sali.shape[1] == len(cet_sal)
+        for ix_year in range(sali.shape[1]):
+            cot_sal_by_year[:,ix_year] += cet_sal[ix_year]*sali[:,ix_year]
+            cot_pat_by_year[:,ix_year] += cet_pat[ix_year]*sali[:,ix_year]
+        return {'sal': cot_sal_by_year, 'pat':cot_pat_by_year}
+ 
 
 class ARRCO(RegimeComplementaires):
     ''' L'association pour le régime de retraite complémentaire des salariés

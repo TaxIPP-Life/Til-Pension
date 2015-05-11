@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 
 from numpy import maximum, array, nan_to_num, greater, divide, around, zeros, minimum, multiply
+from pandas import DataFrame
 from til_pension.time_array import TimeArray
 
 first_year_sal = 1949
-compare_destinie = True
-
+compare_destinie = False
+sal_nominal = False
 
 class Regime(object):
     """
@@ -25,6 +26,7 @@ class Regime(object):
 
         self.P = None
         self.P_longit = None
+        self.P_cot = None
 
         self.data = None
         self.calculated = dict()
@@ -97,12 +99,40 @@ class Regime(object):
         return P.plein.taux*(1 - decote + surcote)
 
 
-    def bonif_pension(self, data, trim_wage_reg, trim_wage_all, pension_reg,
-                      pension_all):
-        pension = pension_reg + self.minimum_pension(trim_wage_reg, trim_wage_all, pension_reg, pension_all)
-        # Remarque : la majoration de pension s'applique à la pension rapportée au maximum ou au minimum
-        pension += self.majoration_pension(data, pension)
+    def calculate_salref(self):
+#         self.sal_regime = sali*_isin(self.workstate.array,self.code_regime)
+        raise NotImplementedError
+
+    def bonif_pension(self, data, trim_wage_reg, trim_wage_all, pension_reg, pension_surcote_reg, pension_all, unactive=[]):
+        minimum = self.minimum_pension(trim_wage_reg, trim_wage_all, pension_reg - pension_surcote_reg, pension_all)
+        pension = pension_reg + minimum
+        # Remarque : les majorations de pension s'applique à la pension rapportée au maximum ou au minimum
+        majoration = self.majoration_pension(data, pension)
+        pension = pension + majoration
         return pension
+
+    def cotisations(self, data):
+        ''' Calcul des cotisations passées par année'''
+        sali = data.sali*data.workstate.isin(self.code_regime).astype(int)
+        Pcot_regime = reduce(getattr, self.param_name.split('.'), self.P_cot) #getattr(self.P_longit.prive.complementaire,  self.name)
+        taux_pat = Pcot_regime.cot_pat
+        taux_sal = Pcot_regime.cot_sal
+        #print len(taux_pat), sali.shape[1], len(taux_sal), self.name
+        assert len(taux_pat) == sali.shape[1] == len(taux_sal)
+        cot_sal_by_year = zeros(sali.shape)
+        cot_pat_by_year = zeros(sali.shape)
+        for ix_year in range(sali.shape[1]):
+            cot_sal_by_year[:,ix_year] = taux_sal[ix_year].calc(sali[:,ix_year])
+            cot_pat_by_year[:,ix_year] = taux_pat[ix_year].calc(sali[:,ix_year])
+
+        if sal_nominal == False:
+            revalo = self.P_longit.prive.RG.revalo
+            revalo = array(revalo)
+            for i in range(1, len(revalo)) :
+                revalo[:i] *= revalo[i]
+            cot_sal_by_year = multiply(cot_sal_by_year, revalo)
+            cot_pat_by_year = multiply(cot_pat_by_year, revalo)
+        return {'sal': cot_sal_by_year, 'pat':cot_pat_by_year}
 
 
 class RegimeBase(Regime):
@@ -267,7 +297,6 @@ class RegimeComplementaires(Regime):
         val_point = P.val_point
         if compare_destinie:
             val_point = P.val_point_proj
-        if compare_destinie:
             return points_born*val_point
         return maximum(points_born, points_pac)*val_point
 
@@ -283,9 +312,9 @@ class RegimeComplementaires(Regime):
         val_point = P.val_point
         if compare_destinie:
             val_point = P.val_point_proj
-        pension = minimum_points*val_point
+        pension = minimum_points * val_point
         P = reduce(getattr, self.param_name.split('.'), self.P)
         pension = pension + majoration_pension
-        decote = trim_decote*P.taux_decote
-        pension = (1 - decote)*pension
-        return pension*coefficient_age
+        decote = trim_decote * P.taux_decote
+        pension = (1 - decote) * pension
+        return pension * coefficient_age

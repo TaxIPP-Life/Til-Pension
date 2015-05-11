@@ -23,6 +23,7 @@ class PensionSimulation(object):
         # adapt longitudinal parameter to data
         duration_sim = data.last_date.year - data.first_date.year
         self.legislation.P_longit = legislation.long_param_builder(duration_sim)
+        self.legislation.P_cot = legislation.cot_param_builder(duration_sim)
         self.legislation.P = legislation.param.P
 
         self.trimesters_wages = dict()
@@ -62,6 +63,7 @@ class PensionSimulation(object):
     def set_config(self, time_step='year',):
         P = self.legislation.P
         P_longit = self.legislation.P_longit
+        P_cot = self.legislation.P_cot
         yearleg = self.legislation.date.year
         # TODO: remove yearleg
         config = {'dateleg': yearleg, 'P': P, 'P_longit': P_longit,
@@ -148,8 +150,8 @@ class PensionSimulation(object):
     def _eval_for_regimes(self, varname, regimes):
         regimes_names = [reg.name for reg in regimes]
         result = []
-        for reg_name in regimes_names:         
-            result += [self.calculate(varname, regime_name=reg_name)]          
+        for reg_name in regimes_names:
+            result += [self.calculate(varname, regime_name=reg_name)]
         return result
 
     def data(self):

@@ -1,11 +1,12 @@
 # -*- coding:utf-8 -*-
-from numpy import isnan, divide, minimum, multiply
+from numpy import isnan, divide, minimum, multiply, zeros
+
 
 from til_pension.pension_data import PensionData
-
 from til_pension.regime import compare_destinie
 from til_pension.regime_prive import RegimePrive
 from til_pension.trimesters_functions import trimesters_after_event, imput_sali_avpf, trim_mda
+
 
 code_avpf = 8
 code_chomage = 2
@@ -125,3 +126,13 @@ class RegimeSocialIndependants(RegimePrive):
         if sum(trim_maj_mda_RG) > 0:
             return 0*trim_maj_mda_RG
         return trim_maj_mda_ini*(nb_trimesters > 0)
+
+    def cotisations(self, data):
+        ''' Calcul des cotisations passées par année'''
+        sali = data.sali*data.workstate.isin(self.code_regime).astype(int)
+        taux = self.P_cot.indep.cot_arti
+        assert len(taux) == sali.shape[1]
+        cot_by_year = zeros(sali.shape)
+        for ix_year in range(sali.shape[1]):
+            cot_by_year[:,ix_year] = taux[ix_year]*sali[:,ix_year]
+        return {'tot': cot_by_year}
