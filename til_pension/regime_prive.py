@@ -27,6 +27,9 @@ class RegimePrive(RegimeBase):
         return sal
 
     def trim_cot_by_year(self, data, sal_cot):
+        print 'coucou'
+        print self.P_longit
+        assert self.P_longit is not None, 'self.P_longit is None'
         P_long = reduce(getattr, self.param_name.split('.'), self.P_longit)
         salref = P_long.salref
         plafond = 4  # nombre de trimestres dans l'année

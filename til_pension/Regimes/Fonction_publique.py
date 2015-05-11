@@ -3,7 +3,7 @@
 from numpy import array, maximum, minimum, divide, zeros, inf
 
 from til_pension.regime import RegimeBase
-from til_pension.trimesters_functions import trimesters_in_code, nb_trim_surcote,nb_trim_decote, trim_mda
+from til_pension.trimesters_functions import trimesters_in_code, nb_trim_surcote, nb_trim_decote, trim_mda
 from til_pension.regime import compare_destinie
 code_chomage = 5
 
@@ -24,7 +24,7 @@ class FonctionPublique(RegimeBase):
 
     def sal_cot(self, data):
         select = data.workstate.isin(self.code_regime)
-        return data.sali*select
+        return data.sali * select
 
     def FP_to_RG(self, data, trim_cot_by_year, sal_cot):
         ''' Détermine les personnes à rapporter au régime général'''
@@ -193,17 +193,17 @@ class FonctionPublique(RegimeBase):
         val_point_last_fp[last_fp_idx[0]] = \
             array([val_point[date_last] for date_last in last_fp_idx[1]])
         val_point_t = P.val_point
-        coeff_revalo = val_point_t/val_point_last_fp
+        coeff_revalo = val_point_t / val_point_last_fp
         coeff_revalo[coeff_revalo == inf] = 0
         taux_prime = array(data.info_ind['tauxprime'])
-        return last_fp*coeff_revalo/(1 + taux_prime)
+        return last_fp * coeff_revalo / (1 + taux_prime)
 
     def plafond_pension(self, pension_brute):
         return pension_brute
 
     def minimum_pension(self, trim_regime, pension):
         return 0*pension
-    
+
     def cotisations(self, data):
         ''' Calcul des cotisations passées par année'''
         sali = data.sali*data.workstate.isin(self.code_regime).astype(int)

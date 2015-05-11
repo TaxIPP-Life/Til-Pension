@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+
+
 from til_pension.datetil import DateTil
 from numpy import minimum
 import pdb
@@ -23,7 +25,9 @@ class PensionSimulation(object):
         # adapt longitudinal parameter to data
         duration_sim = data.last_date.year - data.first_date.year
         self.legislation.P_longit = legislation.long_param_builder(duration_sim)
+        assert self.legislation.P_longit is not None
         self.legislation.P_cot = legislation.cot_param_builder(duration_sim)
+        assert self.legislation.P_cot is not None
         self.legislation.P = legislation.param.P
 
         self.trimesters_wages = dict()
@@ -60,14 +64,21 @@ class PensionSimulation(object):
             if regime_name in regimes_names:
                 return regimes[regimes_names.index(regime_name)]
 
-    def set_config(self, time_step='year',):
+    def set_config(self, time_step='year'):
         P = self.legislation.P
         P_longit = self.legislation.P_longit
+        assert P_longit is not None
         P_cot = self.legislation.P_cot
         yearleg = self.legislation.date.year
         # TODO: remove yearleg
-        config = {'dateleg': yearleg, 'P': P, 'P_longit': P_longit,
-                  'time_step': time_step, 'data': self.data}
+        config = dict(
+            dateleg = yearleg,
+            P = P,
+            P_longit = P_longit,
+            P_cot = P_cot,
+            time_step = time_step,
+            data = self.data,
+            )
         """
         Configures the Regime
         """
@@ -87,13 +98,14 @@ class PensionSimulation(object):
         for reg in regimes['bases'] + regimes['complementaires']:
             reg.P = P
             reg.P_longit = P_longit
+            reg.P_cot = P_cot
             reg.dateleg = date
 
     def calculate(self, varname, regime_name='all'):
         ''' renvoie la variable calculée
             va chercher les arguments et les renvois
             Note: il y a une subtilité quand un régime a besoin d'infos qui viennnent
-            d'un autre régime. Il faut alors définir cette variable-focntion
+            d'un autre régime. Il faut alors définir cette variable-fonction
             en lui donnant comme paramètre uniquement (self, regime='')
             avec le nom du régime concerné ou bien 'all' si on veut une
             info tous régimes
@@ -142,8 +154,8 @@ class PensionSimulation(object):
                 print(varname)
                 print(arguments)
                 print str(e)
-                pdb.set_trace()
                 print (dict_var)
+                pdb.set_trace()
 
         return self.calculated[regime_name][varname]
 
