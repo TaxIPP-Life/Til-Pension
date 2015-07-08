@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 from numpy import maximum, array, nan_to_num, greater, divide, around, zeros, minimum, multiply
-from pandas import DataFrame
 from til_pension.time_array import TimeArray
 
 first_year_sal = 1949
@@ -113,14 +112,11 @@ class Regime(object):
 
     def cotisations(self, data):
         ''' Calcul des cotisations passées par année'''
-        sali = data.sali*data.workstate.isin(self.code_regime).astype(int)
-        print 'coucou'
-        print self.param_name
+        sali = data.sali * data.workstate.isin(self.code_regime).astype(int)
         assert self.P_cot is not None, 'self.P_cot should be not None'
         Pcot_regime = reduce(getattr, self.param_name.split('.'), self.P_cot) #getattr(self.P_longit.prive.complementaire,  self.name)
         taux_pat = Pcot_regime.cot_pat
         taux_sal = Pcot_regime.cot_sal
-        #print len(taux_pat), sali.shape[1], len(taux_sal), self.name
         assert len(taux_pat) == sali.shape[1] == len(taux_sal)
         cot_sal_by_year = zeros(sali.shape)
         cot_pat_by_year = zeros(sali.shape)

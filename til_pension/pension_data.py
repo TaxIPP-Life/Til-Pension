@@ -54,8 +54,8 @@ class PensionData(object):
         wk_selection = self.workstate.isin([code_regime])
         sal = self.sali.copy()
         work = self.workstate.copy()
-        wk_regime = TimeArray(wk_selection*work, sal.dates, name='workstate_regime')
-        sal_regime = TimeArray(wk_selection*sal, sal.dates, name='sali_regime')
+        wk_regime = TimeArray(wk_selection * work, sal.dates, name='workstate_regime')
+        sal_regime = TimeArray(wk_selection * sal, sal.dates, name='sali_regime')
         return PensionData(wk_regime, sal_regime, self.info_ind)
 
     def translate_frequency(self, output_frequency='month', method=None, inplace=False):

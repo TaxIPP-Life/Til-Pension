@@ -27,13 +27,13 @@ def build_long_values(param_long, first, last, time_scale='year'):
 
     def _convert_date(x):
         date = dt.datetime.strptime(x, "%Y-%m-%d")
-        return 100*date.year + date.month
+        return 100 * date.year + date.month
     # TODO: convert here all param in dates
     param_dates_liam = [_convert_date(x) for x in param_dates]
     param_dates_liam += [210001]
 
     if time_scale == 'year':
-        list_dates = [100*x + 1 for x in range(first, last)]
+        list_dates = [100 * x + 1 for x in range(first, last)]
     else:
         # TODO: create a function...
         raise Exception("Not implemented yet for time_scale not year")
@@ -81,12 +81,13 @@ class PensionParam(object):
         legislation_tree = ElementTree.parse(param_file)
         legislation_xml_json = conv.check(legislationsxml.xml_legislation_to_json)(legislation_tree.getroot(),
                                                                                    state = conv.default_state)
-        #legislation_xml_json, _ = legislationsxml.validate_node_xml_json(legislation_xml_json,
+        # legislation_xml_json, _ = legislationsxml.validate_node_xml_json(legislation_xml_json,
         #                                                                 state = conv.default_state)
         _, legislation_json = legislationsxml.transform_node_xml_json_to_json(legislation_xml_json)
 
         dated_legislation_json = legislations.generate_dated_legislation_json(legislation_json, self.date.datetime)
-        compact_legislation = legislations.compact_dated_node_json(dated_legislation_json, data.info_ind) #here is where data is needed
+        compact_legislation = legislations.compact_dated_node_json(dated_legislation_json, data.info_ind)
+
         self.P = compact_legislation
 
         long_dated_legislation_json = legislations.generate_long_legislation_json(legislation_json, self.date.datetime)
@@ -130,36 +131,36 @@ class PensionParam(object):
         smic = param_long.common.smic
         avts = param_long.common.avts.montant
         if compare_destinie:
-            smic = dict((key, val / (52*35)) for key, val in param_long.common.smic_proj.iteritems())
+            smic = dict((key, val / (52 * 35)) for key, val in param_long.common.smic_proj.iteritems())
         smic_key = sorted(smic.keys())
         avts_key = sorted(avts.keys())
         debut_annee = '-01-01'
 
         salref = dict()
         k = -1
-        year = 1949 # supposer and year < self.date.year
+        year = 1949  # supposer and year < self.date.year
         while year < 1972 and year < self.date.year:
             date = str(year) + debut_annee
-            while avts_key[k+1] <= date:
-                k +=1
-            salref[date] = avts[avts_key[k]]/4
-            if compare_destinie == True:
+            while avts_key[k + 1] <= date:
+                k += 1
+            salref[date] = avts[avts_key[k]] / 4
+            if compare_destinie:
                 salref[date] = 1
             year += 1
 
         k = -1
         while year < 2014 and year < self.date.year:
             date = str(year) + debut_annee
-            while smic_key[k+1] <= date:
+            while smic_key[k + 1] <= date:
                 k += 1
-            salref[date] = 200*smic[smic_key[k]]
+            salref[date] = 200 * smic[smic_key[k]]
             year += 1
 
         while year < 2014 and year < self.date.year:
             date = str(year) + debut_annee
-            while smic_key[k+1] <= date:
+            while smic_key[k + 1] <= date:
                 k += 1
-            salref[date] = 150*smic[smic_key[k]]
+            salref[date] = 150 * smic[smic_key[k]]
             year += 1
 
         self.P_longit.prive.RG.salref = salref
@@ -167,7 +168,8 @@ class PensionParam(object):
 
 class PensionLegislation(object):
     '''
-    Class à envoyer à Simulation de Til-pension qui contient toutes les informations sur la législations. Elle tient compte de:
+    Class à envoyer à Simulation de Til-pension qui contient toutes les informations sur la législations.
+    Elle tient compte de:
     - la date de législation demandée (sélection adéquate des paramètres)
     - les infos individuelles contenues dans data.info_ind (pour les paramètres par génération)
     - la structure des tables sali/workstate (pour ajuster la longueur des paramètres long)
@@ -181,10 +183,8 @@ class PensionLegislation(object):
         #     self.param = PensionParam.builder(dateleg, data.info_ind, duration, method)
         #  where method give how to shift legislation from on year to an other, constant_year, constant_sequence, etc?
         self.param = param
-        self.regimes = dict(
-                            bases = [RegimeGeneral(), FonctionPublique(), RegimeSocialIndependants()],
-                            complementaires = [ARRCO(), AGIRC()],
-                            )
+        self.regimes = dict(bases = [RegimeGeneral(), FonctionPublique(), RegimeSocialIndependants()],
+                            complementaires = [ARRCO(), AGIRC()])
         self.date = param.date
 
     def long_param_builder(self, duration_sim):
@@ -194,18 +194,19 @@ class PensionLegislation(object):
         P_longit = self.param.P_longit
         first_year_sim = yearleg - 1 - duration_sim
         last_year_sim = yearleg
-        # TODO: trouver une méthode plus systématique qui test le 'type' du noeud et construit le long parameter qui va bien
-        for param_name in ['common.plaf_ss', 'prive.RG.revalo','common.smic_proj','common.avpf',
-                            'prive.RG.surcote.dispositif1.dates1','prive.RG.surcote.dispositif1.dates2',
-                            'prive.RG.surcote.dispositif2.dates', 'public.fp.surcote.dates',
-                            'prive.RG.salref', 'public.fp.val_point',
-                            'prive.complementaire.agirc.maj_enf.born.dispositif0.dates', 'prive.complementaire.agirc.maj_enf.born.dispositif1.dates',
-                            'prive.complementaire.arrco.maj_enf.born.dispositif0.dates', 'prive.complementaire.arrco.maj_enf.born.dispositif1.dates']:
+        # TODO: trouver une méthode plus systématique qui test le 'type' du noeud
+        #  et construit le long parameter qui convient
+        for param_name in ['common.plaf_ss', 'prive.RG.revalo', 'common.smic_proj', 'common.avpf',
+                           'prive.RG.surcote.dispositif1.dates1', 'prive.RG.surcote.dispositif1.dates2',
+                            'prive.RG.surcote.dispositif2.dates', 'public.fp.surcote.dates', 'prive.RG.salref',
+                            'public.fp.val_point', 'prive.complementaire.agirc.maj_enf.born.dispositif0.dates',
+                            'prive.complementaire.agirc.maj_enf.born.dispositif1.dates',
+                            'prive.complementaire.arrco.maj_enf.born.dispositif0.dates',
+                            'prive.complementaire.arrco.maj_enf.born.dispositif1.dates']:
             param_name = param_name.split('.')
             param = reduce(getattr, param_name, P_longit)
             param = build_long_values(param_long=param, first=first_year_sim, last=last_year_sim)
             setattr(eval('P_longit.' + '.'.join(param_name[:-1])), param_name[-1], param)
-
 
         for regime in self.regimes['complementaires']:
             regime = regime.name
@@ -216,7 +217,7 @@ class PensionLegislation(object):
             setattr(eval('P_longit.prive.complementaire.' + regime), 'sal_ref', salref_long)
             taux_cot_long = P.taux_cot_moy
             taux_cot_long = build_long_values(taux_cot_long,
-                                               first=first_year_sim, last=last_year_sim)
+                                              first=first_year_sim, last=last_year_sim)
             taux_cot_long = scales_long_baremes(baremes=taux_cot_long, scales=P_longit.common.plaf_ss)
             setattr(eval('P_longit.prive.complementaire.' + regime), 'taux_cot_moy', taux_cot_long)
 
@@ -230,9 +231,12 @@ class PensionLegislation(object):
         first_year_sim = yearleg - 1 - duration_sim
         last_year_sim = yearleg
 
-        param_codes = ['common.plaf_ss', 'indep.cot_indus','prive.complementaire.agirc.cet_sal', 'prive.complementaire.agirc.cet_pat', 'indep.cot_arti', 'public.fp.cot_pat', 'public.fp.cot_sal', 'public.rafp.cot_pat', 'public.rafp.cot_sal']
-        param_baremes = ['prive.RG.cot_sal', 'prive.RG.cot_pat', 'prive.complementaire.arrco.cot_sal', 'prive.complementaire.arrco.cot_pat',
-                         'prive.complementaire.agirc.cot_sal', 'prive.complementaire.agirc.cot_pat']
+        param_codes = ['common.plaf_ss', 'indep.cot_indus', 'prive.complementaire.agirc.cet_sal',
+                       'prive.complementaire.agirc.cet_pat', 'indep.cot_arti', 'public.fp.cot_pat',
+                       'public.fp.cot_sal', 'public.rafp.cot_pat', 'public.rafp.cot_sal']
+        param_baremes = ['prive.RG.cot_sal', 'prive.RG.cot_pat', 'prive.complementaire.arrco.cot_sal',
+                         'prive.complementaire.arrco.cot_pat', 'prive.complementaire.agirc.cot_sal',
+                         'prive.complementaire.agirc.cot_pat']
 
         for param_name in param_codes:
             param_name = param_name.split('.')
@@ -248,41 +252,3 @@ class PensionLegislation(object):
             setattr(eval('P_cot.' + '.'.join(param_name[:-1])), param_name[-1], param)
 
         return P_cot
-
-if __name__ == '__main__':
-    from pension_data import PensionData
-    import datetime
-    from pandas import DataFrame
-
-# Alexis
-#     data = DataFrame()
-#     info_ind = array([ (186, 2.0, 1.0, datetime.date(1941, 1, 1), 756.0, 0.0, 2.0),
-#        (376, 1.0, 1.0, datetime.date(1941, 1, 1), 756.0, 0.0, 1.0),
-#        (833, 3.0, 0.0, datetime.date(1941, 1, 1), 756.0, 0.0, 3.0),
-#        (834, 3.0, 1.0, datetime.date(1941, 1, 1), 756.0, 0.0, 3.0),
-#        (956, 0.0, 0.0, datetime.date(1941, 1, 1), 756.0, 0.0, 0.0)],
-#       dtype=[('index', '<i8'), ('n_enf', '<f8'), ('sexe', '<f8'), ('naiss', 'O'), ('agem', '<f8'), ('nb_pac', '<f8'), ('nb_born', '<f8'), ('date_liquidation', 'O')])
-#     sali = DataFrame(0, index=info_ind['index'], columns=[201301,201401])
-#     data = PensionData.from_arrays(sali, sali, info_ind)
-#
-#     param = PensionParam(2015, data)
-#     print(param.param.prive.RG.prorat)
-#     print(param.param.prive.RG.prorat)
-#
-#     legislation = PensionLegislation(param)
-#     legislation.salref_RG_builder(1000)
-#
-# Louise
-#     info_ind = DataFrame(array([ (186L, 2.0, 1.0, datetime.date(1941, 1, 1), 756.0, 0.0, 2.0),
-#        (376L, 1.0, 1.0, datetime.date(1941, 1, 1), 756.0, 0.0, 1.0),
-#        (833L, 3.0, 0.0, datetime.date(1941, 1, 1), 756.0, 0.0, 3.0),
-#        (834L, 3.0, 1.0, datetime.date(1941, 1, 1), 756.0, 0.0, 3.0),
-#        (956L, 0.0, 0.0, datetime.date(1941, 1, 1), 756.0, 0.0, 0.0)]),
-#        columns = ['ind', 'n_enf', 'sexe', 'naiss', 'agem', 'nb_pac', 'nb_born'])
-#
-#  #     colu=[('index', '<i8'), ('n_enf', '<f8'), ('sexe', '<f8'), ('naiss', 'O'), ('agem', '<f8'), ('nb_pac', '<f8'), ('nb_born', '<f8')])
-#     sali = DataFrame(0, index=info_ind.index, columns=[201301,201401])
-#     data = PensionData.from_arrays(sali, sali, info_ind)
-#
-#     param = PensionParam(2015, data)
-#     print param.P_cot

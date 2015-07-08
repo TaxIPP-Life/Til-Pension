@@ -22,13 +22,11 @@ class RegimePrive(RegimeBase):
 
     def sal_cot(self, data):
         select = data.workstate.isin(self.code_regime)
-        sal = data.sali*select
+        sal = data.sali * select
         sal[isnan(sal)] = 0
         return sal
 
     def trim_cot_by_year(self, data, sal_cot):
-        print 'coucou'
-        print self.P_longit
         assert self.P_longit is not None, 'self.P_longit is None'
         P_long = reduce(getattr, self.param_name.split('.'), self.P_longit)
         salref = P_long.salref
@@ -104,13 +102,13 @@ class RegimePrive(RegimeBase):
             P = reduce(getattr, self.param_name.split('.'), self.P)
 
             if P.prorat.dispositif == 1:
-                correction = (P.prorat.n_trim - trim_regime)/2
+                correction = (P.prorat.n_trim - trim_regime) / 2
                 return trim_regime + correction
             elif P.prorat.dispositif == 2:
                 age_taux_plein = P.decote.age_null
-                trim_majo = divide(agem - age_taux_plein, 3)*(agem > age_taux_plein)
+                trim_majo = divide(agem - age_taux_plein, 3) * (agem > age_taux_plein)
                 elig_majo = (trim_regime < P.prorat.n_trim)
-                correction = trim_regime*P.tx_maj*trim_majo*elig_majo
+                correction = trim_regime * P.tx_maj * trim_majo * elig_majo
                 return trim_regime + correction
             else:
                 return trim_regime
@@ -130,7 +128,7 @@ class RegimePrive(RegimeBase):
         # dispositif de type 0
         n_trim = array(P.plein.n_trim, dtype=float)
         trim_tot = trimesters_tot.sum(axis=1)
-        surcote = P.surcote.dispositif0.taux*(trim_tot - n_trim)*(trim_tot > n_trim)
+        surcote = P.surcote.dispositif0.taux * (trim_tot - n_trim) * (trim_tot > n_trim)
         # Note surcote = 0 après 1983
         # dispositif de type 1
         if P.surcote.dispositif1.taux > 0:
@@ -149,7 +147,7 @@ class RegimePrive(RegimeBase):
             basic_trim = nb_trim_surcote(trimesters, selected_dates,
                                          date_start_surcote)
             maj_age_trim = nb_trim_surcote(trimesters, selected_dates,
-                                           12*P2.age_majoration)
+                                           12 * P2.age_majoration)
 #             date_start_surcote_65 = self._date_start_surcote(trimesters_tot,
 #                                           trim_maj, age, age_start_surcote)
             # TODO: why it doesn't equal date_start_surcote ?
@@ -157,9 +155,9 @@ class RegimePrive(RegimeBase):
             trim_with_majo = (basic_trim - P2.trim_majoration) * \
                              ((basic_trim - P2.trim_majoration) >= 0)
             basic_trim = basic_trim - trim_with_majo
-            surcote += P2.taux0*basic_trim + \
-                P2.taux_maj_trim*trim_with_majo + \
-                P2.taux_maj_age*maj_age_trim
+            surcote += P2.taux0 * basic_trim + \
+                P2.taux_maj_trim * trim_with_majo + \
+                P2.taux_maj_age * maj_age_trim
         return surcote
 
     def minimum_pension(self, trimesters_tot, nb_trimesters, trim_maj, pension_reg, pension_all):
@@ -177,21 +175,21 @@ class RegimePrive(RegimeBase):
         if P.mico.dispositif == 0:
             # Avant le 1er janvier 1983, comparé à l'AVTS
             min_pension = self.P.common.avts
-            return maximum(min_pension - pension_reg, 0)*coeff
+            return maximum(min_pension - pension_reg, 0) * coeff
         elif P.mico.dispositif == 1:
             # TODO: Voir comment gérer la limite de cumul relativement
             # complexe (Doc n°5 du COR)
             mico = P.mico.entier
-            return maximum(mico - pension_reg, 0)*coeff
+            return maximum(mico - pension_reg, 0) * coeff
         elif P.mico.dispositif == 2:
             # A partir du 1er janvier 2004 les périodes cotisées interviennent
             # (+ dispositif transitoire de 2004)
             nb_trim = P.prorat.n_trim
             trim_regime = nb_trimesters  # + sum(trim_maj)
-            mico_entier = P.mico.entier*minimum(divide(trim_regime, nb_trim), 1)
-            maj = (P.mico.entier_maj - P.mico.entier)*divide(trimesters_tot, nb_trim)
-            mico = mico_entier + maj*(trimesters_tot >= P.mico.trim_min)
-            return (mico - pension_reg)*(mico > pension_reg)*(pension_reg > 0)
+            mico_entier = P.mico.entier * minimum(divide(trim_regime, nb_trim), 1)
+            maj = (P.mico.entier_maj - P.mico.entier) * divide(trimesters_tot, nb_trim)
+            mico = mico_entier + maj * (trimesters_tot >= P.mico.trim_min)
+            return (mico - pension_reg) * (mico > pension_reg) * (pension_reg > 0)
 
     def plafond_pension(self, pension_brute, salref, coeff_proratisation, surcote):
         ''' plafonnement à 50% du PSS
@@ -200,6 +198,6 @@ class RegimePrive(RegimeBase):
         P = reduce(getattr, self.param_name.split('.'), self.P)
         taux_plein = P.plein.taux
         taux_PSS = P.plafond
-        pension_surcote_RG = taux_plein*salref*coeff_proratisation*surcote
-        return minimum(pension_brute - pension_surcote_RG, taux_PSS*PSS) + \
+        pension_surcote_RG = taux_plein * salref * coeff_proratisation * surcote
+        return minimum(pension_brute - pension_surcote_RG, taux_PSS * PSS) + \
             pension_surcote_RG

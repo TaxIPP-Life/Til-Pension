@@ -14,6 +14,7 @@ from numpy import ndarray
 
 from til_pension.time_array import TimeArray
 
+
 def _to_print(key, val, selection_id, selection_ix, cache, intermediate=False):
     add_print = 'qui'
     if key in cache:
@@ -27,17 +28,17 @@ def _to_print(key, val, selection_id, selection_ix, cache, intermediate=False):
         elif isinstance(val, DataFrame):
             if selection_ix is None:
                 selection_ix = range(len(val))
-            print("    - La table pandas {} {} vaut: \n{}".format(key, add_print, val.iloc[selection_ix,:].to_string()))
+            print("   - La table pandas {} {} vaut: \n{}".format(key, add_print, val.iloc[selection_ix, :].to_string()))
             cache.append(key)
         elif isinstance(val, TimeArray):
-            val_to_print =  DataFrame(val.array[selection_ix,:], columns=val.dates, index=selection_id)
-            print("    - Le TimeArray {} {} vaut: \n{}".format(key, add_print, val_to_print.to_string()))
+            val_to_print = DataFrame(val.array[selection_ix, :], columns=val.dates, index=selection_id)
+            print("   - Le TimeArray {} {} vaut: \n{}".format(key, add_print, val_to_print.to_string()))
             cache.append(key)
         elif isinstance(val, ndarray):
-            #It has to be a vetor, numpy matrix should be timearrays
+            # It has to be a vetor, numpy matrix should be timearrays
             try:
                 val_to_print = DataFrame(val[selection_ix], index=selection_id).to_string()
-                print("    - Le vecteur {} {} vaut: \n {}".format(key, add_print, val_to_print)) #only for parameter ?
+                print("    - Le vecteur {} {} vaut: \n {}".format(key, add_print, val_to_print))
             except:
                 pass
         elif isinstance(val, Series):
@@ -48,7 +49,6 @@ def _to_print(key, val, selection_id, selection_ix, cache, intermediate=False):
         else:
             if key != 'self':
                 print("    - L'objet {}".format(key))
-            #cache.append(key) : probleme
         return cache
 
 
@@ -61,8 +61,8 @@ class AddPrint(object):
         - selection est la liste de lignes à afficher
         '''
         self._locals = {}
-        self.selected_index = selected_index #index format numpy
-        self.selected_indent = selected_ident #identifiants sélectionnés
+        self.selected_index = selected_index  # index format numpy
+        self.selected_indent = selected_ident  # identifiants sélectionnés
         self.cache = []
 
     def __call__(self, func):
@@ -70,7 +70,7 @@ class AddPrint(object):
 
         def call_func(*args):
             def tracer(frame, event, arg):
-                if event=='return':
+                if event == 'return':
                     self._locals = frame.f_locals.copy()
 
             sys.setprofile(tracer)
@@ -81,7 +81,8 @@ class AddPrint(object):
                 # disable tracer and replace with old one
                 sys.setprofile(None)
             for key, val in self._locals.iteritems():
-                self.cache = _to_print(key, val, self.selected_indent, self.selected_index, self.cache, intermediate=True)
+                self.cache = _to_print(key, val, self.selected_indent, self.selected_index, self.cache,
+                                       intermediate=True)
             return res
 
         def wrapper(*args, **kwargs):
@@ -95,6 +96,6 @@ class AddPrint(object):
                 if hasattr(arg, '__name__'):
                     arg_name = arg.__name__
                     args_names.append(arg_name)
-                self.cache = _to_print(arg_name, arg,self.selected_indent, self.selected_index, self.cache)
-            return call_func(*args,**kwargs)
+                self.cache = _to_print(arg_name, arg, self.selected_indent, self.selected_index, self.cache)
+            return call_func(*args, **kwargs)
         return wrapper
