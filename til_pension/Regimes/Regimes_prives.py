@@ -23,7 +23,7 @@ class RegimeGeneral(RegimePrive):
 
     def trim_ass_by_year(self, data):
         if compare_destinie:
-            return (data.workstate.isin([code_chomage, code_preretraite]))*4
+            return (data.workstate.isin([code_chomage, code_preretraite])) * 4
         return trimesters_after_event(data, self.code_regime, code_chomage)
 
     def data_avpf(self, data):
@@ -38,7 +38,7 @@ class RegimeGeneral(RegimePrive):
 
     def sal_avpf(self, data_avpf):
         select = data_avpf.workstate.isin(code_avpf)
-        sal_avpf = data_avpf.sali*select
+        sal_avpf = data_avpf.sali * select
         sal_avpf[isnan(sal_avpf)] = 0
         return sal_avpf
 
@@ -72,7 +72,7 @@ class RegimeGeneral(RegimePrive):
         P_mda = self.P.prive.RG.mda
         info_ind = data.info_ind
         trims = trim_cot_by_year.sum(axis=1) + trim_ass_by_year.sum(axis=1)
-        return trim_mda(info_ind, self.name, P_mda)*(trims > 0)
+        return trim_mda(info_ind, self.name, P_mda) * (trims > 0)
 
     def trim_maj_mda_RG(self, trim_maj_mda):
         return trim_maj_mda
@@ -83,7 +83,7 @@ class RegimeGeneral(RegimePrive):
         Régle d'attribution : a cotisé au régime + si polypensionnés
         -> ordre d'attribution : RG, RSI, FP
         Rq : Pas beau mais temporaire, pour comparaison Destinie'''
-        return trim_maj_mda_ini*(nb_trimesters > 0)
+        return trim_maj_mda_ini * (nb_trimesters > 0)
 
 
 class RegimeSocialIndependants(RegimePrive):
@@ -109,7 +109,7 @@ class RegimeSocialIndependants(RegimePrive):
         P_mda = self.P.prive.RG.mda
         info_ind = data.info_ind
         trims = trim_cot_by_year.sum(axis=1)
-        return trim_mda(info_ind, self.name, P_mda)*(trims > 0)
+        return trim_mda(info_ind, self.name, P_mda) * (trims > 0)
 
     def trim_maj_mda_RSI(self, trim_maj_mda):  #
         return trim_maj_mda
@@ -124,15 +124,15 @@ class RegimeSocialIndependants(RegimePrive):
         -> ordre d'attribution : RG, RSI, FP
         Rq : Pas beau mais temporaire, pour comparaison Destinie'''
         if sum(trim_maj_mda_RG) > 0:
-            return 0*trim_maj_mda_RG
-        return trim_maj_mda_ini*(nb_trimesters > 0)
+            return 0 * trim_maj_mda_RG
+        return trim_maj_mda_ini * (nb_trimesters > 0)
 
     def cotisations(self, data):
         ''' Calcul des cotisations passées par année'''
-        sali = data.sali*data.workstate.isin(self.code_regime).astype(int)
+        sali = data.sali * data.workstate.isin(self.code_regime).astype(int)
         taux = self.P_cot.indep.cot_arti
         assert len(taux) == sali.shape[1]
         cot_by_year = zeros(sali.shape)
         for ix_year in range(sali.shape[1]):
-            cot_by_year[:,ix_year] = taux[ix_year]*sali[:,ix_year]
+            cot_by_year[:, ix_year] = taux[ix_year] * sali[:, ix_year]
         return {'tot': cot_by_year}

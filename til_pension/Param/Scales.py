@@ -42,7 +42,8 @@ class Bareme(object):
         self._tranches = []
         self._nb = 0
         self._tranchesM = []
-        # if _linear_taux_moy is 'False' (default), the output is computed with a constant marginal tax rate in each bracket
+        # if _linear_taux_moy is 'False' (default), the output is computed with a constant
+        # marginal tax rate in each bracket
         # set _linear_taux_moy to 'True' to compute the output with a linear interpolation on average tax rate
         self._linear_taux_moy = False
         self._option = option
@@ -89,7 +90,6 @@ class Bareme(object):
     def setTauxM(self, i, value):
         self._tranchesM[i][1] = value
 
-
     def multTaux(self, factor, inplace = True, new_name = None):
         if inplace:
             for i in range(self._nb):
@@ -114,24 +114,26 @@ class Bareme(object):
 
     def addBareme(self, bareme):
         if bareme.nb > 0:  # Pour ne pas avoir de problèmes avec les barèmes vides
-            for seuilInf, seuilSup, taux  in zip(bareme.seuils[:-1], bareme.seuils[1:] , bareme.taux):
+            for seuilInf, seuilSup, taux in zip(bareme.seuils[:-1], bareme.seuils[1:], bareme.taux):
                 self.combineTranche(taux, seuilInf, seuilSup)
             self.combineTranche(bareme.taux[-1], bareme.seuils[-1])  # Pour traiter le dernier seuil
 
     def combineTranche(self, taux, seuilInf = 0, seuilSup = False):
         # Insertion de seuilInf et SeuilSup sans modfifer les taux
-        if not seuilInf in self.seuils:
+        if seuilInf not in self.seuils:
             index = bisect_right(self.seuils, seuilInf) - 1
             self.addTranche(seuilInf, self.taux[index])
 
-        if seuilSup and not seuilSup in self.seuils:
+        if seuilSup and seuilSup not in self.seuils:
                 index = bisect_right(self.seuils, seuilSup) - 1
                 self.addTranche(seuilSup, self.taux[index])
 
         # On utilise addTranche pour ajouter les taux où il le faut
         i = self.seuils.index(seuilInf)
-        if seuilSup: j = self.seuils.index(seuilSup) - 1
-        else: j = self._nb - 1
+        if seuilSup:
+            j = self.seuils.index(seuilSup) - 1
+        else:
+            j = self._nb - 1
         while (i <= j):
             self.addTranche(self.seuils[i], taux)
             i += 1
@@ -200,7 +202,8 @@ class Bareme(object):
         inverse = Bareme(self._name + "'")  # En fait 1/(1-taux_global)
         seuilImp, taux = 0, 0
         for seuil, taux in self:
-            if seuil == 0: theta, tauxp = 0, 0
+            if seuil == 0:
+                theta, tauxp = 0, 0
             # On calcul le seuil de revenu imposable de la tranche considérée
             seuilImp = (1 - tauxp) * seuil + theta
             inverse.addTranche(seuilImp, 1 / (1 - taux))
@@ -251,7 +254,9 @@ class Bareme(object):
                 A = np.dot(a, self.t_x().T)
                 B = np.dot(a, np.array(self.seuils[1:]))
                 C = np.dot(a, np.array(self.tauxM[:-1]))
-                i = assiette * (A * (assiette - B) + C) + max_(assiette - self.seuils[-1], 0) * self.tauxM[-1] + (assiette >= self.seuils[-1]) * self.seuils[-1] * self.tauxM[-2]
+                i = (assiette * (A * (assiette - B) + C) +
+                    max_(assiette - self.seuils[-1], 0) * self.tauxM[-1] +
+                    (assiette >= self.seuils[-1]) * self.seuils[-1] * self.tauxM[-2])
             if getT:
                 t = np.squeeze(max_(np.dot((a > 0), np.ones((k, 1))) - 1, 0))
                 return i, t
@@ -297,7 +302,7 @@ class BaremeDict(dict):
 
         tabLevel += 1
         for i in range(tabLevel):
-             output += "\t"
+            output += "\t"
 
         output += "|------" + self._name + "\n"
 
@@ -362,7 +367,8 @@ class Generation(object):
         self._tranches = []
         self._nb = 0
         self._tranchesM = []
-        # if _linear_taux_moy is 'False' (default), the output is computed with a constant marginal tax rate in each bracket
+        # if _linear_taux_moy is 'False' (default), the output is computed with a constant marginal tax rate
+        # in each bracket
         # set _linear_taux_moy to 'True' to compute the output with a linear interpolation on average tax rate
         self._option = option
         self.unit = unit
@@ -413,7 +419,6 @@ class Generation(object):
     def setTauxM(self, i, value):
         self._tranchesM[i][1] = value
 
-
     def multValeur(self, factor, inplace = True, new_name = None):
         if inplace:
             for i in range(self._nb):
@@ -431,22 +436,24 @@ class Generation(object):
         if generation.nb > 0:  # Pour ne pas avoir de problèmes avec des échelles générationnelles vides
             for seuilInf, seuilSup, valeur in zip(generation.seuils[:-1], generation.seuils[1:], generation.valeur):
                 self.combineTranche(valeur, seuilInf, seuilSup)
-            self.combineTranche(generation.valeurs[-1],generation.seuils[-1])  # Pour traiter le dernier seuil
+            self.combineTranche(generation.valeurs[-1], generation.seuils[-1])  # Pour traiter le dernier seuil
 
     def combineTranche(self, valeur, seuilInf = 0, seuilSup = False):
         # Insertion de seuilInf et SeuilSup sans modfifer les taux
-        if not seuilInf in self.seuils:
+        if seuilInf not in self.seuils:
             index = bisect_right(self.seuils, seuilInf) - 1
             self.addTranche(seuilInf, self.valeur[index])
 
-        if seuilSup and not seuilSup in self.seuils:
+        if seuilSup and seuilSup not in self.seuils:
                 index = bisect_right(self.seuils, seuilSup) - 1
                 self.addTranche(seuilSup, self.valeur[index])
 
         # On utilise addTranche pour ajouter les taux où il le faut
         i = self.seuils.index(seuilInf)
-        if seuilSup: j = self.seuils.index(seuilSup) - 1
-        else: j = self._nb - 1
+        if seuilSup:
+            j = self.seuils.index(seuilSup) - 1
+        else:
+            j = self._nb - 1
         while (i <= j):
             self.addTranche(self.seuils[i], valeur)
             i += 1
@@ -542,10 +549,11 @@ class Generation(object):
                 A = np.dot(a, self.t_x().T)
                 B = np.dot(a, np.array(self.seuils[1:]))
                 C = np.dot(a, np.array(self.tauxM[:-1]))
-                i = assiette * (A * (assiette - B) + C) + max_(assiette - self.seuils[-1], 0) * self.tauxM[-1] + (assiette >= self.seuils[-1]) * self.seuils[-1] * self.tauxM[-2]
+                i = (assiette * (A * (assiette - B) + C) +
+                    max_(assiette - self.seuils[-1], 0) * self.tauxM[-1] +
+                    (assiette >= self.seuils[-1]) * self.seuils[-1] * self.tauxM[-2])
             if getT:
                 t = np.squeeze(max_(np.dot((a > 0), np.ones((k, 1))) - 1, 0))
                 return i, t
             else:
                 return i
-

@@ -7,6 +7,7 @@ first_year_sal = 1949
 compare_destinie = False
 sal_nominal = False
 
+
 class Regime(object):
     """
     A Simulation class tailored to compute pensions (deal with survey data )
@@ -48,7 +49,7 @@ class Regime(object):
         P = reduce(getattr, self.param_name.split('.'), self.P)
         if P.surcote.exist == 0:
             # Si pas de dispositif de surcote
-            return [2100*100 + 1]*len(trim_maj_tot)
+            return [2100 * 100 + 1] * len(trim_maj_tot)
         else:
             # 1. Construction de la matrice des booléens indiquant si l'année
             # est surcotée selon critère trimestres
@@ -60,14 +61,14 @@ class Regime(object):
 
             # 2. Construction de la matrice des booléens indiquant si l'année
             # est surcotée selon critère âge
-            age_by_year = array([array(agem) - 12*i for i in reversed(range(nb_years))])
+            age_by_year = array([array(agem) - 12 * i for i in reversed(range(nb_years))])
             years_surcote_age = greater(age_by_year, array(age_min_retirement)).T
 
             # 3. Décompte du nombre d'années répondant aux deux critères
-            years_surcote = years_surcote_trim*years_surcote_age
+            years_surcote = years_surcote_trim * years_surcote_age
             nb_years_surcote = years_surcote.sum(axis=1)
-            start_surcote = [datesim - nb_year*100
-                             if nb_year > 0 else 2100*100 + 1
+            start_surcote = [datesim - nb_year * 100
+                             if nb_year > 0 else 2100 * 100 + 1
                              for nb_year in nb_years_surcote]
             return start_surcote
 
@@ -81,11 +82,11 @@ class Regime(object):
         datesim = self.dateleg.liam
         # TODO: find the origin of that non int array
         age_annulation_decote = age_annulation_decote.astype(int)
-        datesim_in_month = 12*(datesim // 100) + datesim % 100
+        datesim_in_month = 12 * (datesim // 100) + datesim % 100
         start_taux_plein_in_month = agem - age_annulation_decote
         datenaiss_in_month = datesim_in_month - start_taux_plein_in_month
-        start_taux_plein = 100*(datenaiss_in_month // 12) + datenaiss_in_month % 12 + 1
-        start_taux_plein[datenaiss_in_month < 0] = 2100*100 + 1  # =inf
+        start_taux_plein = 100 * (datenaiss_in_month // 12) + datenaiss_in_month % 12 + 1
+        start_taux_plein[datenaiss_in_month < 0] = 2100 * 100 + 1  # =inf
         return minimum(start_taux_plein, date_start_surcote)
 
     def taux(self, decote, surcote):
@@ -95,15 +96,16 @@ class Regime(object):
             _date_start_surcote is a general method helping surcote
             '''
         P = reduce(getattr, self.param_name.split('.'), self.P)
-        return P.plein.taux*(1 - decote + surcote)
-
+        return P.plein.taux * (1 - decote + surcote)
 
     def calculate_salref(self):
-#         self.sal_regime = sali*_isin(self.workstate.array,self.code_regime)
+        # self.sal_regime = sali*_isin(self.workstate.array,self.code_regime)
         raise NotImplementedError
 
-    def bonif_pension(self, data, trim_wage_reg, trim_wage_all, pension_reg, pension_surcote_reg, pension_all, unactive=[]):
-        minimum = self.minimum_pension(trim_wage_reg, trim_wage_all, pension_reg - pension_surcote_reg, pension_all)
+    def bonif_pension(self, data, trim_wage_reg, trim_wage_all, pension_reg, pension_surcote_reg,
+                      pension_all, unactive=[]):
+        minimum = self.minimum_pension(trim_wage_reg, trim_wage_all, pension_reg - pension_surcote_reg,
+                                       pension_all)
         pension = pension_reg + minimum
         # Remarque : les majorations de pension s'applique à la pension rapportée au maximum ou au minimum
         majoration = self.majoration_pension(data, pension)
@@ -114,24 +116,24 @@ class Regime(object):
         ''' Calcul des cotisations passées par année'''
         sali = data.sali * data.workstate.isin(self.code_regime).astype(int)
         assert self.P_cot is not None, 'self.P_cot should be not None'
-        Pcot_regime = reduce(getattr, self.param_name.split('.'), self.P_cot) #getattr(self.P_longit.prive.complementaire,  self.name)
+        Pcot_regime = reduce(getattr, self.param_name.split('.'), self.P_cot)
+        # getattr(self.P_longit.prive.complementaire,  self.name)
         taux_pat = Pcot_regime.cot_pat
         taux_sal = Pcot_regime.cot_sal
         assert len(taux_pat) == sali.shape[1] == len(taux_sal)
         cot_sal_by_year = zeros(sali.shape)
         cot_pat_by_year = zeros(sali.shape)
         for ix_year in range(sali.shape[1]):
-            cot_sal_by_year[:,ix_year] = taux_sal[ix_year].calc(sali[:,ix_year])
-            cot_pat_by_year[:,ix_year] = taux_pat[ix_year].calc(sali[:,ix_year])
-
-        if sal_nominal == False:
+            cot_sal_by_year[:, ix_year] = taux_sal[ix_year].calc(sali[:, ix_year])
+            cot_pat_by_year[:, ix_year] = taux_pat[ix_year].calc(sali[:, ix_year])
+        if not sal_nominal:
             revalo = self.P_longit.prive.RG.revalo
             revalo = array(revalo)
-            for i in range(1, len(revalo)) :
+            for i in range(1, len(revalo)):
                 revalo[:i] *= revalo[i]
             cot_sal_by_year = multiply(cot_sal_by_year, revalo)
             cot_pat_by_year = multiply(cot_pat_by_year, revalo)
-        return {'sal': cot_sal_by_year, 'pat':cot_pat_by_year}
+        return {'sal': cot_sal_by_year, 'pat': cot_pat_by_year}
 
 
 class RegimeBase(Regime):
@@ -168,9 +170,9 @@ class RegimeBase(Regime):
             ''' Majoration pour avoir élevé trois enfants '''
             taux_3enf = P.maj_3enf.taux
             taux_supp = P.maj_3enf.taux_sup
-            return taux_3enf*(nb_enf >= 3) + (taux_supp*maximum(nb_enf - 3, 0))
+            return taux_3enf * (nb_enf >= 3) + (taux_supp * maximum(nb_enf - 3, 0))
 
-        maj_enf = _taux_enf(nb_enf, P)*pension_brute
+        maj_enf = _taux_enf(nb_enf, P) * pension_brute
         return maj_enf
 
     def trimesters_tot(self, regime='all'):
@@ -184,16 +186,16 @@ class RegimeBase(Regime):
 
     def decote(self, trim_decote, nb_trimesters):
         P = reduce(getattr, self.param_name.split('.'), self.P)
-        decote = P.decote.taux*trim_decote
-        return decote*(nb_trimesters > 0)
+        decote = P.decote.taux * trim_decote
+        return decote * (nb_trimesters > 0)
 
     def pension_brute(self, data, taux,
                       coeff_proratisation, salref):
-        return coeff_proratisation*salref*taux
+        return coeff_proratisation * salref * taux
 
     def pension(self, plafond_pension, majoration_pension):
         # Remarque : la majoration de pension s'applique à la pension rapportée au maximum ou au minimum
-        return plafond_pension + majoration_pension # TODO: delete because in bonif_pension
+        return plafond_pension + majoration_pension  # TODO: delete because in bonif_pension
 
     def N_CP(self):
         P = reduce(getattr, self.param_name.split('.'), self.P)
@@ -204,7 +206,7 @@ class RegimeBase(Regime):
         return P.plein.n_trim / 4
 
     def DA(self, nb_trimesters, trim_maj_ini):
-        return (nb_trimesters + trim_maj_ini)/4
+        return (nb_trimesters + trim_maj_ini) / 4
 
 
 class RegimeComplementaires(Regime):
@@ -220,7 +222,8 @@ class RegimeComplementaires(Regime):
         Pour calculer ces points, il faut diviser la cotisation annuelle
         ouvrant des droits par le salaire de référence de l'année concernée
         et multiplier par le taux d'acquisition des points'''
-        Plong_regime = reduce(getattr, self.param_name.split('.'), self.P_longit) #getattr(self.P_longit.prive.complementaire,  self.name)
+        Plong_regime = reduce(getattr, self.param_name.split('.'), self.P_longit)
+        # getattr(self.P_longit.prive.complementaire,  self.name)
         salref = Plong_regime.sal_ref
         taux_cot = Plong_regime.taux_cot_moy
         sali_plaf = sali_for_regime
@@ -228,7 +231,7 @@ class RegimeComplementaires(Regime):
         nombre_points = zeros(sali_plaf.shape)
         for ix_year in range(sali_plaf.shape[1]):
             if salref[ix_year] > 0:
-                nombre_points[:, ix_year] = (taux_cot[ix_year].calc(sali_plaf[:, ix_year])/salref[ix_year])
+                nombre_points[:, ix_year] = (taux_cot[ix_year].calc(sali_plaf[:, ix_year]) / salref[ix_year])
         nb_points_by_year = nombre_points.round(2)
         return nb_points_by_year
 
@@ -236,26 +239,28 @@ class RegimeComplementaires(Regime):
         ''' Application de la garantie minimum de points '''
         P = reduce(getattr, self.param_name.split('.'), self.P)
         gmp = P.gmp
-        nb_points = maximum(nombre_points, gmp)*(nombre_points > 0)
+        nb_points = maximum(nombre_points, gmp) * (nombre_points > 0)
         return nb_points.sum(axis=1)
 
     def coefficient_age(self, data, nb_trimesters):
         ''' TODO: add surcote  pour avant 1955 '''
         P = reduce(getattr, self.param_name.split('.'), self.P)
         coef_mino = P.coef_mino
+        print data.info_ind['agem']
         agem = data.info_ind['agem']
         age_annulation_decote = self.P.prive.RG.decote.age_null
-        diff_age = divide(age_annulation_decote - agem, 12)*(age_annulation_decote > agem)
+        diff_age = divide(age_annulation_decote - agem, 12) * (age_annulation_decote > agem)
         coeff_min = zeros(len(agem))
         for nb_annees, coef_mino in coef_mino._tranches:
-            coeff_min += (diff_age == nb_annees)*coef_mino
+            coeff_min += (diff_age == nb_annees) * coef_mino
 
-        coeff_min += P.coeff_maj*diff_age
+        coeff_min += P.coeff_maj * diff_age
         if P.cond_taux_plein == 1:
-            # Dans ce cas, la minoration ne s'applique que si la durée de cotisation au régime général est inférieure à celle requise pour le taux plein
+            # Dans ce cas, la minoration ne s'applique que si la durée de cotisation
+            # au régime général est inférieure à celle requise pour le taux plein
             n_trim = self.P.prive.RG.plein.n_trim
             # la bonne formule est la suivante :
-            # coeff_min = coeff_min*(n_trim > nb_trimesters) + (n_trim <= nb_trimesters)
+            coeff_min = coeff_min * (n_trim > nb_trimesters) + (n_trim <= nb_trimesters)
             # mais on a ça...
             coeff_min = 1
         return coeff_min
@@ -273,7 +278,7 @@ class RegimeComplementaires(Regime):
 
         # 1- Calcul des points pour enfants à charge
         taux_pac = P.maj_enf.pac.taux
-        points_pac = nombre_points.sum(axis=1)*taux_pac*nb_pac
+        points_pac = nombre_points.sum(axis=1) * taux_pac * nb_pac
 
         # 2- Calcul des points pour enfants nés ou élevés
         points_born = zeros(len(nb_pac))
@@ -284,20 +289,20 @@ class RegimeComplementaires(Regime):
             taux_dispositif = P_dispositif.taux
             nb_enf_min = P_dispositif.nb_enf_min
             nb_points_dates = multiply(nombre_points, selected_dates).sum(axis=1)
-            nb_points_enf = nb_points_dates*taux_dispositif*(nb_born >= nb_enf_min)
+            nb_points_enf = nb_points_dates * taux_dispositif * (nb_born >= nb_enf_min)
             if hasattr(P_dispositif, 'taux_maj'):
                 taux_maj = P_dispositif.taux_maj
                 plaf_nb = P_dispositif.nb_enf_count
                 nb_enf_maj = maximum(minimum(nb_born, plaf_nb) - nb_enf_min, 0)
-                nb_points_enf += nb_enf_maj*taux_maj*nb_points_dates
+                nb_points_enf += nb_enf_maj * taux_maj * nb_points_dates
 
             points_born += nb_points_enf
         # Retourne la situation la plus avantageuse
         val_point = P.val_point
         if compare_destinie:
             val_point = P.val_point_proj
-            return points_born*val_point
-        return maximum(points_born, points_pac)*val_point
+            return points_born * val_point
+        return maximum(points_born, points_pac) * val_point
 
     def majoration_pension(self, majoration_enf):
         return majoration_enf
