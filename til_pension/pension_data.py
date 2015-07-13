@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from numpy import array, ndarray, in1d
+from numpy import array, ndarray, in1d, nan_to_num
 from pandas import DataFrame
 from til_pension.time_array import TimeArray
 from til_pension.datetil import DateTil
@@ -93,8 +93,8 @@ class PensionData(object):
             assert sali.columns.tolist() == workstate.columns.tolist()
             assert sali.columns.tolist() == (sorted(sali.columns))
             dates = sali.columns.tolist()
-            sali = array(sali)
-            workstate = array(workstate)
+            sali = nan_to_num(array(sali))
+            workstate = nan_to_num(array(workstate))
 
         if isinstance(sali, ndarray):
             assert isinstance(workstate, ndarray)
