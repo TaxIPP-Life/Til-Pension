@@ -226,7 +226,11 @@ class FonctionPublique(RegimeBase):
         assert len(taux_pat) == sali.shape[1] == len(taux_sal)
         cot_sal_by_year = zeros(sali.shape)
         cot_pat_by_year = zeros(sali.shape)
+        denominator = (1 + taux_prime)
+        if 'ath' in data.info_ind:
+            ath = array(data.info_ind['ath'])
+            denominator = ath * denominator
         for ix_year in range(sali.shape[1]):
-            cot_sal_by_year[:, ix_year] = taux_sal[ix_year] * sali[:, ix_year] / (1 + taux_prime)
-            cot_pat_by_year[:, ix_year] = taux_pat[ix_year] * sali[:, ix_year] / (1 + taux_prime)
+            cot_sal_by_year[:, ix_year] = taux_sal[ix_year] * sali[:, ix_year] / denominator
+            cot_pat_by_year[:, ix_year] = taux_pat[ix_year] * sali[:, ix_year] / denominator
         return {'sal': cot_sal_by_year, 'pat': cot_pat_by_year}
