@@ -1,6 +1,6 @@
 # -*- coding:utf-8 -*-
 
-from numpy import minimum, zeros
+from numpy import minimum, zeros, maximum
 from til_pension.regime import RegimeComplementaires, compare_destinie
 
 

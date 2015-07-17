@@ -1,6 +1,6 @@
 # -*- coding:utf-8 -*-
 
-from numpy import array, maximum, minimum, divide, zeros, inf
+from numpy import array, maximum, minimum, divide, zeros, inf, ones
 
 from til_pension.regime import RegimeBase
 from til_pension.trimesters_functions import trimesters_in_code, nb_trim_surcote, nb_trim_decote, trim_mda
@@ -32,8 +32,8 @@ class FonctionPublique(RegimeBase):
         # N_min donné en mois
         trim_cot = trim_cot_by_year.sum(axis=1)
         last_fp = data.workstate.last_time_in(self.code_regime)
-        to_RG_actif = (3*trim_cot < P.actif.N_min)*(last_fp == self.code_actif)
-        to_RG_sedentaire = (3*trim_cot < P.sedentaire.N_min)*(last_fp == self.code_sedentaire)
+        to_RG_actif = (3 * trim_cot < P.actif.N_min) * (last_fp == self.code_actif)
+        to_RG_sedentaire = (3 * trim_cot < P.sedentaire.N_min) * (last_fp == self.code_sedentaire)
         return (to_RG_actif + to_RG_sedentaire)
 
     def sal_FP_to_RG(self, sal_cot, FP_to_RG):
@@ -61,7 +61,7 @@ class FonctionPublique(RegimeBase):
 
     def trim_maj_mda_ini(self, info_ind, nb_trimesters):
         P_mda = self.P.public.fp.mda
-        return trim_mda(info_ind, self.name, P_mda)*(nb_trimesters > 0)
+        return trim_mda(info_ind, self.name, P_mda) * (nb_trimesters > 0)
 
     def trim_maj_mda_RG(self, regime='RG'):
         pass
@@ -77,8 +77,8 @@ class FonctionPublique(RegimeBase):
           ordre d'attribution : RG, RSI, FP
         Rq : Pas beau mais temporaire, pour comparaison Destinie'''
         if sum(trim_maj_mda_RG) + sum(trim_maj_mda_RSI) > 0:
-            return 0*trim_maj_mda_RG
-        return trim_maj_mda_ini*(nb_trimesters > 0)
+            return 0 * trim_maj_mda_RG
+        return trim_maj_mda_ini * (nb_trimesters > 0)
 
     def trim_maj_5eme(self, nb_trimesters):
         # TODO: 5*4 ? d'ou ca vient ?
@@ -86,8 +86,8 @@ class FonctionPublique(RegimeBase):
         # (policiers, surveillants pénitentiaires, contrôleurs aériens...)
         super_actif = 0  # condition superactif à définir
         taux_5eme = 0.2
-        bonif_5eme = minimum(nb_trimesters*taux_5eme, 5*4)
-        return array(bonif_5eme*super_actif)*(nb_trimesters > 0)
+        bonif_5eme = minimum(nb_trimesters * taux_5eme, 5 * 4)
+        return array(bonif_5eme * super_actif) * (nb_trimesters > 0)
 
     def trim_maj_ini(self, trim_maj_mda_ini, trim_maj_5eme):
         return trim_maj_mda_ini + trim_maj_5eme
@@ -132,8 +132,8 @@ class FonctionPublique(RegimeBase):
         # suffisante
         age_min_s = P.sedentaire.age_min
         age_min_a = P.actif.age_min
-        age_min = age_min_a*(trim_actif >= P.actif.N_min) + \
-            age_min_s*(trim_actif < P.actif.N_min)
+        age_min = age_min_a * (trim_actif >= P.actif.N_min) + \
+            age_min_s * (trim_actif < P.actif.N_min)
         return age_min
 
     def _build_age_max(self, data):
@@ -143,7 +143,7 @@ class FonctionPublique(RegimeBase):
         sedentaire = (last_fp == self.code_sedentaire)
         age_max_s = P.sedentaire.age_max
         age_max_a = P.actif.age_max
-        age_max = actif*age_max_a + sedentaire*age_max_s
+        age_max = actif * age_max_a + sedentaire * age_max_s
         return age_max
 
     def age_annulation_decote(self, data, age_min_retirement):
@@ -180,7 +180,18 @@ class FonctionPublique(RegimeBase):
         trim_surcote = nb_trim_surcote(trimesters, selected_date,
                                        date_start_surcote)
         trim_surcote = minimum(trim_surcote, plafond)
-        return taux_surcote*trim_surcote
+        return taux_surcote * trim_surcote
+
+    def trimestres_excess_taux_plein(self, data, trimesters, trimesters_tot, date_start_surcote):
+        ''' Détermination nb de trimestres au delà du taux plein.'''
+        P = reduce(getattr, self.param_name.split('.'), self.P)
+        P_long = reduce(getattr, self.param_name.split('.'), self.P_longit)
+        plafond = P.surcote.nb_trim_max
+        selected_date = P_long.surcote.dates
+        trim_surcote = nb_trim_surcote(trimesters, selected_date,
+                                       date_start_surcote)
+        trim_surcote = minimum(trim_surcote, plafond)
+        return trim_surcote
 
     def salref(self, data):
         last_fp_idx = data.workstate.idx_last_time_in(self.code_regime)
@@ -189,25 +200,26 @@ class FonctionPublique(RegimeBase):
         P_long = reduce(getattr, self.param_name.split('.'), self.P_longit)
         P = reduce(getattr, self.param_name.split('.'), self.P)
         val_point = P_long.val_point
-        val_point_last_fp = zeros(data.sali.shape[0])
+        val_point_last_fp = ones(data.sali.shape[0])
         val_point_last_fp[last_fp_idx[0]] = \
             array([val_point[date_last] for date_last in last_fp_idx[1]])
         val_point_t = P.val_point
         coeff_revalo = val_point_t / val_point_last_fp
-        coeff_revalo[coeff_revalo == inf] = 0
+        coeff_revalo[coeff_revalo == inf] = 1
         taux_prime = array(data.info_ind['tauxprime'])
         return last_fp * coeff_revalo / (1 + taux_prime)
 
     def plafond_pension(self, pension_brute):
         return pension_brute
 
-    def minimum_pension(self, trim_regime, pension):
-        return 0*pension
+    def minimum_pension(self, nb_trimesters, pension_brute):
+        return 0 * pension_brute
 
     def cotisations(self, data):
         ''' Calcul des cotisations passées par année'''
-        sali = data.sali*data.workstate.isin(self.code_regime).astype(int)
-        Pcot_regime = reduce(getattr, self.param_name.split('.'), self.P_cot) #getattr(self.P_longit.prive.complementaire,  self.name)
+        sali = data.sali * data.workstate.isin(self.code_regime).astype(int)
+        Pcot_regime = reduce(getattr, self.param_name.split('.'), self.P_cot)
+        # getattr(self.P_longit.prive.complementaire,  self.name)
         taux_prime = array(data.info_ind['tauxprime'])
         taux_pat = Pcot_regime.cot_pat
         taux_sal = Pcot_regime.cot_sal
@@ -215,6 +227,6 @@ class FonctionPublique(RegimeBase):
         cot_sal_by_year = zeros(sali.shape)
         cot_pat_by_year = zeros(sali.shape)
         for ix_year in range(sali.shape[1]):
-            cot_sal_by_year[:,ix_year] = taux_sal[ix_year]*sali[:,ix_year]/(1+taux_prime)
-            cot_pat_by_year[:,ix_year] = taux_pat[ix_year]*sali[:,ix_year]/(1+taux_prime)
-        return {'sal': cot_sal_by_year, 'pat':cot_pat_by_year}
+            cot_sal_by_year[:, ix_year] = taux_sal[ix_year] * sali[:, ix_year] / (1 + taux_prime)
+            cot_pat_by_year[:, ix_year] = taux_pat[ix_year] * sali[:, ix_year] / (1 + taux_prime)
+        return {'sal': cot_sal_by_year, 'pat': cot_pat_by_year}

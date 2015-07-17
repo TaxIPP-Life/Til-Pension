@@ -22,7 +22,7 @@ class RegimePrive(RegimeBase):
 
     def sal_cot(self, data):
         select = data.workstate.isin(self.code_regime)
-        sal = data.sali * select
+        sal = data.sali.copy() * select
         sal[isnan(sal)] = 0
         return sal
 
@@ -58,13 +58,11 @@ class RegimePrive(RegimeBase):
         revalo = array(revalo)
         for i in range(1, len(revalo)):
             revalo[:i] *= revalo[i]
-
         sal_regime.translate_frequency(output_frequency='year', method='sum', inplace=True)
         years_sali = (sal_regime != 0).sum(axis=1)
         nb_best_years_to_take = array(nb_best_years_to_take)
         nb_best_years_to_take[years_sali < nb_best_years_to_take] = \
             years_sali[years_sali < nb_best_years_to_take]
-
         if plafond is not None:
             assert sal_regime.shape[1] == len(plafond)
             sal_regime = minimum(sal_regime, plafond)
@@ -160,12 +158,23 @@ class RegimePrive(RegimeBase):
                 P2.taux_maj_age * maj_age_trim
         return surcote
 
-    def minimum_pension(self, trimesters_tot, nb_trimesters, trim_maj, pension_reg, pension_all):
+    def trimestres_excess_taux_plein(self, data, trimesters, trimesters_tot):
+        ''' Détermination nb de trimestres au delà du taux plein.'''
+        P = reduce(getattr, self.param_name.split('.'), self.P)
+        # dispositif de type 0
+        n_trim = array(P.plein.n_trim, dtype=float)
+        trim_tot = trimesters_tot.sum(axis=1)
+        return (trim_tot - n_trim) * (trim_tot > n_trim)
+
+    def minimum_pension(self, trimesters_tot, nb_trimesters, trim_maj, pension_brute):
         ''' MICO du régime général : allocation différentielle
-        RQ : ASPA et minimum vieillesse sont gérés par OF
-        Il est attribué quels que soient les revenus dont dispose le retraité
-        en plus de ses pensions :
-         loyers, revenus du capital, activité professionnelle...
+        RQ :
+        1) ASPA et minimum vieillesse sont gérés par OF
+        2) Le minimum contributif est calculé sans prendre ne compte les majoration pour enfants à charge
+        et la surcote (rajouté ensuite)
+
+        Il est attribué quels que soient les revenus dont dispose le retraité en plus de ses pensions :
+        loyers, revenus du capital, activité professionnelle...
         + mécanisme de répartition si cotisations à plusieurs régimes
         TODO: coder toutes les évolutions et rebondissements 2004/2008'''
         P = reduce(getattr, self.param_name.split('.'), self.P)
@@ -175,21 +184,21 @@ class RegimePrive(RegimeBase):
         if P.mico.dispositif == 0:
             # Avant le 1er janvier 1983, comparé à l'AVTS
             min_pension = self.P.common.avts
-            return maximum(min_pension - pension_reg, 0) * coeff
+            return maximum(min_pension - pension_brute, 0) * coeff
         elif P.mico.dispositif == 1:
             # TODO: Voir comment gérer la limite de cumul relativement
             # complexe (Doc n°5 du COR)
             mico = P.mico.entier
-            return maximum(mico - pension_reg, 0) * coeff
+            return maximum(mico - pension_brute, 0) * coeff
         elif P.mico.dispositif == 2:
             # A partir du 1er janvier 2004 les périodes cotisées interviennent
             # (+ dispositif transitoire de 2004)
             nb_trim = P.prorat.n_trim
             trim_regime = nb_trimesters  # + sum(trim_maj)
             mico_entier = P.mico.entier * minimum(divide(trim_regime, nb_trim), 1)
-            maj = (P.mico.entier_maj - P.mico.entier) * divide(trimesters_tot, nb_trim)
-            mico = mico_entier + maj * (trimesters_tot >= P.mico.trim_min)
-            return (mico - pension_reg) * (mico > pension_reg) * (pension_reg > 0)
+            maj = (P.mico.entier_maj - P.mico.entier) * divide(trimesters_tot.sum(axis=1), nb_trim)
+            mico = mico_entier + maj * (trimesters_tot.sum(axis=1) >= P.mico.trim_min)
+            return (mico - pension_brute) * (mico > pension_brute) * (pension_brute > 0)
 
     def plafond_pension(self, pension_brute, salref, coeff_proratisation, surcote):
         ''' plafonnement à 50% du PSS
