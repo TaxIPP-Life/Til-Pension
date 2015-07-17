@@ -102,16 +102,6 @@ class Regime(object):
         # self.sal_regime = sali*_isin(self.workstate.array,self.code_regime)
         raise NotImplementedError
 
-    def bonif_pension(self, data, trim_wage_reg, trim_wage_all, pension_reg, pension_surcote_reg,
-                      pension_all, unactive=[]):
-        minimum = self.minimum_pension(trim_wage_reg, trim_wage_all, pension_reg - pension_surcote_reg,
-                                       pension_all)
-        pension = pension_reg + minimum
-        # Remarque : les majorations de pension s'applique à la pension rapportée au maximum ou au minimum
-        majoration = self.majoration_pension(data, pension)
-        pension = pension + majoration
-        return pension
-
     def cotisations(self, data):
         ''' Calcul des cotisations passées par année'''
         sali = data.sali * data.workstate.isin(self.code_regime).astype(int)
@@ -162,7 +152,7 @@ class RegimeBase(Regime):
         trim = divide(wk_selection.sum(axis=1), 4).astype(int)
         return trim
 
-    def majoration_pension(self, data, pension_brute):
+    def majoration_pension(self, data, pension_brute_b):
         P = reduce(getattr, self.param_name.split('.'), self.P)
         nb_enf = data.info_ind['nb_enf_all']
 
@@ -172,7 +162,7 @@ class RegimeBase(Regime):
             taux_supp = P.maj_3enf.taux_sup
             return taux_3enf * (nb_enf >= 3) + (taux_supp * maximum(nb_enf - 3, 0))
 
-        maj_enf = _taux_enf(nb_enf, P) * pension_brute
+        maj_enf = _taux_enf(nb_enf, P) * pension_brute_b
         return maj_enf
 
     def trimesters_tot(self, regime='all'):
@@ -193,9 +183,17 @@ class RegimeBase(Regime):
                       coeff_proratisation, salref):
         return coeff_proratisation * salref * taux
 
-    def pension(self, plafond_pension, majoration_pension):
+    def pension_brute_b(self, plafond_pension, minimum_pension):
+        ''' Pension brute ramenée au minimum et au maximum.
+        Rappel: Ordre d'application des règles:
+        1) pension brute déterminée comme ci-dessus
+        2) Minimum/plafonnement
+        3) application des majoration type 10% pour enfants'''
+        return plafond_pension + minimum_pension
+
+    def pension(self, pension_brute_b, majoration_pension):
         # Remarque : la majoration de pension s'applique à la pension rapportée au maximum ou au minimum
-        return plafond_pension + majoration_pension  # TODO: delete because in bonif_pension
+        return pension_brute_b + majoration_pension  # TODO: delete because in bonif_pension
 
     def N_CP(self):
         P = reduce(getattr, self.param_name.split('.'), self.P)
@@ -235,18 +233,10 @@ class RegimeComplementaires(Regime):
         nb_points_by_year = nombre_points.round(2)
         return nb_points_by_year
 
-    def minimum_points(self, nombre_points):
-        ''' Application de la garantie minimum de points '''
-        P = reduce(getattr, self.param_name.split('.'), self.P)
-        gmp = P.gmp
-        nb_points = maximum(nombre_points, gmp) * (nombre_points > 0)
-        return nb_points.sum(axis=1)
-
     def coefficient_age(self, data, nb_trimesters):
         ''' TODO: add surcote  pour avant 1955 '''
         P = reduce(getattr, self.param_name.split('.'), self.P)
         coef_mino = P.coef_mino
-        print data.info_ind['agem']
         agem = data.info_ind['agem']
         age_annulation_decote = self.P.prive.RG.decote.age_null
         diff_age = divide(age_annulation_decote - agem, 12) * (age_annulation_decote > agem)
@@ -310,15 +300,19 @@ class RegimeComplementaires(Regime):
     def nb_points(self, nombre_points):
         return nombre_points.sum(axis=1)
 
-    def pension(self, data, coefficient_age, nombre_points,
-                majoration_pension, minimum_points, trim_decote):
+    def pension(self, data, coefficient_age, pension_brute_b,
+                majoration_pension, trim_decote):
         P = reduce(getattr, self.param_name.split('.'), self.P)
-        val_point = P.val_point
-        if compare_destinie:
-            val_point = P.val_point_proj
-        pension = minimum_points * val_point
-        P = reduce(getattr, self.param_name.split('.'), self.P)
-        pension = pension + majoration_pension
+        pension = pension_brute_b + majoration_pension
         decote = trim_decote * P.taux_decote
         pension = (1 - decote) * pension
         return pension * coefficient_age
+
+    def pension_brute(self, pension_brute_b):
+        return pension_brute_b
+
+    def pension_brute_b(self, nb_points, minimum_points):
+        P = reduce(getattr, self.param_name.split('.'), self.P)
+        val_point = P.val_point
+        pension_brute_b = (nb_points + minimum_points) * val_point
+        return pension_brute_b

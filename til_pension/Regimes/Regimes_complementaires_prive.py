@@ -29,6 +29,14 @@ class AGIRC(RegimeComplementaires):
         sali = data.sali
         return sali * (workstate.isin(self.code_regime))
 
+    def minimum_points(self, nombre_points):
+        ''' Application de la garantie minimum de points '''
+        P = reduce(getattr, self.param_name.split('.'), self.P)
+        gmp = P.gmp
+        nb_points_ini = nombre_points.sum(axis=1)
+        nb_points_gmp = maximum(nombre_points, gmp) * (nombre_points > 0)
+        return maximum(nb_points_gmp.sum(axis=1) - nb_points_ini, 0)
+
     def cotisations(self, data):
         ''' Détermine les cotisations payées au cours de la carrière : même fonction que dans régime mais cet en plus'''
         sali = data.sali * data.workstate.isin(self.code_regime).astype(int)
@@ -92,3 +100,6 @@ class ARRCO(RegimeComplementaires):
             FP_selection = (trim_FP_to_RG != 0) * sal
             noncadre_selection += FP_selection
         return sal * noncadre_selection + plaf_sal * cadre_selection
+
+    def minimum_points(self, nombre_points):
+        return nombre_points.sum(axis=1) * 0
