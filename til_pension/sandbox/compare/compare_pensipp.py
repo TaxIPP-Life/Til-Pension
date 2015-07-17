@@ -20,7 +20,6 @@ def load_til_pensipp(pensipp_comparison_path, years, to_print=(None,None,True)):
         legislation = PensionLegislation(param)
         simul_til = PensionSimulation(data_bounded, legislation)
         simul_til.set_config()
-        vars_to_calculate = dict()
         result_til_year = dict()
         P = simul_til.legislation.P
         for regime in ['FP', 'RG', 'RSI']:
@@ -37,7 +36,7 @@ def load_til_pensipp(pensipp_comparison_path, years, to_print=(None,None,True)):
                     if varname != 'n_trim':
                         calc = simul_til.calculate(varname, regime)
                         result_til_year[varname + '_' + regime] = calc*(trim_regime > 0)
-                    else: 
+                    else:
                         result_til_year[varname + '_' + regime] = simul_til.calculate(varname, regime)
         for regime in ['agirc', 'arrco']:
             for varname in ['coefficient_age', 'nb_points', 'pension']:
@@ -47,9 +46,9 @@ def load_til_pensipp(pensipp_comparison_path, years, to_print=(None,None,True)):
                     result_til_year['nb_points_' + regime] = simul_til.calculate(varname, regime)
                 else:
                     result_til_year[varname + '_' + regime] = simul_til.calculate(varname, regime)
-        result_til_year['N_CP_RG'] = simul_til.calculate('N_CP', 'RG') 
+        result_til_year['N_CP_RG'] = simul_til.calculate('N_CP', 'RG')
         result_til_year['pension_tot'] = simul_til.calculate('pension', 'all')
-        
+
         result_til_year = pd.DataFrame(result_til_year, index=data_bounded.info_ind['index'])
         id_year_in_initial = [ident for ident in result_til_year.index if ident in result_til.index]
         assert (id_year_in_initial == result_til_year.index).all()
@@ -60,14 +59,14 @@ def load_til_pensipp(pensipp_comparison_path, years, to_print=(None,None,True)):
     to_compare = (result_til['yearliq']!= -1)
     til_compare = result_til.loc[to_compare,:]
     pensipp_compare = result_pensipp.loc[to_compare,:]
-    return til_compare, pensipp_compare , simul_til     
-        
+    return til_compare, pensipp_compare , simul_til
+
 
 def compare(table1, table2, var_to_check_montant, var_to_check_taux, threshold):
     var_not_implemented = {'til':[], 'pensipp':[]}
-    
+
     def _check_var(var, threshold, var_conflict):
-        
+
         if var not in table1.columns:
             var_not_implemented['til'] += [var]
         else:
@@ -76,11 +75,11 @@ def compare(table1, table2, var_to_check_montant, var_to_check_taux, threshold):
                 var_not_implemented['til'] += [var]
         if var not in table2.columns:
             var_not_implemented['pensipp'] += [var]
-        else: 
+        else:
             var2 = table2[var].fillna(0)
             if (var2 == 0).all():
                 var_not_implemented['pensipp'] += [var]
-                
+
         conflict = ((var1.abs() - var2.abs()).abs() > threshold)
         if conflict.any():
             var_conflict += [var]
@@ -93,25 +92,25 @@ def compare(table1, table2, var_to_check_montant, var_to_check_taux, threshold):
         return conflict
 
     var_conflict = []
-    
+
     all_prob = dict()
     for var in var_to_check_montant:
         all_prob[var] = _check_var(var, threshold['montant'], var_conflict)
     for var in var_to_check_taux:
         all_prob[var] = _check_var(var, threshold['taux'], var_conflict)
-                
+
     no_conflict = [variable for variable in var_to_check_montant + var_to_check_taux
                         if variable not in var_conflict + var_not_implemented.values()]
-    print( u"Avec un seuil de {}, le calcul est faux pour les variables suivantes : {} \n " + 
-           u"Il est mal implémenté dans : \n - Til: {} \n - Pensipp : {}\n " + 
-           u"Il ne pose aucun problème pour : {}").format(threshold, var_conflict, 
+    print( u"Avec un seuil de {}, le calcul est faux pour les variables suivantes : {} \n " +
+           u"Il est mal implémenté dans : \n - Til: {} \n - Pensipp : {}\n " +
+           u"Il ne pose aucun problème pour : {}").format(threshold, var_conflict,
                                                           var_not_implemented['til'], var_not_implemented['pensipp'],
                                                           no_conflict)
     for var, prob in all_prob.iteritems():
         if sum(prob) != 0:
             print ('Pour ' + var + ', on a ' + str(sum(prob)) + ' différences')
     return all_prob
-      
+
 if __name__ == '__main__':
 
     var_to_check_montant = [ u'pension_RG', u'salref_RG', u'DA_RG', u'DA_RSI',
@@ -122,42 +121,42 @@ if __name__ == '__main__':
                          u'taux_FP', u'decote_FP', u'CP_FP', u'surcote_FP']
     threshold = {'montant' : 1, 'taux' : 0.0005}
     to_print = ({'FP':['calculate_coeff_proratisation']}, [17917,21310,28332,28607], True)
-    
+
     til_compare, pensipp_compare, simul_til = load_til_pensipp(pensipp_comparison_path, [2004], to_print=(None,None,True))
     prob = compare(til_compare, pensipp_compare, var_to_check_montant, var_to_check_taux, threshold)#, to_print, new_data=False)
-    
+
     #surcote RG
-    
-    
-    
+
+
+
     voir = prob['pension_agirc']
     simul_til.calculate('trim_decote', 'agirc')[voir.values]
     simul_til.calculate('minimum_points', 'agirc')[voir.values]
-    
+
 #     import pdb
 #     pdb.set_trace()
-#        
+#
 #     voir = prob['salref_RG']
 #     simul_til.calculate('salref', 'RG')[voir.values]
 #     simul_til.calculate('salref', 'RG')[voir.values]
-#     
-#     
+#
+#
 #     tt = pensipp_compare
 #     tt['taux_RG']
 #     tt['decote_RG'] - tt['surcote_RG']
-# 
+#
 #     voir = prob['DA_RSI']
 #     (simul_til.calculate('nb_trimesters', 'RSI'))[voir.values]
 #     (simul_til.calculate('trim_maj', 'RSI'))[voir.values]
-#     (simul_til.calculate('trim_maj_mda_ini', 'RSI'))[voir.values]    
-#    
+#     (simul_til.calculate('trim_maj_mda_ini', 'RSI'))[voir.values]
+#
 #     data = simul_til.data
 #     info_ind = data.info_ind
-#     
-# 
+#
+#
 #     import pdb
 #     pdb.set_trace()
-    
+
 
 #    or to have a profiler :
 #    import cProfile
