@@ -2,7 +2,7 @@
 
 from datetime import datetime
 
-from numpy import minimum, maximum, array, divide, multiply, isnan
+from numpy import minimum, maximum, array, divide, multiply, isnan, greater
 
 from til_pension.regime import RegimeBase
 from til_pension.trimesters_functions import nb_trim_surcote, nb_trim_decote
@@ -129,6 +129,8 @@ class RegimePrive(RegimeBase):
         surcote = P.surcote.dispositif0.taux * (trim_tot - n_trim) * (trim_tot > n_trim)
         # Note surcote = 0 après 1983
         # dispositif de type 1
+        agem = data.info_ind['agem']
+        datesim = self.dateleg.liam
         if P.surcote.dispositif1.taux > 0:
             trick = P.surcote.dispositif1.date_trick
             trick = str(int(trick))
@@ -144,11 +146,13 @@ class RegimePrive(RegimeBase):
             selected_dates = P_long.surcote.dispositif2.dates
             basic_trim = nb_trim_surcote(trimesters, selected_dates,
                                          date_start_surcote)
+            print basic_trim
+            age_by_year = array([array(agem) - 12 * i for i in reversed(range(trimesters.shape[1]))])
+            nb_years_surcote_age = greater(age_by_year, P2.age_majoration * 12).T.sum(axis=1)
+            start_surcote_age = [datesim - nb_year * 100 if nb_year > 0 else 2100 * 100 + 1
+                                 for nb_year in nb_years_surcote_age]
             maj_age_trim = nb_trim_surcote(trimesters, selected_dates,
-                                           12 * P2.age_majoration)
-#             date_start_surcote_65 = self._date_start_surcote(trimesters_tot,
-#                                           trim_maj, age, age_start_surcote)
-            # TODO: why it doesn't equal date_start_surcote ?
+                                           start_surcote_age)
             basic_trim = basic_trim - maj_age_trim
             trim_with_majo = (basic_trim - P2.trim_majoration) * \
                              ((basic_trim - P2.trim_majoration) >= 0)
