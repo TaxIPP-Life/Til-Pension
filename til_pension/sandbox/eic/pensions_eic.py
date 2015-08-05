@@ -30,13 +30,13 @@ def compute_pensions_eic(path_file_h5_eic, contribution=True, yearmin=2004, year
         pensions_contrib = pd.DataFrame(
             0,
             index = ident_index,
-            columns = ['ident', 'age', 'naiss', 'n_enf', 'findet', 'sexe', 'year_dep', 'regime', 'pension'] + all_dates,
+            columns = ['ident', 'age', 'naiss', 'n_enf', 'findet', 'sexe', 'year_dep', 'regime', 'pension', 'pcs'] + all_dates,
             )
     else:
         pensions_contrib = pd.DataFrame(
             0,
             index = ident_index,
-            columns = ['ident', 'age', 'naiss', 'n_enf', 'findet', 'sexe', 'year_dep', 'regime', 'pension'],
+            columns = ['ident', 'age', 'naiss', 'n_enf', 'findet', 'sexe', 'year_dep', 'regime', 'pension', 'pcs'],
             )
     pensions_contrib['ident'] = ident_index
     pensions_contrib['regime'] = reg_index
@@ -56,7 +56,6 @@ def compute_pensions_eic(path_file_h5_eic, contribution=True, yearmin=2004, year
         dates_yearsim = [str(year * 100 + 1) for year in range(first_year_sal, yearsim)]
         pensions_year = dict()
         cotisations_year = dict()
-
         for reg in regimes:
             pensions_year[reg] = simul_til.calculate("pension", regime_name = reg)
             cond = (pensions_contrib['regime'] == reg) * (pensions_contrib['ident'].isin(ident_depart))
@@ -74,12 +73,12 @@ def compute_pensions_eic(path_file_h5_eic, contribution=True, yearmin=2004, year
         pensions_contrib.loc[cond, 'age'] = \
             yearsim - data_bounded.info_ind['anaiss'][data_bounded.info_ind['noind'] == ident_depart]
         # TODO:
-        for var in ['naiss', 'n_enf', 'findet', 'sexe']:
+        for var in ['naiss', 'n_enf', 'findet', 'sexe', 'pcs']:
                 pensions_contrib.loc[cond, var] = \
                     data_bounded.info_ind[var][data_bounded.info_ind['noind'] == ident_depart]
         pensions_contrib.index = range(len(ident_index))
-
-    for var in ['age', 'naiss', 'n_enf', 'findet', 'sexe']:
+        print(" Pensions and contributions have been calculated for year {}".format(yearsim))
+    for var in ['age', 'naiss', 'n_enf', 'findet', 'sexe', 'pcs']:
         pensions_contrib.loc[:, var] = pensions_contrib.loc[:, var].replace(0, nan)
         pensions_contrib.loc[:, var] = pensions_contrib.groupby("ident")[var].fillna(method = 'ffill')
     pensions_contrib.loc[:, 'n_enf'] = pensions_contrib.loc[:, 'n_enf'].fillna(0)
