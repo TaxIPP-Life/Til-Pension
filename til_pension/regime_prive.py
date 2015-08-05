@@ -5,7 +5,7 @@ from datetime import datetime
 from numpy import minimum, maximum, array, divide, multiply, isnan, greater
 
 from til_pension.regime import RegimeBase
-from til_pension.trimesters_functions import nb_trim_surcote, nb_trim_decote
+from til_pension.trimesters_functions import nb_trim_surcote, nb_trim_decote, nb_trim_decote_from_external
 
 
 def date_(year, month, day):
@@ -40,8 +40,12 @@ class RegimePrive(RegimeBase):
     def trim_maj_ini(self, trim_maj_mda_ini):  # sert à comparer avec pensipp
         return trim_maj_mda_ini
 
-    def trim_maj(self, trim_maj_mda):
-        return trim_maj_mda
+    def trim_maj(self, data, trim_maj_mda):
+        if 'maj_other_RG' in data.info_ind.dtype.names:
+            trim_maj = trim_maj_mda + data.info_ind.trim_other_RG
+        else:
+            trim_maj = trim_maj_mda
+        return trim_maj
 
     def age_min_retirement(self):
         P = reduce(getattr, self.param_name.split('.'), self.P)
@@ -49,7 +53,8 @@ class RegimePrive(RegimeBase):
 
     def salref(self, data, sal_regime):
         ''' SAM : Calcul du salaire annuel moyen de référence :
-        notamment application du plafonnement à un PSS'''
+        notamment application du plafonnement à un PSS et de la revalorisation sur les prix
+        des salaires portés aux comptes'''
         P = reduce(getattr, self.param_name_bis.split('.'), self.P)
         nb_best_years_to_take = P.nb_years
         plafond = self.P_longit.common.plaf_ss
@@ -74,13 +79,19 @@ class RegimePrive(RegimeBase):
 
     def trim_decote(self, data, trimesters_tot, trim_maj_enf_tot):
         ''' Détermination de la décote à appliquer aux pensions '''
+        # TODO: Imagine a better way to include external sources
         P = reduce(getattr, self.param_name.split('.'), self.P)
         agem = data.info_ind['agem']
+        duree_assurance_from_external = data.info_ind['duree_assurance_tot_RG']
         if P.decote.dispositif == 1:
             age_annulation = P.decote.age_null
             trim_decote = max(divide(age_annulation - agem, 3), 0)
         elif P.decote.dispositif == 2:
-            trim_decote = nb_trim_decote(trimesters_tot, trim_maj_enf_tot, agem, P)
+            if (duree_assurance_from_external == 0).all():
+                trim_decote = nb_trim_decote(trimesters_tot, trim_maj_enf_tot, agem, P)
+            else:
+                trim_tot_ref = maximum(duree_assurance_from_external, trimesters_tot.sum(axis=1))
+                trim_decote = nb_trim_decote_from_external(trim_tot_ref, agem, P)
         return trim_decote
 
     def age_annulation_decote(self):
@@ -112,7 +123,10 @@ class RegimePrive(RegimeBase):
                 return trim_regime
 
         P = reduce(getattr, self.param_name.split('.'), self.P)
-        trim_regime = trim_maj + nb_trimesters  # _assurance_corrigee(trim_regime, agem)
+        trim_regime = trim_maj + nb_trimesters
+        if 'maj_other_RG' in info_ind.dtype.names:
+            trim_maj_other = info_ind['maj_other_RG']
+            trim_regime += trim_maj_other  # _assurance_corrigee(trim_regime, agem)
         # disposition pour montée en charge de la loi Boulin (ne s'applique qu'entre 72 et 74) :
         if P.prorat.application_plaf == 1:
             trim_regime = minimum(trim_regime, P.prorat.plaf)
@@ -146,7 +160,6 @@ class RegimePrive(RegimeBase):
             selected_dates = P_long.surcote.dispositif2.dates
             basic_trim = nb_trim_surcote(trimesters, selected_dates,
                                          date_start_surcote)
-            print basic_trim
             age_by_year = array([array(agem) - 12 * i for i in reversed(range(trimesters.shape[1]))])
             nb_years_surcote_age = greater(age_by_year, P2.age_majoration * 12).T.sum(axis=1)
             start_surcote_age = [datesim - nb_year * 100 if nb_year > 0 else 2100 * 100 + 1
