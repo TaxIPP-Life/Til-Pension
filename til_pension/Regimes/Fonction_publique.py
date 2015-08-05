@@ -5,7 +5,7 @@ from numpy import array, maximum, minimum, divide, zeros, inf, ones
 from til_pension.regime import RegimeBase
 from til_pension.trimesters_functions import trimesters_in_code, nb_trim_surcote, nb_trim_decote, trim_mda
 from til_pension.regime import compare_destinie
-code_chomage = 5
+code_chomage = 2
 
 
 class FonctionPublique(RegimeBase):
