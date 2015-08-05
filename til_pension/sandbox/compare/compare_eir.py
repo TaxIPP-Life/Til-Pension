@@ -52,24 +52,29 @@ def pensions_decomposition_eic(path_file_h5_eic, contribution=False, yearmin=200
             pensions.loc[cond, 'pension'] = pensions_year[reg]
             pensions.loc[cond, 'majoration_pension'] = majo[reg]
             pensions.loc[cond, 'minimum_pension'] = minimum[reg]
-            pensions.loc[cond, 'pension_brute'] = simul_til.calculate("pension_brute_b", regime_name = reg)
-            if reg in ['FP', 'RG']:
+            if reg in ['RG']:
+                pensions.loc[cond, 'pension_brute'] = simul_til.calculate("pension_brute_b", regime_name = reg)
                 pensions.loc[cond, 'taux'] = simul_til.calculate("taux", regime_name = reg) * 100
                 pensions.loc[cond, 'surcote'] = simul_til.calculate("surcote", regime_name = reg) * 100
-                pensions.loc[cond, 'surcote'] = simul_til.calculate("decote", regime_name = reg) * 100
+                pensions.loc[cond, 'decote'] = simul_til.calculate("decote", regime_name = reg) * 100
                 pensions.loc[cond, 'trim_surcote'] = simul_til.calculate("trimestres_excess_taux_plein",
                                                                          regime_name = reg)
                 pensions.loc[cond, 'salref'] = simul_til.calculate("salref", regime_name = reg)
                 pensions.loc[cond, 'trim_cot_til'] = simul_til.calculate("trim_cot_by_year",
                                                                          regime_name = reg).sum(axis=1)
-                pensions.loc[cond, 'trim_tot_til'] = simul_til.calculate("nb_trimesters", regime_name = reg)
+                pensions.loc[cond, 'trim_tot_til'] = (simul_til.calculate("nb_trimesters", regime_name = reg) +
+                                                      simul_til.calculate("trim_maj", regime_name = reg))
+            if reg in ['agirc', 'arrco']:
+                pensions.loc[cond, 'nb_point_til'] = simul_til.calculate("nb_points", regime_name = reg)
+                pensions.loc[cond, 'nb_point_enf'] = simul_til.calculate("nb_points_enf", regime_name = reg)
+                pensions.loc[cond, 'nb_point_maj_til'] = (pensions.loc[cond, 'nb_point_til'] +
+                                                           pensions.loc[cond, 'nb_point_enf'])
         pensions['year_dep'][pensions['ident'].isin(ident_depart)] = yearsim
         cond = (pensions['ident'].isin(ident_depart)) & (pensions['regime'] == 'RG')
         pensions.loc[cond, 'age'] = \
             yearsim - data_bounded.info_ind['anaiss'][data_bounded.info_ind['noind'] == ident_depart]
-        for var in ['naiss', 'n_enf', 'findet', 'sexe']:
-                pensions.loc[cond, var] = \
-                    data_bounded.info_ind[var][data_bounded.info_ind['noind'] == ident_depart]
+        for var in ['naiss', 'n_enf', 'findet', 'sexe', 'anaiss', 'date_liquidation_eir', 'duree_assurance_tot_RG', 'year_liquidation_RG']:
+                pensions.loc[cond, var] = data_bounded.info_ind[var][data_bounded.info_ind['noind'] == ident_depart]
         pensions.index = range(len(ident_index))
 
     for var in ['age', 'naiss', 'n_enf', 'findet', 'sexe']:
@@ -85,7 +90,7 @@ def pensions_decomposition_eic(path_file_h5_eic, contribution=False, yearmin=200
 
 
 def compare_eir(path_file_h5_eic):
-    result_til = pensions_decomposition_eic(path_file_h5_eic, contribution=False, yearmin=2004, yearmax=2009)
+    result_til = pensions_decomposition_eic(path_file_h5_eic, contribution=False)
     result_til = result_til.rename(columns = {'ident': 'noind'})
     data = load_eic_eir_data(path_file_h5_eic, to_return=True)
     result_eir = data['pension_eir']
@@ -96,8 +101,14 @@ def compare_eir(path_file_h5_eic):
     to_compare = ['noind', 'naiss', 'n_enf', 'regime', 'age_retraite', 'pension_brute_m', 'pension_m',
                   'majoration_pension_m', 'minimum_pension_m', 'pension_direct',
                   'pension_bonif_enf', 'pension_tot', 'pension_mini', 'salref', 'sam', 'surcote',
-                   'taux', 'taux_avantmico', 'taux_surcote', 'trim_surcote', 'trimsur', 'trimdec', 'trim_cot',
-                  'trim_tot', 'trim_cot_til', 'trim_tot_til', 'typdd']
+                  'taux', 'taux_avantmico', 'taux_surcote', 'trim_surcote', 'trimsur', 'trimdec', 'trim_cot',
+                  'trim_tot', 'trim_cot_til', 'trim_tot_til', 'anaiss', 'duree_assurance_tot_RG', 'year_liquidation_RG',
+                  'nb_point', 'nb_point_maj', 'nb_point_anc_arrco', 'nb_point_grat_arrco', 'eir']
+    result.loc[:, 'year_liquidation_RG'] = result.groupby('noind')['year_liquidation_RG'].fillna(method='bfill')
+    result.loc[:, 'year_liquidation_RG'] = result.groupby('noind')['year_liquidation_RG'].fillna(method='ffill')
+    coeff_inverse = result[['year_liquidation_RG', 'eir']].apply(coeff_inverse_revalo, axis = 1)
+    for var_eir in ['pension_mini', 'pension_direct', 'pension_tot', 'pension_bonif_enf']:
+        result.loc[:, var_eir] = result[var_eir] * coeff_inverse
     delta_equivalent = {'minimum': ('minimum_pension_m', 'pension_mini'),
                         'brute': ('pension_brute_m', 'pension_direct'),
                         'final': ('pension_m', 'pension_tot'),
@@ -106,7 +117,9 @@ def compare_eir(path_file_h5_eic):
                         'taux': ('taux', 'taux_avantmico'),
                         'surcote': ('surcote', 'taux_surcote'),
                         'trim_cot': ('trim_cot_til', 'trim_cot'),
-                        'trim_tot': ('trim_tot_til', 'trim_tot')}
+                        'trim_tot': ('trim_tot_til', 'trim_tot'),
+                        'nb_points': ('nb_point_til', 'nb_point'),
+                        'nb_points_maj': ('nb_point_maj_til', 'nb_point_maj')}
     for delta, vars in delta_equivalent.iteritems():
         result.loc[:, 'delta_' + delta] = result[vars[0]] - result[vars[1]]
         to_compare += ['delta_' + delta]
