@@ -181,7 +181,7 @@
 					  <VALUE valeur="0.03" deb="1974-01-01" fin="1975-12-31"/>
 					  <VALUE valeur="0.03" deb="1970-08-01" fin="1973-12-31"/>
 					  <VALUE valeur="0.03" deb="1967-10-01" fin="1970-07-31"/>
-					  <VALUE valeur="0.0" deb="1949-01-01" fin="1967-09-30"/>
+					  <VALUE valeur="0.03" deb="1949-01-01" fin="1967-09-30"/>
 		 		</TAUX>
 			</TRANCHE>
 			<TRANCHE code="tranche1">
@@ -219,8 +219,11 @@
 				  <VALUE valeur="0.0725" deb="1974-01-01" fin="1975-12-31"/>
 				  <VALUE valeur="0.0575" deb="1970-08-01" fin="1973-12-31"/>
 				  <VALUE valeur="0.055" deb="1967-10-01" fin="1970-07-31"/>
-				  <VALUE valeur="0.0" deb="1949-10-01" fin="1967-09-30"/>
-		 		</TAUX>
+				  <VALUE valeur="0.055" deb="1966-09-01" fin="1967-09-30"/>
+		 		  <VALUE valeur="0.0523" deb="1962-10-01" fin="1966-08-31"/>
+				  <VALUE valeur="0.045" deb="1959-01-01" fin="1962-09-30"/>
+                        <VALUE valeur="0.0367" deb="1948-01-01" fin="1958-12-31"/>
+                    </TAUX>
 			</TRANCHE>
 			<TRANCHE code="tranche1">
 				<SEUIL description= "Plancher tranche 2 (à multiplier par le PSS)">
@@ -314,7 +317,7 @@
 			 		</TAUX>
 			 	</TRANCHE>
 			</BAREME>
-			
+
 			 <BAREME description="Cotisations retraites salariales ARRCO, entreprises créées après 1997" code="cot_sal_97" format="float" longitudinal="true">
 				<TRANCHE code="tranche0">
 					<SEUIL description= "Plancher tranche 1 (à multiplier par le PSS)">
@@ -353,7 +356,7 @@
 			 		</TAUX>
 			 	</TRANCHE>
 			</BAREME>
-			
+
 			<BAREME description="Cotisations retraites employeurs ARRCO, entreprises créées avant 1997" code="cot_pat" format="float" longitudinal="true">
 				<TRANCHE code="tranche0">
 					<SEUIL description= "Plancher tranche 1 (à multiplier par le PSS)">
@@ -593,7 +596,7 @@
 		 		</TAUX>
 		 	</TRANCHE>
 		</BAREME>
-		
+
 		<BAREME description="Cotisations retraites employeurs AGIRC, entreprises créées avant 1981" code="cot_pat" format="float" longitudinal="true">
 			<TRANCHE code="tranche0">
 				<SEUIL description= "Plancher tranche b (à multiplier par le PSS)">
@@ -657,7 +660,7 @@
 		 		</TAUX>
 		 	</TRANCHE>
 		</BAREME>
-		
+
 		<BAREME description="Cotisations retraites employeurs AGIRC, entreprises créées après 1981" code="cot_pat_81" format="float" longitudinal="true">
 			<TRANCHE code="tranche0">
 				<SEUIL description= "Plancher tranche b (à multiplier par le PSS)">
@@ -720,7 +723,7 @@
 		  <VALUE valeur="0.00025" deb="1997-01-01" fin="1997-12-31"/>
 		   <VALUE valeur="0.00025" deb="1997-01-01" fin="1997-12-31"/>
 		</CODE>
-		
+
 		<CODE description="Cotisation Exceptionnelle et Temporaire, cotisation employeur pour les cadres du régime Agirc" code="cet_pat" format="float" longitudinal="true">
 		  <VALUE valeur="0.0022" deb="2001-01-01" fin="2100-12-01"/>
 		  <VALUE valeur="0.0017" deb="2000-01-01" fin="2000-12-31"/>
