@@ -17,8 +17,17 @@ path_xlsx = "C:\Users\l.pauldelvaux\Desktop\MThesis\Data\indices_prix.xlsx"
 def indices_prix(year_start, year_end, year_ref = 2009, path_xlsx = path_xlsx):
     sheet_name = 'indice_prix_' + str(year_ref)
     var_euro = 'euro_' + str(year_ref)
-    df = pd.read_excel(path_xlsx, sheet=sheet_name)[['annee', var_euro]].sort('annee', ascending = 1)
+    df = pd.read_excel(path_xlsx, sheetname=sheet_name)[['annee', var_euro]].sort('annee', ascending = 1)
     return df.loc[(df['annee'] >= year_start) * (df['annee'] <= year_end), var_euro].values
+
+
+def revalo_pension(year_liq, year_target, path_xlsx = path_xlsx):
+    sheet_name = 'revalo_pension'
+    df = pd.read_excel(path_xlsx, sheetname=sheet_name)[['year', 'revaloRG']].sort('year', ascending = 1)
+    df = df.loc[(df['year'] >= year_liq) * (df['year'] <= year_target) * ~(df['year'].isnull()), :]
+    df.loc[:, 'year'] = df.loc[:, 'year'].astype(int)
+    df.loc[:, 'revaloRG'] = df.loc[:, 'revaloRG'].astype(float)
+    return df.groupby(['year'])['revaloRG'].apply(lambda x: x.prod())
 
 
 def flow_pensions(pensions_contrib, nominal = True, vector = True):
