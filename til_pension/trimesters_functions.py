@@ -101,4 +101,18 @@ def nb_trim_decote(trimesters, trim_maj_enf, agem, P):
     trim_decote_cot = n_trim - trim_tot
     assert len(trim_decote_age) == len(trim_decote_cot)
     trim_plaf = minimum(minimum(trim_decote_age, trim_decote_cot), plafond)
-    return array(trim_plaf*(trim_plaf > 0))
+    return array(trim_plaf * (trim_plaf > 0))
+
+
+def nb_trim_decote_from_external(trim_tot_ref, agem, P):
+    ''' Cette fonction renvoie le vecteur numpy du nombre de trimestres décotés lorsqu'une
+    source externe (ex: EIR) a permis de reconstitué le nombre de trimestres totaux pris comme référence
+    '''
+    age_annulation = array(P.decote.age_null)
+    plafond = array(P.decote.nb_trim_max)
+    n_trim = array(P.plein.n_trim)
+    trim_decote_age = divide(age_annulation - agem, 3)
+    trim_decote_cot = n_trim - trim_tot_ref
+    assert len(trim_decote_age) == len(trim_decote_cot)
+    trim_plaf = minimum(minimum(trim_decote_age, trim_decote_cot), plafond)
+    return array(trim_plaf * (trim_plaf > 0))
