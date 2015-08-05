@@ -858,9 +858,9 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 	  <VALUE valeur="770.59" deb="1990-01-01" fin="1990-12-31"/>
 	  <VALUE valeur="740.97" deb="1989-01-01" fin="1989-12-31"/>
 	  <VALUE valeur="717.26" deb="1988-01-01" fin="1988-12-31"/>
-	  <VALUE valeur="693.56" deb="1987-07-01" fin="1987-12-31"/> #TODO: check ? 
+	  <VALUE valeur="693.56" deb="1987-07-01" fin="1987-12-31"/> #TODO: check ?
 	  <VALUE valeur="693.56" deb="1987-01-01" fin="1987-06-30"/>
-	  <VALUE valeur="670.89" deb="1986-08-01" fin="1986-12-31"/> #TODO: check ? 
+	  <VALUE valeur="670.89" deb="1986-08-01" fin="1986-12-31"/> #TODO: check ?
 	  <VALUE valeur="670.89" deb="1986-01-01" fin="1986-07-31"/>
 	  <VALUE valeur="614.21" deb="1985-01-01" fin="1985-12-31"/>
 	  <VALUE valeur="563.97" deb="1984-01-01" fin="1984-12-31"/>
@@ -871,7 +871,7 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 	  <VALUE valeur="286.7" deb="1979-01-01" fin="1979-12-31"/>
 	  <VALUE valeur="253.14" deb="1978-01-01" fin="1978-12-31"/>
 	  <VALUE valeur="226.72" deb="1977-01-01" fin="1977-12-31"/>
-	  <VALUE valeur="199.5" deb="1976-10-01" fin="1976-12-31"/> #TODO: check ? 
+	  <VALUE valeur="199.5" deb="1976-10-01" fin="1976-12-31"/> #TODO: check ?
 	  <VALUE valeur="199.5" deb="1976-01-01" fin="1976-09-30"/>
 	  <VALUE valeur="169.11" deb="1975-01-01" fin="1975-12-31"/>
 	  <VALUE valeur="137.4" deb="1974-01-01" fin="1974-12-31"/>
@@ -1162,7 +1162,7 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 	  	  <VALBYTRANCHES description="Nombre de trimestres cibles pour atteindre le taux plein" code="n_trim" format="integer">
 		    <VARCONTROL>
 			  <CONTROL valeur="naiss" deb="1983-01-01" fin="2100-12-31" format="date"/>
-		    </VARCONTROL> 
+		    </VARCONTROL>
 		    <TRANCHE code ="tranche1">
 		      <SEUIL>
 	  	        <VALUE valeur="1900-01-01" deb="1983-01-01" fin="2100-12-31"/>
@@ -1347,7 +1347,7 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 			    <VALUE valeur="172" deb="2015-01-01" fin="2100-12-31"/>
 			  </VALEUR>
 			</TRANCHE>
-		  </VALBYTRANCHES>  
+		  </VALBYTRANCHES>
 	  </NODE>
   	  <NODE description="Decote à appliquer en minoration du taux plein" code="decote">
 		  <CODE description="Introduction de l'âge dans la décote" code="dispositif" format="integer">
@@ -1363,7 +1363,7 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
   	   <VALBYTRANCHES description="Coefficient de minoration à appliquer au taux plein" code="taux" format="percent">
 	    <VARCONTROL>
 		  <CONTROL valeur="naiss" deb="1946-01-01" fin="2100-12-31" format="date"/>
-	    </VARCONTROL> 
+	    </VARCONTROL>
 	    <TRANCHE code ="tranche1">
 	      <SEUIL>
   	        <VALUE valeur="1900-01-01" deb="1946-01-01" fin="2100-12-31"/>
@@ -1455,8 +1455,8 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 	   </VALBYTRANCHES>
 	   <VALBYTRANCHES description="Age d'annulation de la décote" code="age_null" format="integer">
 	    <VARCONTROL>
-		  <CONTROL valeur="naiss" deb="1946-07-01" fin="2100-12-31" format="date"/> 
-	    </VARCONTROL> 
+		  <CONTROL valeur="naiss" deb="1946-07-01" fin="2100-12-31" format="date"/>
+	    </VARCONTROL>
 	    <TRANCHE code="tranche1">
 	      <SEUIL>
   	        <VALUE valeur="1900-01-01" deb="1946-01-01" fin="2100-12-31"/>
@@ -1529,7 +1529,7 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 			 <VALUE valeur="0.0" deb="1983-01-01" fin="2100-12-31"/>   #"2003-12-31"
 		   </CODE>
 		 </NODE>
-		  <NODE description="Dispositif 1: trimestre au-delà du taux plein avec condition de date (taux fixe quelque soit la nature du trimestres surcoté)" code="dispositif1">	  
+		  <NODE description="Dispositif 1: trimestre au-delà du taux plein avec condition de date (taux fixe quelque soit la nature du trimestres surcoté)" code="dispositif1">
 			<CODE description="Coefficient de majoration à appliquer au taux plein" code="taux" format="percent">
 			  <VALUE valeur="0.0"    deb="1945-01-01" fin="2003-12-31"/>
 			  <VALUE valeur="0.0075" deb="2004-01-01" fin="2006-12-31"/>
@@ -1545,13 +1545,13 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 			  <VALUE valeur="0" deb="1945-01-01" fin="2003-12-31"/>
 			  <VALUE valeur="1" deb="2004-01-01" fin="2006-12-31"/>
 			  <VALUE valeur="0" deb="2007-01-01" fin="2100-12-31"/>
-			</CODE> 
+			</CODE>
 			<CODE description="Trimestres pris en compte dans le calcul de la surcote (date du trimestre)" code="dates2" format="integer" longitudinal="true"> # should be Boolean
 			  <VALUE valeur="0" deb="1945-01-01" fin="2008-12-31"/>
 			  <VALUE valeur="1" deb="2009-01-01" fin="2100-12-31"/>
-			</CODE> 
-	    </NODE> 
-		  <NODE description="Dispositif 2: trimestre au-delà du taux plein avec condition d'age et de nombre de trimestres" code="dispositif2">	  
+			</CODE>
+	    </NODE>
+		  <NODE description="Dispositif 2: trimestre au-delà du taux plein avec condition d'age et de nombre de trimestres" code="dispositif2">
 			<CODE description="Coefficient de majoration à appliquer au taux plein pour les trimestres" code="taux0" format="percent">
 			  <VALUE valeur="0.0"    deb="1945-01-01" fin="2006-12-31"/>
 			  <VALUE valeur="0.0075" deb="2007-01-01" fin="2100-12-31"/>
@@ -1572,17 +1572,17 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 			  <VALUE valeur="0" deb="1945-01-01" fin="2003-12-31"/>
 			  <VALUE valeur="1" deb="2004-01-01" fin="2008-12-31"/>
 			  <VALUE valeur="0" deb="2009-01-01" fin="2100-12-31"/>
-			</CODE> 
-	    </NODE> 
+			</CODE>
+	    </NODE>
 	  </NODE>
   	  <CODE description="Age limite de départ à la retraite (en mois)" code="age_max" format="integer">
 		<VALUE valeur="840" deb="2010-01-01" fin="2100-12-31"/>
 		<VALUE valeur="780" deb="1945-01-01" fin="2009-12-31"/>
-	  </CODE> 
+	  </CODE>
 	  <VALBYTRANCHES description="Age legal de depart à la retraite (en mois)" code="age_min" format="integer">
 	    <VARCONTROL>
 		  <CONTROL valeur="naiss" deb="1945-01" fin="2100-12-31" format="date"/> #TODO: artifice
-	    </VARCONTROL> 
+	    </VARCONTROL>
 	    <TRANCHE code ="tranche1">
 	      <SEUIL>
   	        <VALUE valeur="1900-01-01" deb="1945-01-01" fin="2100-12-31"/>
@@ -1697,11 +1697,11 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 		  <VALUE valeur="1.18" deb="1948-01-01" fin="1948-12-31"/>
 		  <VALUE valeur="1.43" deb="1947-01-01" fin="1947-12-31"/>
 		  <VALUE valeur="1.0" deb="1930-01-01" fin="1946-12-31"/>
-		</CODE>		
+		</CODE>
 	  <VALBYTRANCHES description=" Nombre d'années prises en compte pour le SAM" code="nb_years"  format="integer">
  		<VARCONTROL>
 		  <CONTROL valeur="naiss" deb="1972-01-01" fin="2100-12-31" format="date"/>
-	    </VARCONTROL> 
+	    </VARCONTROL>
 	    <TRANCHE code ="tranche1">
 	      <SEUIL>
   	        <VALUE valeur="1900-01-01" deb="1972-01-01" fin="2100-12-31"/>
@@ -1850,7 +1850,7 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 	       <VALBYTRANCHES description="Nombre de trimestres maximal prise en compte pour la proratisation, par génération" code="n_trim" format="integer">
 		    <VARCONTROL>
 			  <CONTROL valeur="naiss" deb="1945-01-01" fin="2100-12-31" format="date"/>
-		    </VARCONTROL> 
+		    </VARCONTROL>
 		    <TRANCHE code ="tranche1">
 		      <SEUIL>
 	  	        <VALUE valeur="1900-01-01" deb="1945-01-01" fin="2100-12-31"/>
@@ -2098,7 +2098,7 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 	  	  <CODE description="Taux de majoration par enfant au-delà de trois enfants" code="taux_sup" format="float">
 			<VALUE valeur="0.0" deb="1945-01-01" fin="2100-12-31"/>
 	  	  </CODE>
-	  	</NODE>  
+	  	</NODE>
     </NODE>
      <NODE description="Retraites complémentaires " code="complementaire">
 	 	<NODE description="Retraites complémentaires des salariés du privés : ARCCO" code="arrco">
@@ -2112,7 +2112,7 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 	 		<CODE description="Dispositif de proratisation due à l'âge" code="coeff_maj" format="float">
 				<VALUE valeur="0.05" deb="1945-01-01" fin="1954-12-31"/>
 			  	<VALUE valeur="0.0" deb="1955-01-01" fin="2100-12-31"/>
-			</CODE>			
+			</CODE>
 	 		<BAREME description="Taux de cotisation minimal pour l'ARRCO" code="taux_cot" format="float" longitudinal="true">
 	 			<TRANCHE code="tranche0">
 		 			<SEUIL description= "Limite tranche 1 (à multiplier par le PSS)">
@@ -2582,7 +2582,7 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 						<CODE description="Dates prises en compte pour le premier dispositif" code="dates" format="integer" longitudinal="true"> # should be Boolean
 						  <VALUE valeur="1" deb="1945-01-01" fin="2011-12-31"/>
 						  <VALUE valeur="0" deb="2012-01-01" fin="2100-12-31"/>
-						</CODE> 
+						</CODE>
 						<CODE description="Majoration pour enfant(s) nés ou élevés, pour 3 enfants et plus" code="taux" format="percent">
 				 			<VALUE valeur="0.0" deb="1945-01-01" fin="1961-31-12"/>
 				 			<VALUE valeur="0.05" deb="1962-01-01" fin="2100-31-12"/>
@@ -2595,7 +2595,7 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 						<CODE description="Dates prises en compte pour le second dispositif" code="dates" format="integer" longitudinal="true"> # should be Boolean
 						  <VALUE valeur="0" deb="1945-01-01" fin="2011-12-31"/>
 						  <VALUE valeur="1" deb="2012-01-01" fin="2100-12-31"/>
-						</CODE> 
+						</CODE>
 				 		<CODE description="Majoration pour enfant(s) nés ou élevés, pour 3 enfants et plus, droits obtenus à partir de 2012" code="taux" format="percent">
 				 			<VALUE valeur="0" deb="1945-01-01" fin="2011-31-12"/>
 				 			<VALUE valeur="0.1" deb="2012-01-01" fin="2100-31-12"/>
@@ -2618,7 +2618,7 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 	 		<CODE description="Dispositif de proratisation due à l'âge" code="coeff_maj" format="float">
 				<VALUE valeur="0.05" deb="1945-01-01" fin="1954-12-31"/>
 			  	<VALUE valeur="0.0" deb="1955-01-01" fin="2100-12-31"/>
-			</CODE>			
+			</CODE>
 	 		<CODE description="Garantie de point minimum" code="gmp" longitudinal="true">
 		 		<VALUE valeur="120" deb="1997-01-01" fin="2100-12-01"/>
 		 		<VALUE valeur="144" deb="1949-01-01" fin="1996-12-01"/>
@@ -3161,7 +3161,7 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 						<CODE description="Dates prises en compte pour le premier dispositif" code="dates" format="integer" longitudinal="true"> # should be Boolean
 						  <VALUE valeur="1" deb="1945-01-01" fin="2011-12-31"/>
 						  <VALUE valeur="0" deb="2012-01-01" fin="2100-12-31"/>
-						</CODE> 
+						</CODE>
 						<CODE description="Majoration pour enfant(s) nés ou élevés, pour 3 enfants et plus" code="taux" format="percent">
 				 			<VALUE valeur="0.0" deb="1945-01-01" fin="1961-31-12"/>
 				 			<VALUE valeur="0.1" deb="1962-01-01" fin="1994-31-12"/>
@@ -3187,7 +3187,7 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 						<CODE description="Dates prises en compte pour le second dispositif" code="dates" format="integer" longitudinal="true"> # should be Boolean
 						  <VALUE valeur="0" deb="1945-01-01" fin="2011-12-31"/>
 						  <VALUE valeur="1" deb="2012-01-01" fin="2100-12-31"/>
-						</CODE> 
+						</CODE>
 				 		<CODE description="Majoration pour enfant(s) nés ou élevés, pour 3 enfants et plus, droits obtenus à partir de 2012" code="taux" format="percent">
 				 			<VALUE valeur="0" deb="1945-01-01" fin="2011-31-12"/>
 				 			<VALUE valeur="0.1" deb="2012-01-01" fin="2100-31-12"/>
@@ -3198,15 +3198,15 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 			 	  </NODE>
 		 	  </NODE>
 	 		</NODE>
-	 	</NODE> 
-	 </NODE> 
+	 	</NODE>
+	 </NODE>
  </NODE>
  <NODE description="Retraite des non-salariés" code="indep" >
   	<NODE description="Régime Social des indépendants" code="rsi" >
   	  <VALBYTRANCHES description=" Nombre d'années prises en compte pour le RAM" code="nb_years" format="integer">
  		<VARCONTROL>
 		  <CONTROL valeur="naiss" deb="1972-01-01" fin="2100-12-31" format="date"/>
-	    </VARCONTROL> 
+	    </VARCONTROL>
 	    <TRANCHE code ="tranche1">
 	      <SEUIL>
   	        <VALUE valeur="1900-01-01" deb="1972-01-01" fin="2100-12-31"/>
@@ -3347,7 +3347,7 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 	  	  <VALBYTRANCHES description="Nombre de trimestres cibles pour le taux plein/proratisation, par génération" code="n_trim" format="integer">
 		    <VARCONTROL>
 			  <CONTROL valeur="naiss" deb="1948-01-01" fin="2100-12-31" format="date"/> # artifice, True value : 01/01/2003
-		    </VARCONTROL> 
+		    </VARCONTROL>
 		    <TRANCHE code="tranche1">
 		      <SEUIL>
 	  	        <VALUE valeur="1900-01-01" deb="1948-01-01" fin="2100-12-31"/>
@@ -3484,7 +3484,7 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 			    <VALUE valeur="171" deb="2014-01-01" fin="2100-12-31"/>
 			  </VALEUR>
 			</TRANCHE>
-		</VALBYTRANCHES> 
+		</VALBYTRANCHES>
 	  </NODE>
 	  <CODE description="Valeur du point Fonction Publique, en euros, (Hypothèse du COR)" code="val_point" format="float" longitudinal="True">
 		  <VALUE valeur="198.952959498" deb="2100-01-01" fin="2100-12-01"/>
@@ -3632,7 +3632,7 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 	  <CODE description="Valeur du taux bonifié" code="taux_bonif" format="percent">
 		<VALUE valeur=".80" deb="1949-01-01" fin="2100-12-31"/>
 	 </CODE>
-	<NODE description="Surcote de la fonction publique" code="surcote"> 
+	<NODE description="Surcote de la fonction publique" code="surcote">
 		<CODE description="Existence d'un dispositif de surcote dans le régime" code="exist" format="integer">
 			 <VALUE valeur="0" deb="1945-01-01" fin="2003-12-31"/>
 			 <VALUE valeur="1" deb="2004-01-01" fin="2100-12-31"/>
@@ -3644,11 +3644,12 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 	   	</CODE>
   	  	<CODE description="Nombre maximum de trimestres pris en compte dans la surcote" code="nb_trim_max" format="integer">
   		  <VALUE valeur="20" deb="2004-01-01" fin="2100-01-01"/>
+             <VALUE valeur="0" deb="1946-01-01" fin="2003-12-31"/>
   	  	</CODE>
 		<CODE description="Trimestres pris en compte dans le calcul de la surcote (date du trimestre)" code="dates" format="integer" longitudinal="true"> # should be Boolean
 		  <VALUE valeur="0" deb="1945-01-01" fin="2003-12-31"/>
 		  <VALUE valeur="1" deb="2004-01-01" fin="2100-12-31"/>
-		</CODE>  	  	
+		</CODE>
 	</NODE>
    	<NODE description="Décote de la fonction publique" code="decote">
    		<CODE description="Nombre maximum de trimestres pris en compte dans la décote" code="nb_trim_max" format="integer">
@@ -3685,7 +3686,7 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
    			<VALUE valeur="0.01125" deb="2014-01-01" fin="2014-12-31"/>
    			<VALUE valeur="0.0125" deb="2015-01-01" fin="2100-12-31"/>
    		</CODE>
-	</NODE>	
+	</NODE>
    	   <NODE description="Fonction publique sédentaire" code="sedentaire" >
    	   	<CODE description="Durée d'assurance pour ouverture de droits à pension (en mois)" code="N_min" format="integer">
 	  	  <VALUE valeur= "180" deb="1949-01-01" fin="2011-06-31"/>
@@ -3693,8 +3694,8 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 	  	</CODE>
    	   	  <VALBYTRANCHES description="Age limite de la fonction publique sédentaire par génération" code="age_max" format="integer">
 		    <VARCONTROL>
-			  <CONTROL valeur="naiss" deb="1983-01-01" fin="2100-12-31" format="date"/> 
-		    </VARCONTROL> 
+			  <CONTROL valeur="naiss" deb="1983-01-01" fin="2100-12-31" format="date"/>
+		    </VARCONTROL>
 		    <TRANCHE code ="tranche1">
 		      <SEUIL>
 	  	        <VALUE valeur="1900-01-01" deb="1983-01-01" fin="2100-12-31"/>
@@ -3761,7 +3762,7 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 		  <VALBYTRANCHES description="Age d'ouverture des droits dans la fonction publique sédentaire par génération" code="age_min" format="integer">
 		    <VARCONTROL>
 			  <CONTROL valeur="naiss" deb="1983-01-01" fin="2100-12-31" format="date"/>
-		    </VARCONTROL> 
+		    </VARCONTROL>
 		    <TRANCHE code ="tranche1">
 		      <SEUIL>
 	  	        <VALUE valeur="1900-01-01" deb="1983-01-01" fin="2100-12-31"/>
@@ -3839,7 +3840,7 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 	  	<VALBYTRANCHES description="Age limite de la fonction publique active par génération" code="age_max" format="integer">
 		    <VARCONTROL>
 			  <CONTROL valeur="naiss" deb="1983-01-01" fin="2100-12-31" format="date"/>
-		    </VARCONTROL> 
+		    </VARCONTROL>
 		    <TRANCHE code ="tranche1">
 		      <SEUIL>
 	  	        <VALUE valeur="1900-01-01" deb="1983-01-01" fin="2100-12-31"/>
@@ -3905,8 +3906,8 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 		  </VALBYTRANCHES>
 		  <VALBYTRANCHES description="Age d'ouverture des droits dans la fonction publique active par génération" code="age_min" format="integer">
 		    <VARCONTROL>
-			  <CONTROL valeur="naiss" deb="1983-01-01" fin="2100-12-31" format="date"/> 
-		    </VARCONTROL> 
+			  <CONTROL valeur="naiss" deb="1983-01-01" fin="2100-12-31" format="date"/>
+		    </VARCONTROL>
 		    <TRANCHE code ="tranche1">
 		      <SEUIL>
 	  	        <VALUE valeur="1900-01-01" deb="1983-01-01" fin="2100-12-31"/>
@@ -3976,7 +3977,7 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 	  	  <CODE description="Nombre minimal d'enfant pour pouvoir bénéficier de la mda" code="nb_enf_min" format="integer">
 			<VALUE valeur="0" deb="1945-01-01" fin="2100-12-31"/>
 	  	  </CODE>
-	  	</NODE>  
+	  	</NODE>
    	   <NODE description="Majoration de la pension à partir de trois enfants" code="maj_3enf" >
 	      <CODE description="Taux de majoration pour trois enfants" code="taux" format="float">
 			<VALUE valeur="0.10" deb="1945-01-01" fin="2100-12-31"/>
