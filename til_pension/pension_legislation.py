@@ -233,9 +233,11 @@ class PensionLegislation(object):
 
         param_codes = ['common.plaf_ss', 'indep.cot_indus', 'prive.complementaire.agirc.cet_sal',
                        'prive.complementaire.agirc.cet_pat', 'indep.cot_arti', 'public.fp.cot_pat',
-                       'public.fp.cot_sal', 'public.rafp.cot_pat', 'public.rafp.cot_sal']
+                       'public.fp.cot_sal', 'public.rafp.cot_pat', 'public.rafp.cot_sal',
+                       'prive.complementaire.agirc.taux_appel', 'prive.complementaire.arrco.taux_appel']
         param_baremes = ['prive.RG.cot_sal', 'prive.RG.cot_pat', 'prive.complementaire.arrco.cot_sal',
                          'prive.complementaire.arrco.cot_pat', 'prive.complementaire.agirc.cot_sal',
+                         'prive.complementaire.arrco.taux_contractuel_moy', 'prive.complementaire.agirc.taux_contractuel_moy',
                          'prive.complementaire.agirc.cot_pat']
 
         for param_name in param_codes:
