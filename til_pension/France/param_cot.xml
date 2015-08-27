@@ -1,7 +1,7 @@
 
 <NODE description= "Cotisations retraites" code="cot">
 	 <NODE description="Commun à tous les régimes" code="common">
-	 	 <CODE description= "Plafond de la sécurité sociale" code="plaf_ss" format="float" longitudinal="true">
+	 <CODE description= "Plafond de la sécurité sociale" code="plaf_ss" format="float" longitudinal="true">
 	  <VALUE valeur= "131004.945715" deb="2100-01-01" fin="2100-12-01"/>
 	  <VALUE valeur= "129068.912034" deb="2099-01-01" fin="2099-12-31"/>
 	  <VALUE valeur= "127161.489689" deb="2098-01-01" fin="2098-12-31"/>
@@ -356,7 +356,6 @@
 			 		</TAUX>
 			 	</TRANCHE>
 			</BAREME>
-
 			<BAREME description="Cotisations retraites employeurs ARRCO, entreprises créées avant 1997" code="cot_pat" format="float" longitudinal="true">
 				<TRANCHE code="tranche0">
 					<SEUIL description= "Plancher tranche 1 (à multiplier par le PSS)">
@@ -435,7 +434,7 @@
 			 		</TAUX>
 			 	</TRANCHE>
 			</BAREME>
-			<BAREME description="Cotisations retraites employeurs ARRCO, entreprises créées après 1997" code="cot_pat" format="float" longitudinal="true">
+			<BAREME description="Cotisations retraites employeurs ARRCO, entreprises créées après 1997" code="cot_pat_97" format="float" longitudinal="true">
 				<TRANCHE code="tranche0">
 					<SEUIL description= "Plancher tranche 1 (à multiplier par le PSS)">
 				  		<VALUE valeur="0" deb="1949-01-01" fin="2100-12-01"/>
@@ -477,6 +476,55 @@
 			 		</TAUX>
 			 	</TRANCHE>
 			</BAREME>
+	 	<BAREME description="Taux contractuel moyen (estimation) pour l'ARRCO, Unirs entre 57-62" code="taux_contractuel_moy" format="float" longitudinal="true">
+	 			<TRANCHE code="tranche0">
+		 			<SEUIL description= "Limite tranche 1 (à multiplier par le PSS)">
+				  		<VALUE valeur="0" deb="1949-01-01" fin="2100-12-01"/>
+				 	</SEUIL>
+			 		<TAUX>
+			 			<VALUE valeur="0.065" deb="1999-01-01" fin="2100-12-01"/>
+			 			<VALUE valeur="0.063" deb="1998-01-01" fin="1998-12-01"/>
+			 			<VALUE valeur="0.06" deb="1997-01-01" fin="1997-12-01"/>
+			 			<VALUE valeur="0.058" deb="1996-01-01" fin="1996-12-01"/>
+			 			<VALUE valeur="0.056" deb="1994-01-01" fin="1995-12-01"/>
+			 			<VALUE valeur="0.054" deb="1955-01-01" fin="1993-12-01"/>
+			 			<VALUE valeur="0.0" deb="1949-01-01" fin="1954-12-01"/>
+			 		</TAUX>
+		 		</TRANCHE>
+		 		<TRANCHE code="tranche1">
+			 		<SEUIL description= "Limite tranche 2 (à multiplier par le PSS)">
+					  <VALUE valeur="1" deb="1949-01-01" fin="2100-12-01"/>
+					 </SEUIL>
+			 		<TAUX>
+			 			<VALUE valeur="0.16" deb="2005-01-01" fin="2100-12-01"/>
+			 			<VALUE valeur="0.145" deb="2004-01-01" fin="2004-12-01"/>
+			 			<VALUE valeur="0.125" deb="2002-01-01" fin="2003-12-01"/>
+			 			<VALUE valeur="0.105" deb="2000-01-01" fin="2001-12-01"/>
+			 			<VALUE valeur="0.09" deb="1999-01-01" fin="1999-12-01"/>
+			 			<VALUE valeur="0.08" deb="1955-01-01" fin="1998-12-01"/>
+			 			<VALUE valeur="0.0" deb="1949-01-01" fin="1954-12-01"/>
+			 		</TAUX>
+		 		</TRANCHE>
+		 		<TRANCHE code="tranche2">
+			 		<SEUIL description= "Limite tranche 2 (à multiplier par le PSS)">
+					  <VALUE valeur="3" deb="1949-01-01" fin="2100-12-01"/>
+					 </SEUIL>
+			 		<TAUX>
+			 			<VALUE valeur="0.0" deb="1949-01-01" fin="2100-12-01"/>
+			 		</TAUX>
+		 		</TRANCHE>
+		 	</BAREME>
+	 <CODE description= "Taux appel Arrco" code="taux_appel" format="float" longitudinal="true">
+	  <VALUE valeur= "1.25" deb="1991-01-01" fin="1991-12-31"/>
+	  <VALUE valeur= "1.2" deb="1988-01-01" fin="1990-12-31"/>
+	  <VALUE valeur= "1.175" deb="1986-01-01" fin="1987-12-31"/>
+	  <VALUE valeur= "1.15" deb="1983-01-01" fin="1985-12-31"/>
+	  <VALUE valeur= "1.1" deb="1974-01-01" fin="1982-12-31"/>
+	  <VALUE valeur= "1.075" deb="1973-01-01" fin="1973-12-31"/>
+	  <VALUE valeur= "1.05" deb="1972-01-01" fin="1972-12-31"/>
+	  <VALUE valeur= "1.025" deb="1971-01-01" fin="1971-12-31"/>
+	  <VALUE valeur= "1" deb="1949-01-01" fin="1970-12-31"/>
+	</CODE>
 		</NODE>
 		<NODE description="Retraites complémentaires des cadres : AGIRC" code="agirc">
 		<BAREME description="Cotisations retraites salariales AGIRC, entreprises créées avant 1981" code="cot_sal" format="float" longitudinal="true">
@@ -715,6 +763,79 @@
 		 		</TAUX>
 		 	</TRANCHE>
 		</BAREME>
+    		 	<BAREME description="Taux contractuel moyen pour l'AGIRC (tranche B et C)" code="taux_contractuel_moy" format="float" longitudinal="true">
+	 			<TRANCHE code="tranche0">
+		 			<SEUIL description= "Limite tranche B (à multiplier par le PSS)">
+				  		<VALUE valeur="1" deb="1949-01-01" fin="2100-12-01"/>
+				 	</SEUIL>
+			 		<TAUX>
+						<VALUE valeur="0.101" deb="1949-01-01" fin="1951-12-31"/>
+                                  <VALUE valeur="0.1220" deb="1952-01-01" fin="1956-12-31"/>
+                                  <VALUE valeur="0.1300" deb="1957-01-01" fin="1960-12-31"/>
+						<VALUE valeur="0.137" deb="1961-01-01" fin="1965-12-31"/>
+						<VALUE valeur="0.135" deb="1966-01-01" fin="1966-12-31"/>
+						<VALUE valeur="0.141" deb="1967-01-01" fin="1967-12-31"/>
+						<VALUE valeur="0.142" deb="1968-01-01" fin="1969-12-31"/>
+						<VALUE valeur="0.141" deb="1970-01-01" fin="1971-12-31"/>
+						<VALUE valeur="0.139" deb="1972-01-01" fin="1972-12-31"/>
+						<VALUE valeur="0.143" deb="1973-01-01" fin="1973-12-31"/>
+						<VALUE valeur="0.142" deb="1974-01-01" fin="1974-12-31"/>
+						<VALUE valeur="0.140" deb="1975-01-01" fin="1975-12-31"/>
+						<VALUE valeur="0.139" deb="1976-01-01" fin="1976-12-31"/>
+						<VALUE valeur="0.140" deb="1977-01-01" fin="1978-12-31"/>
+						<VALUE valeur="0.139" deb="1979-01-01" fin="1981-12-31"/>
+						<VALUE valeur="0.138" deb="1982-01-01" fin="1982-12-31"/>
+						<VALUE valeur="0.139" deb="1983-01-01" fin="1983-12-31"/>
+						<VALUE valeur="0.138" deb="1984-01-01" fin="1984-12-31"/>
+						<VALUE valeur="0.139" deb="1985-01-01" fin="1990-12-31"/>
+						<VALUE valeur="0.142" deb="1991-01-01" fin="1991-12-31"/>
+						<VALUE valeur="0.143" deb="1992-01-01" fin="1992-12-31"/>
+						<VALUE valeur="0.144" deb="1993-01-01" fin="1993-12-31"/>
+						<VALUE valeur="0.147" deb="1994-01-01" fin="1994-12-31"/>
+						<VALUE valeur="0.149" deb="1995-01-01" fin="1995-12-31"/>
+						<VALUE valeur="0.152" deb="1996-01-01" fin="1996-12-31"/>
+						<VALUE valeur="0.154" deb="1997-01-01" fin="1997-12-31"/>
+						<VALUE valeur="0.157" deb="1998-01-01" fin="1998-12-31"/>
+						<VALUE valeur="0.160" deb="1999-01-01" fin="2100-12-31"/>
+			 		</TAUX>
+		 		</TRANCHE>
+		 		<TRANCHE code="tranche1">
+			 		<SEUIL description= "Limite tranche C (à multiplier par le PSS)">
+					  <VALUE valeur="4" deb="1949-01-01" fin="2100-12-01"/>
+					 </SEUIL>
+			 		<TAUX>
+						<VALUE valeur="0" deb="1949-01-01" fin="1987-12-31"/>
+						<VALUE valeur="0.15" deb="1988-01-01" fin="1988-12-31"/>
+						<VALUE valeur="0.146" deb="1989-01-01" fin="1990-12-31"/>
+						<VALUE valeur="0.134" deb="1991-01-01" fin="1991-12-31"/>
+						<VALUE valeur="0.136" deb="1992-01-01" fin="1992-12-31"/>
+						<VALUE valeur="0.139" deb="1993-01-01" fin="1993-12-31"/>
+						<VALUE valeur="0.142" deb="1994-01-01" fin="1994-12-31"/>
+						<VALUE valeur="0.145" deb="1995-01-01" fin="1995-12-31"/>
+						<VALUE valeur="0.147" deb="1996-01-01" fin="1996-12-31"/>
+						<VALUE valeur="0.152" deb="1997-01-01" fin="1997-12-31"/>
+						<VALUE valeur="0.156" deb="1998-01-01" fin="1998-12-31"/>
+						<VALUE valeur="0.16" deb="1999-01-01" fin="2005-12-31"/>
+                                    <VALUE valeur="0.165" deb="2006-01-01" fin="2100-12-31"/>
+			 		</TAUX>
+		 		</TRANCHE>
+		 		<TRANCHE code="tranche2">
+		 			<SEUIL>
+		 				<VALUE valeur='8' deb="1949-01-01" fin="2100-12-01"/>
+		 			</SEUIL>
+		 			<TAUX>
+		 				<VALUE valeur='0' deb="1949-01-01" fin="2100-12-01"/>
+		 			</TAUX>
+		 		</TRANCHE>
+		 	</BAREME>
+	 <CODE description= "Taux appel Agirc" code="taux_appel" format="float" longitudinal="true">
+	  <VALUE valeur= "1.25" deb="1993-01-01" fin="1991-12-31"/>
+	  <VALUE valeur= "1.15" deb="1987-01-01" fin="1993-12-31"/>
+	  <VALUE valeur= "1.03" deb="1979-01-01" fin="1986-12-31"/>
+        <VALUE valeur= "0.9" deb="1960-01-01" fin="1965-12-31"/>
+        <VALUE valeur= "0.85" deb="1958-01-01" fin="1959-12-31"/>
+	  <VALUE valeur= "0.8" deb="1949-01-01" fin="1957-12-31"/>
+	</CODE>
 		<CODE description="Cotisation Exceptionnelle et Temporaire, cotisation salariale pour les cadres du régime Agirc" code="cet_sal" format="float" longitudinal="true">
 		  <VALUE valeur="0.0013" deb="2001-01-01" fin="2100-12-01"/>
 		  <VALUE valeur="0.0011" deb="2000-01-01" fin="2000-12-31"/>

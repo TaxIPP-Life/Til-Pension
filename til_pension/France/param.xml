@@ -2113,7 +2113,7 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 				<VALUE valeur="0.05" deb="1945-01-01" fin="1954-12-31"/>
 			  	<VALUE valeur="0.0" deb="1955-01-01" fin="2100-12-31"/>
 			</CODE>
-	 		<BAREME description="Taux de cotisation minimal pour l'ARRCO" code="taux_cot" format="float" longitudinal="true">
+	 		<BAREME description="Taux contractuel minimal pour l'ARRCO" code="taux_cot" format="float" longitudinal="true">
 	 			<TRANCHE code="tranche0">
 		 			<SEUIL description= "Limite tranche 1 (à multiplier par le PSS)">
 				  		<VALUE valeur="0" deb="1949-01-01" fin="2100-12-01"/>
@@ -2124,7 +2124,8 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 			 			<VALUE valeur="0.055" deb="1998-01-01" fin="1998-12-01"/>
 			 			<VALUE valeur="0.05" deb="1997-01-01" fin="1997-12-01"/>
 			 			<VALUE valeur="0.045" deb="1996-01-01" fin="1996-12-01"/>
-			 			<VALUE valeur="0.04" deb="1949-01-01" fin="1995-12-01"/>
+			 			<VALUE valeur="0.04" deb="1962-01-01" fin="1995-12-01"/>
+                                  <VALUE valeur="0.00" deb="1949-01-01" fin="1961-12-01"/>
 			 		</TAUX>
 		 		</TRANCHE>
 		 		<TRANCHE code="tranche1">
@@ -2139,7 +2140,8 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 			 			<VALUE valeur="0.055" deb="1998-01-01" fin="1998-12-01"/>
 			 			<VALUE valeur="0.05" deb="1997-01-01" fin="1997-12-01"/>
 			 			<VALUE valeur="0.045" deb="1996-01-01" fin="1996-12-01"/>
-			 			<VALUE valeur="0.04" deb="1949-01-01" fin="1995-12-01"/>
+			 			<VALUE valeur="0.04" deb="1962-01-01" fin="1995-12-01"/>
+                                   <VALUE valeur="0.00" deb="1949-01-01" fin="1961-12-01"/>
 			 		</TAUX>
 		 		</TRANCHE>
 		 		<TRANCHE code="tranche2">
@@ -2151,7 +2153,7 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 			 		</TAUX>
 		 		</TRANCHE>
 		 	</BAREME>
-		 	<BAREME description="Taux de cotisation moyen (estimation) pour l'ARRCO, Unirs entre 57-62" code="taux_cot_moy" format="float" longitudinal="true">
+		 	<BAREME description="Taux contractuel moyen (estimation) pour l'ARRCO, Unirs entre 57-62" code="taux_cot_moy" format="float" longitudinal="true">
 	 			<TRANCHE code="tranche0">
 		 			<SEUIL description= "Limite tranche 1 (à multiplier par le PSS)">
 				  		<VALUE valeur="0" deb="1949-01-01" fin="2100-12-01"/>
@@ -2162,9 +2164,8 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 			 			<VALUE valeur="0.06" deb="1997-01-01" fin="1997-12-01"/>
 			 			<VALUE valeur="0.058" deb="1996-01-01" fin="1996-12-01"/>
 			 			<VALUE valeur="0.056" deb="1994-01-01" fin="1995-12-01"/>
-			 			<VALUE valeur="0.054" deb="1963-01-01" fin="1993-12-01"/>
-			 			<VALUE valeur="0.025" deb="1957-01-01" fin="1962-12-01"/>
-			 			<VALUE valeur="0.0" deb="1949-01-01" fin="1956-12-01"/> #TODO: check this with leg
+			 			<VALUE valeur="0.054" deb="1955-01-01" fin="1993-12-01"/>
+			 			<VALUE valeur="0.0" deb="1949-01-01" fin="1954-12-01"/>
 			 		</TAUX>
 		 		</TRANCHE>
 		 		<TRANCHE code="tranche1">
@@ -2177,8 +2178,8 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 			 			<VALUE valeur="0.125" deb="2002-01-01" fin="2003-12-01"/>
 			 			<VALUE valeur="0.105" deb="2000-01-01" fin="2001-12-01"/>
 			 			<VALUE valeur="0.09" deb="1999-01-01" fin="1999-12-01"/>
-			 			<VALUE valeur="0.08" deb="1957-01-01" fin="1998-12-01"/>
-			 			<VALUE valeur="0.0" deb="1949-01-01" fin="1956-12-01"/> #TODO: check this with leg
+			 			<VALUE valeur="0.08" deb="1955-01-01" fin="1998-12-01"/>
+			 			<VALUE valeur="0.0" deb="1949-01-01" fin="1954-12-01"/>
 			 		</TAUX>
 		 		</TRANCHE>
 		 		<TRANCHE code="tranche2">
@@ -2668,14 +2669,16 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 		 			</TAUX>
 		 		</TRANCHE>
 		 	</BAREME>
-		 	<BAREME description="Taux de cotisation moyen pour l'AGIRC (tranche B et C)" code="taux_cot_moy" format="float" longitudinal="true">
+		 	<BAREME description="Taux contractuel moyen pour l'AGIRC (tranche B et C)" code="taux_cot_moy" format="float" longitudinal="true">
 	 			<TRANCHE code="tranche0">
 		 			<SEUIL description= "Limite tranche B (à multiplier par le PSS)">
 				  		<VALUE valeur="1" deb="1949-01-01" fin="2100-12-01"/>
 				 	</SEUIL>
 			 		<TAUX>
-						<VALUE valeur="0.138" deb="1949-01-01" fin="1963-12-31"/>
-						<VALUE valeur="0.137" deb="1964-01-01" fin="1965-12-31"/>
+						<VALUE valeur="0.101" deb="1949-01-01" fin="1951-12-31"/>
+                                  <VALUE valeur="0.1220" deb="1952-01-01" fin="1956-12-31"/>
+                                  <VALUE valeur="0.1300" deb="1957-01-01" fin="1960-12-31"/>
+						<VALUE valeur="0.137" deb="1961-01-01" fin="1965-12-31"/>
 						<VALUE valeur="0.135" deb="1966-01-01" fin="1966-12-31"/>
 						<VALUE valeur="0.141" deb="1967-01-01" fin="1967-12-31"/>
 						<VALUE valeur="0.142" deb="1968-01-01" fin="1969-12-31"/>
@@ -2718,7 +2721,8 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 						<VALUE valeur="0.147" deb="1996-01-01" fin="1996-12-31"/>
 						<VALUE valeur="0.152" deb="1997-01-01" fin="1997-12-31"/>
 						<VALUE valeur="0.156" deb="1998-01-01" fin="1998-12-31"/>
-						<VALUE valeur="0.16" deb="1999-01-01" fin="2100-12-31"/>
+						<VALUE valeur="0.16" deb="1999-01-01" fin="2005-12-31"/>
+                                    <VALUE valeur="0.165" deb="2006-01-01" fin="2100-12-31"/>
 			 		</TAUX>
 		 		</TRANCHE>
 		 		<TRANCHE code="tranche2">
