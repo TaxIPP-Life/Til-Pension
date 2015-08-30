@@ -3,21 +3,23 @@ import pandas as pd
 from numpy import nan
 from til_pension.simulation import PensionSimulation
 from til_pension.pension_legislation import PensionParam, PensionLegislation
-from til_pension.sandbox.eic.load_eic import load_eic_eir_data, load_eic_eir_table
+from til_pension.sandbox.eic.load_eic import load_eic_eir_data
+from til_pension.sandbox.tri.compute_TRI import revalo_pension
 
 
-def pensions_decomposition_eic(path_file_h5_eic, contribution=False, yearmin=2004, yearmax=2009):
+def pensions_decomposition_eic(path_file_h5_eic, contribution=False, yearmin=2002, yearmax=2011):
     depart_by_yearsim = dict()
     # Define dates du taux plein -> already defined in individual info
     # Data contains 4 type of information: info_ind, pension_eir, salbrut, workstate
     already_retired = []
     for yearsim in range(yearmin, yearmax):
-        df = load_eic_eir_table(path_file_h5_eic, 'info_ind', columns=['year_retired'])
-        ident_depart = list(df.loc[df['year_retired'] == yearsim].index)
+        df = load_eic_eir_data(path_file_h5_eic, to_return = True)
+        idents = df['individus'].loc[df['individus']['year_liquidation_RG'] == yearsim, :].index
+        ident_depart = list(idents)
         depart_by_yearsim[yearsim] = ident_depart
         already_retired += ident_depart
         print "Nb of retired people for ", yearsim, len(ident_depart)
-    regimes = ['RG', 'agirc', 'arrco', 'FP']
+    regimes = ['RG', 'agirc', 'arrco'] #, 'FP'
     nb_reg = len(regimes)
     ident_index = [ident for ident in already_retired for i in range(nb_reg)]
     reg_index = regimes * len(already_retired)
@@ -44,7 +46,7 @@ def pensions_decomposition_eic(path_file_h5_eic, contribution=False, yearmin=200
             print reg
             pensions_year[reg] = simul_til.calculate("pension", regime_name = reg)
             majo[reg] = simul_til.calculate("majoration_pension", regime_name = reg)
-            if reg in ['FP', 'RG']:
+            if reg in ['RG']:  # 'FP'
                 minimum[reg] = simul_til.calculate("minimum_pension", regime_name = reg)
             if reg in ['agirc', 'arrco']:
                 minimum[reg] = simul_til.calculate("minimum_points", regime_name = reg)
@@ -89,6 +91,13 @@ def pensions_decomposition_eic(path_file_h5_eic, contribution=False, yearmin=200
     return pensions
 
 
+def coeff_inverse_revalo(row):
+    year_dep = row['year_liquidation_RG']
+    eir_year = row['eir']
+    coeff_revalo = revalo_pension(year_dep, eir_year).product()
+    return 1 / coeff_revalo
+
+
 def compare_eir(path_file_h5_eic):
     result_til = pensions_decomposition_eic(path_file_h5_eic, contribution=False)
     result_til = result_til.rename(columns = {'ident': 'noind'})
@@ -125,14 +134,18 @@ def compare_eir(path_file_h5_eic):
         to_compare += ['delta_' + delta]
     return result[to_compare]
 
+
 if __name__ == '__main__':
-    test = True
+    test = False
     if test:
-        path_file_h5_eic = 'C:\\Users\\l.pauldelvaux\\Desktop\\MThesis\\Data\\test_final.h5'
-        path_file_h5_eic2 = 'C:\\Users\\l.pauldelvaux\\Desktop\\MThesis\\Data\\test_final2.h5'
+        path_file_h5_eic = 'C:\\Users\\l.pauldelvaux\\Desktop\\MThesis\\Data\\test_modified.h5'
     else:
-        path_file_h5_eic = 'C:\\Users\\l.pauldelvaux\\Desktop\\MThesis\\Data\\final.h5'
-        path_file_h5_eic2 = 'C:\\Users\\l.pauldelvaux\\Desktop\\MThesis\\Data\\final2.h5'
+        path_file_h5_eic = 'C:\\Users\\l.pauldelvaux\\Desktop\\MThesis\\Data\\modified.h5'
     result = compare_eir(path_file_h5_eic)
-    result.to_csv('result.csv', sep=";", decimal=',')
+    result = result.loc[result['regime'].isin(['RG', 'agirc', 'arrco']), :]
+    result.to_csv('result.csv', sep=";", decimal='.')
+    if test:
+        result.to_csv('result_test.csv', sep=";", decimal='.')
+    else:
+        result.to_csv('result.csv', sep=";", decimal='.')
     data = load_eic_eir_data(path_file_h5_eic, to_return=True)
