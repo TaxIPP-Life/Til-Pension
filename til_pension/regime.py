@@ -69,6 +69,7 @@ class Regime(object):
             start_surcote = [datesim - nb_year * 100
                              if nb_year > 0 else 2100 * 100 + 1
                              for nb_year in nb_years_surcote]
+
             return start_surcote
 
     def date_start_taux_plein(self, data, trimesters_tot, trim_maj_tot,
@@ -123,6 +124,11 @@ class Regime(object):
             cot_sal_by_year = multiply(cot_sal_by_year, revalo)
             cot_pat_by_year = multiply(cot_pat_by_year, revalo)
         return {'sal': cot_sal_by_year, 'pat': cot_pat_by_year}
+
+    def compare_salbrut_SS_ceiling(self, data):
+        plafond_ss = self.P_longit.common.plaf_ss
+        nb_ss = data['salbrut'].copy() // plafond_ss
+        return nb_ss
 
 
 class RegimeBase(Regime):
@@ -232,17 +238,19 @@ class RegimeComplementaires(Regime):
         nb_points_by_year = nombre_points.round(2)
         return nb_points_by_year
 
-    def coefficient_age(self, data, nb_trimesters):
+    def coefficient_age(self, data, nb_trimesters, trim_decote):
         ''' TODO: add surcote  pour avant 1955 '''
         P = reduce(getattr, self.param_name.split('.'), self.P)
         coef_mino = P.coef_mino
         agem = data.info_ind['agem']
+        # print data.info_ind.dtype.names
         age_annulation_decote = self.P.prive.RG.decote.age_null
         diff_age = divide(age_annulation_decote - agem, 12) * (age_annulation_decote > agem)
+        if P.cond_taux_plein == 1:
+            diff_trim = minimum(diff_age, divide(trim_decote, 4))
         coeff_min = zeros(len(agem))
         for nb_annees, coef_mino in coef_mino._tranches:
-            coeff_min += (diff_age == nb_annees) * coef_mino
-
+            coeff_min += (diff_trim == nb_annees) * coef_mino
         coeff_min += P.coeff_maj * diff_age
         if P.cond_taux_plein == 1:
             # Dans ce cas, la minoration ne s'applique que si la durée de cotisation
@@ -254,7 +262,7 @@ class RegimeComplementaires(Regime):
             coeff_min = 1
         return coeff_min
 
-    def majoration_enf(self, data, nombre_points):
+    def nb_points_enf(self, data, nombre_points):
         ''' Application de la majoration pour enfants à charge. Deux types de
         majorations peuvent s'appliquer :
           - pour enfant à charge au moment du départ en retraite
@@ -264,7 +272,6 @@ class RegimeComplementaires(Regime):
         P_long = reduce(getattr, self.param_name.split('.'), self.P_longit).maj_enf
         nb_pac = data.info_ind['nb_pac'].copy()
         nb_born = data.info_ind['nb_enf_all'].copy()
-
         # 1- Calcul des points pour enfants à charge
         taux_pac = P.maj_enf.pac.taux
         points_pac = nombre_points.sum(axis=1) * taux_pac * nb_pac
@@ -287,34 +294,32 @@ class RegimeComplementaires(Regime):
 
             points_born += nb_points_enf
         # Retourne la situation la plus avantageuse
+        return maximum(points_born, points_pac)
+
+    def majoration_pension(self, nb_points_enf):
+        P = reduce(getattr, self.param_name.split('.'), self.P)
         val_point = P.val_point
-        if compare_destinie:
-            val_point = P.val_point_proj
-            return points_born * val_point
-        return maximum(points_born, points_pac) * val_point
+        return nb_points_enf * val_point
 
-    def majoration_pension(self, majoration_enf):
-        return majoration_enf
-
-    def nb_points(self, nombre_points):
+    def nb_points_cot(self, nombre_points):
         return nombre_points.sum(axis=1)
 
     def pension(self, data, coefficient_age, pension_brute_b,
                 majoration_pension, trim_decote):
+        ''' le régime Arrco ne tient pas compte du coefficient de
+        minoration pour le calcul des majorations pour enfants '''
         P = reduce(getattr, self.param_name.split('.'), self.P)
         pension = pension_brute_b + majoration_pension
         decote = trim_decote * P.taux_decote
         pension = (1 - decote) * pension
         return pension * coefficient_age
 
-    def pension_brute(self, pension_brute_b):
-        return pension_brute_b
-
-    def pension_brute_b(self, nb_points, minimum_points):
+    def pension_brute(self, nb_points, minimum_points):
         P = reduce(getattr, self.param_name.split('.'), self.P)
         val_point = P.val_point
-        pension_brute_b = (nb_points + minimum_points) * val_point
-        return pension_brute_b
+        pension_brute = (nb_points + minimum_points) * val_point
+        return pension_brute
+
     def cotisations(self, sali_for_regime):
         ''' Calcul des cotisations passées par année'''
         sali = sali_for_regime.copy()
