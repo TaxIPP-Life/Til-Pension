@@ -26,7 +26,7 @@ class AGIRC(RegimeComplementaires):
 
     def sali_for_regime(self, data):
         workstate = data.workstate
-        sali = data.sali
+        sali = data.sali.copy()
         return sali * (workstate.isin(self.code_regime))
 
     def minimum_points(self, nombre_points):
@@ -39,7 +39,7 @@ class AGIRC(RegimeComplementaires):
 
     def cotisations(self, data):
         ''' Détermine les cotisations payées au cours de la carrière : même fonction que dans régime mais cet en plus'''
-        sali = data.sali * data.workstate.isin(self.code_regime).astype(int)
+        sali = data.sali.copy() * data.workstate.isin(self.code_regime).astype(int)
         Pcot_regime = reduce(getattr, self.param_name.split('.'), self.P_cot)
         # getattr(self.P_longit.prive.complementaire,  self.name)
         taux_pat = Pcot_regime.cot_pat
@@ -58,6 +58,34 @@ class AGIRC(RegimeComplementaires):
             cot_sal_by_year[:, ix_year] += cet_sal[ix_year] * sali[:, ix_year]
             cot_pat_by_year[:, ix_year] += cet_pat[ix_year] * sali[:, ix_year]
         return {'sal': cot_sal_by_year, 'pat': cot_pat_by_year}
+
+    def cotisations_moyennes(self, data):
+        ''' Détermine les cotisations payées au cours de la carrière quand les taux moyens sont appliqués'''
+        sali = data.sali.copy() * data.workstate.isin(self.code_regime).astype(int)
+        Pcot_regime = reduce(getattr, self.param_name.split('.'), self.P_cot)
+        # getattr(self.P_longit.prive.complementaire,  self.name)
+        taux_contractuel_moy = Pcot_regime.taux_contractuel_moy
+        taux_appel = Pcot_regime.taux_appel
+        assert len(taux_contractuel_moy) == sali.shape[1] == len(taux_appel)
+        cot_moy_by_year = zeros(sali.shape)
+        for ix_year in range(sali.shape[1]):
+            cot_moy_by_year[:, ix_year] = taux_contractuel_moy[ix_year].calc(sali[:, ix_year]) * taux_appel[ix_year]
+        cet_pat = Pcot_regime.cet_pat
+        cet_sal = Pcot_regime.cet_sal
+        assert len(cet_pat) == sali.shape[1] == len(cet_sal)
+        for ix_year in range(sali.shape[1]):
+            cot_moy_by_year[:, ix_year] += cet_sal[ix_year] * sali[:, ix_year] + cet_pat[ix_year] * sali[:, ix_year]
+        return cot_moy_by_year
+
+    def pension(self, data, coefficient_age, pension_brute,
+                majoration_pension, trim_decote):
+        ''' le régime agirc tient compte du coefficient de
+        minoration dans le calcul des majorations pour enfants '''
+        pension = coefficient_age * (pension_brute + majoration_pension)
+        return pension
+
+    def nb_points(self, data, nb_points_cot):
+        return nb_points_cot
 
 
 class ARRCO(RegimeComplementaires):
@@ -103,3 +131,32 @@ class ARRCO(RegimeComplementaires):
 
     def minimum_points(self, nombre_points):
         return nombre_points.sum(axis=1) * 0
+
+    def nb_points(self, data, nb_points_cot):
+        nb_points_other = 0
+        # Points d'ancienneté dans le Régime qui sont déterminées par une source externe (EIR)
+        if 'nb_point_anc_arrco' in data.info_ind.dtype.names:
+            nb_points_other = data.info_ind['nb_point_anc_arrco']
+        if 'nb_point_grat_arrco' in data.info_ind.dtype.names:
+            nb_points_other += data.info_ind['nb_point_grat_arrco']
+        return nb_points_cot
+
+    def pension(self, data, coefficient_age, pension_brute,
+                majoration_pension, trim_decote):
+        ''' le régime Arrco ne tient pas compte du coefficient de
+        minoration dans le calcul des majorations pour enfants '''
+        pension = coefficient_age * pension_brute + majoration_pension
+        return pension
+
+    def cotisations_moyennes(self, sali_for_regime):
+        ''' Détermine les cotisations payées au cours de la carrière quand les taux moyens sont appliqués'''
+        sali = sali_for_regime.copy()
+        Pcot_regime = reduce(getattr, self.param_name.split('.'), self.P_cot)
+        # getattr(self.P_longit.prive.complementaire,  self.name)
+        taux_contractuel_moy = Pcot_regime.taux_contractuel_moy
+        taux_appel = Pcot_regime.taux_appel
+        assert len(taux_contractuel_moy) == sali.shape[1] == len(taux_appel)
+        cot_moy_by_year = zeros(sali.shape)
+        for ix_year in range(sali.shape[1]):
+            cot_moy_by_year[:, ix_year] = taux_contractuel_moy[ix_year].calc(sali[:, ix_year]) * taux_appel[ix_year]
+        return cot_moy_by_year

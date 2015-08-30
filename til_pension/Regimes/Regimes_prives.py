@@ -129,7 +129,7 @@ class RegimeSocialIndependants(RegimePrive):
 
     def cotisations(self, data):
         ''' Calcul des cotisations passées par année'''
-        sali = data.sali * data.workstate.isin(self.code_regime).astype(int)
+        sali = data.sali.copy() * data.workstate.isin(self.code_regime).astype(int)
         taux = self.P_cot.indep.cot_arti
         assert len(taux) == sali.shape[1]
         cot_by_year = zeros(sali.shape)
