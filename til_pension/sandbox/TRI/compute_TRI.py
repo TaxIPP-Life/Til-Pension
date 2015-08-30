@@ -30,34 +30,32 @@ def revalo_pension(year_liq, year_target, path_xlsx = path_xlsx):
     return df.groupby(['year'])['revaloRG'].apply(lambda x: x.prod())
 
 
-def flow_pensions(pensions_contrib, nominal = True, vector = True):
+def flow_pensions(pensions_contrib, nominal = False, vector = True):
     year_dep = int(pensions_contrib['year_dep'])
     year_death = pensions_contrib['death']
-    pension = pensions_contrib['pension']
+    if nominal:
+        pension = pensions_contrib['pension']
+    else:
+        pension = pensions_contrib['pension_reel']
     nb_pensions = int(year_death - year_dep + 1)
     flow_pensions = [pension] * nb_pensions
-    if nominal:
-        if vector:
-            return flow_pensions
-        else:
-            return sum(flow_pensions)
+    if vector:
+        return flow_pensions
     else:
-        # Le salaire doit être passé en réel
-        nominal_to_reel = indices_prix(year_dep, year_death)
-        assert len(flow_pensions) == len(nominal_to_reel)
-        flow_pensions = list(flow_pensions * nominal_to_reel)
-        if vector:
-            return flow_pensions
-        else:
-            return sum(flow_pensions)
+        return sum(flow_pensions)
 
 
-def flow_contributions(pensions_contrib, nominal=True, vector = True):
+def flow_contributions(pensions_contrib, nominal=True, vector = True, taux_moyen = False):
     year_naiss = int(str(pensions_contrib['naiss'])[0:4])
     year_dep = int(pensions_contrib['year_dep'])
     findet = int(pensions_contrib.loc['findet'])
-    flow_contrib = [- pensions_contrib.loc[str(year * 100 + 1)]
-                    for year in range(year_naiss + findet, year_dep)]
+    if taux_moyen:
+        flow_contrib = [- pensions_contrib.loc['contrib_moy_' + str(year * 100 + 1)]
+                for year in range(year_naiss + findet, year_dep)]
+    else:
+        flow_contrib = [- pensions_contrib.loc[str(year * 100 + 1)]
+                        for year in range(year_naiss + findet, year_dep)]
+
     if nominal:
         if vector:
             return flow_contrib
@@ -74,7 +72,7 @@ def flow_contributions(pensions_contrib, nominal=True, vector = True):
             return sum(flow_contrib)
 
 
-def flow(rate, pensions_contrib, nominal):
+def flow(rate, pensions_contrib, nominal, taux_moyen):
     ''' fonction individuelle de calcul de la partie cotisation du TRI '''
     year_naiss = int(str(pensions_contrib['naiss'])[0:4])
     year_dep = int(pensions_contrib['year_dep'])
@@ -82,7 +80,7 @@ def flow(rate, pensions_contrib, nominal):
     year_death = pensions_contrib['death']
     nb_contrib = year_dep - (year_naiss + findet)
     nb_pensions = int(year_death - year_dep + 1)
-    flow_contrib = flow_contributions(pensions_contrib, nominal = nominal)
+    flow_contrib = flow_contributions(pensions_contrib, nominal = nominal, taux_moyen = taux_moyen)
     flow_pens = flow_pensions(pensions_contrib, nominal = nominal)
     flows = flow_contrib + flow_pens
     assert len(flows) == nb_pensions + nb_contrib
@@ -90,8 +88,8 @@ def flow(rate, pensions_contrib, nominal):
     return sum(flows * actual)
 
 
-def TRI(pensions_contrib, val0 = 1.3, nominal = False):
-    sol = fsolve(flow, val0, args=(pensions_contrib, nominal),
+def TRI(pensions_contrib, val0 = 0.98, nominal = False, taux_moyen = False):
+    sol = fsolve(flow, val0, args=(pensions_contrib, nominal, taux_moyen),
                  maxfev = 400)
     try:
         rate = [s for s in sol if s > 1 / 2 and s < 1][0]
