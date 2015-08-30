@@ -7,30 +7,31 @@ from til_pension.pension_legislation import PensionParam, PensionLegislation
 from til_pension.sandbox.eic.load_eic import load_eic_eir_data, load_eic_eir_table
 
 
-def compute_pensions_eic(path_file_h5_eic, contribution=True, yearmin=2004, yearmax=2009):
+def compute_pensions_eic(path_file_h5_eic, contribution=True, yearmin=2003, yearmax=2011):
     depart_by_yearsim = dict()
     # Define dates du taux plein -> already defined in individual info
     # Data contains 4 type of information: info_ind, pension_eir, salbrut, workstate
     already_retired = []
     for yearsim in range(yearmin, yearmax):
-        df = load_eic_eir_table(path_file_h5_eic, 'info_ind', columns=['year_retired'])
-        ident_depart = list(df.loc[df['year_retired'] == yearsim].index)
+        df = load_eic_eir_data(path_file_h5_eic, to_return = True)
+        idents = df['individus'].loc[df['individus']['year_liquidation_RG'] == yearsim, :].index
+        ident_depart = list(idents)
         depart_by_yearsim[yearsim] = ident_depart
         already_retired += ident_depart
         print "Nb of retired people for ", yearsim, len(ident_depart)
     workstate = load_eic_eir_table(path_file_h5_eic, 'workstate')
     first_year_sal = int(min(workstate.columns) // 100)
-
-    regimes = ['RG', 'agirc', 'arrco', 'FP']
+    regimes = ['RG', 'agirc', 'arrco'] #FP
     nb_reg = len(regimes)
     ident_index = [ident for ident in already_retired for i in range(nb_reg)]
     reg_index = regimes * len(already_retired)
     if contribution:
         all_dates = [str(year * 100 + 1) for year in range(first_year_sal, yearmax)]
+        yersim_moy = ['contrib_moy_' + str(date) for date in all_dates]
         pensions_contrib = pd.DataFrame(
             0,
             index = ident_index,
-            columns = ['ident', 'age', 'naiss', 'n_enf', 'findet', 'sexe', 'year_dep', 'regime', 'pension', 'pcs'] + all_dates,
+            columns = ['ident', 'age', 'naiss', 'n_enf', 'findet', 'sexe', 'year_dep', 'regime', 'pension', 'pcs'] + all_dates + yersim_moy,
             )
     else:
         pensions_contrib = pd.DataFrame(
@@ -45,12 +46,12 @@ def compute_pensions_eic(path_file_h5_eic, contribution=True, yearmin=2004, year
         print(yearsim)
         ident_depart = [int(ident) for ident in depart_by_yearsim[yearsim]]
         data_bounded = load_eic_eir_data(path_file_h5_eic, yearsim, id_selected=ident_depart)
-        print("Data loaded")
+        # print("Data loaded")
         param = PensionParam(yearsim, data_bounded)
         legislation = PensionLegislation(param)
         simul_til = PensionSimulation(data_bounded, legislation)
         simul_til.set_config()
-        print("Simulation initialized")
+        # print("Simulation initialized")
         # pensions_year = simul_til.calculate("pension")
         # assert len(pensions_year['FP']) == len(cotisations_year['FP']['sal']) == len(depart_by_yearsim[yearsim])
         dates_yearsim = [str(year * 100 + 1) for year in range(first_year_sal, yearsim)]
@@ -68,6 +69,12 @@ def compute_pensions_eic(path_file_h5_eic, contribution=True, yearmin=2004, year
                                                                 cotisations_year[reg]['pat']
                 else:
                     pensions_contrib.loc[cond, dates_yearsim] = cotisations_year[reg]['tot']
+                if reg in ['agirc', 'arrco']:
+                    cotisation_moy = simul_til.calculate("cotisations_moyennes", regime_name = reg)
+                    dates_yearsim_moy = ['contrib_moy_' + str(date) for date in dates_yearsim]
+                    pensions_contrib.loc[cond, dates_yearsim_moy] = cotisation_moy
+        cond_RG = (pensions_contrib['regime']== 'RG')
+        pensions_contrib.loc[cond_RG, dates_yearsim_moy] = pensions_contrib.loc[cond_RG, dates_yearsim].copy().values
         pensions_contrib['year_dep'][pensions_contrib['ident'].isin(ident_depart)] = yearsim
         cond = (pensions_contrib['ident'].isin(ident_depart)) & (pensions_contrib['regime'] == 'RG')
         pensions_contrib.loc[cond, 'age'] = \

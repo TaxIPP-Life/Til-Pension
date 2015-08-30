@@ -1,10 +1,17 @@
 # -*- coding: utf-8 -*-
-
+import gc
 import datetime as dt
+import numpy as np
 import pandas as pd
 from numpy import maximum
 from matching_patrimoine_eic.matching.databases_builder import build_data_eic_eir_til
 from til_pension.pension_data import PensionData
+
+
+def rounding_date_to_year(date):
+    year = date.year
+    semester = date.month // 6
+    return year + semester
 
 
 def index_by_noind(df):
@@ -22,8 +29,26 @@ def column_to_int(df, yearsim=None):
     return df
 
 
-def load_eic_eir_data(path_file_h5_eic, yearsim = None, id_selected=None, to_return=False):
-    ''' This functions load eir and eic data from the .h5 cerated
+def rework_on_earnings(salbrut, workstate):
+    ''' Earnings imputation using interpolations '''
+    brut = salbrut.copy()
+    print brut.mean().mean()
+    nb_imputed = 0
+    to_impute = (workstate != np.nan) * (workstate != 2) * (brut == np.nan)
+    if to_impute.shape[0] != 1:
+        brut.iloc[to_impute.values] = -1
+    print ' Nb of imputed wages: {}'.format(nb_imputed)
+    salinter = brut.copy().replace(-1, np.nan)
+    salinter = salinter.interpolate(method='linear', axis=1)
+    # If we need interpolation before begining of the career
+    salinter = salinter.iloc[:, ::-1].interpolate(axis=1).iloc[:, ::-1]
+    brut = brut + (brut == -1) * salinter
+    print brut.mean().mean()
+    return brut
+
+
+def load_eic_eir_data(path_file_h5_eic, yearsim = None, id_selected=None, to_return=False, rework_on_earnings=False):
+    ''' This function loads eir and eic data from the .h5 cerated
     thanks the 'matching_eic_patrimoine' package.'''
     # Initial check of the accuracy of the file
     hdf = pd.HDFStore(path_file_h5_eic)
@@ -59,68 +84,76 @@ def load_eic_eir_data(path_file_h5_eic, yearsim = None, id_selected=None, to_ret
     pension_eir = index_by_noind(index_by_noind(hdf.select('/pension_eir')))
     pension_eir = pension_eir.ix[id_selected, :]
     hdf.close()
+    gc.collect()
     assert info_ind.shape[0] == workstate.shape[0] == salbrut.shape[0]
-
-    # Format data to get info_child
-    # info_child_ = _child_by_age(info_child, yearsim, id_selected)
-    # nb_pac = count_enf_pac(info_child_, info.index)
-    # info_ind = info.iloc[ix_selected,:]
-    # t_naiss, n_enf, sexe, findet, tauxprime, naiss, id
     for regime in ['FP', 'RG']:
         info_ind.loc[:, 'nb_enf_' + regime] = pension_eir.loc[pension_eir['regime'] == regime, 'nenf']
         info_ind.loc[:, 'nb_enf_' + regime] = info_ind.loc[:, 'nb_enf_' + regime].fillna(0)
     info_ind.loc[:, 'nb_enf_RSI'] = 0
     for var in ['nb_pac', 'nb_enf_all', 'n_enf']:
         info_ind.loc[:, var] = maximum(info_ind.loc[:, 'nb_enf_RG'], info_ind.loc[:, 'nb_enf_FP'])
+    first_years = workstate.apply(lambda x: x.first_valid_index(), axis=1).replace(np.nan, 195601) // 100
+    info_ind.loc[:, 'min_year_career'] = first_years
     info_ind.loc[:, 'findet'] = info_ind['min_year_career'] - info_ind['anaiss']
     info_ind.loc[:, 'date_liquidation_eir'] = pension_eir.groupby(pension_eir.index)['date_liquidation'].min()
     info_ind.loc[:, 'date_jouissance_eir'] = pension_eir.groupby(pension_eir.index)['date_jouissance'].min()
-    if not to_return:
-        data = PensionData.from_arrays(workstate, salbrut, info_ind)
-        return data
+    info_ind.loc[:, 'date_liquidation_RG'] = pension_eir.loc[pension_eir.regime == 'RG', 'date_liquidation']
+    info_ind.loc[:, 'year_liquidation_RG'] = info_ind.loc[:, 'date_liquidation_RG'].apply(rounding_date_to_year, 1)
+    if 'das' in pension_eir.columns:
+        info_ind.loc[:, 'duree_assurance_tot_RG'] = pension_eir.loc[pension_eir['regime'] == "RG", 'das']
+    else:
+        info_ind.loc[:, 'duree_assurance_tot_RG'] = 0
+    if 'pacdd' in pension_eir.columns:
+        info_ind.loc[:, 'first_year_RG'] = pension_eir.loc[pension_eir['regime'] == "RG", 'pacdd']
+    if 'trim_other_RG' not in info_ind.columns:
+        print "Other additional trimesters not imputed"
+        info_ind.loc[:, 'trim_other_RG'] = 0
     if to_return:
         to_return = dict()
         for table in ['workstate', 'salbrut', 'info_ind', 'pension_eir']:
             to_return[table] = eval(table)
         to_return['individus'] = to_return.pop('info_ind')
         return to_return
+    else:
+        data = PensionData.from_arrays(workstate, salbrut, info_ind)
+        return data
 
 
 def load_eic_eir_table(path_file_h5_eic, table_name, id_selected=None, columns=None):
     # Load of needed data
     hdf = pd.HDFStore(path_file_h5_eic)
-    if not id_selected:
-        id_selected = hdf.select('/individus', columns = ['noind']).index
-
     if table_name == 'info_ind':
         info_ind = index_by_noind(hdf.select('/individus', columns = columns))
         hdf.close()
-        info_ind = info_ind.ix[id_selected, :]
+        if id_selected:
+            info_ind = info_ind.ix[id_selected, :]
         return info_ind
 
     elif table_name == 'salbrut':
         salbrut = index_by_noind(hdf.select('/salbrut', columns = columns))
         hdf.close()
         salbrut = column_to_int(salbrut)
-        salbrut = salbrut.ix[id_selected, :]
+        if id_selected:
+            salbrut = salbrut.ix[id_selected, :]
         return salbrut
 
     elif table_name == 'workstate':
         workstate = index_by_noind(hdf.select('/workstate', columns = columns))
         hdf.close()
         workstate = column_to_int(workstate)
-        workstate = workstate.ix[id_selected, :]
+        if id_selected:
+            workstate = workstate.ix[id_selected, :]
         return workstate
     else:
         print "No name table named {}".format(table_name)
 
 
 if __name__ == '__main__':
-    test = True
+    test = False
     if test:
         path_file_h5_eic = 'C:\\Users\\l.pauldelvaux\\Desktop\\MThesis\\Data\\test_final.h5'
         path_file_h5_eic2 = 'C:\\Users\\l.pauldelvaux\\Desktop\\MThesis\\Data\\test_final2.h5'
     else:
-        path_file_h5_eic = 'C:\\Users\\l.pauldelvaux\\Desktop\\MThesis\\Data\\final.h5'
+        path_file_h5_eic = 'C:\\Users\\l.pauldelvaux\\Desktop\\MThesis\\Data\\modified.h5'
         path_file_h5_eic2 = 'C:\\Users\\l.pauldelvaux\\Desktop\\MThesis\\Data\\final2.h5'
     data = load_eic_eir_data(path_file_h5_eic, to_return=True)
