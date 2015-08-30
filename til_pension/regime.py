@@ -5,7 +5,6 @@ from til_pension.time_array import TimeArray
 
 first_year_sal = 1949
 compare_destinie = False
-sal_nominal = False
 
 
 class Regime(object):
@@ -30,6 +29,7 @@ class Regime(object):
 
         self.data = None
         self.calculated = dict()
+        self.salnominal = True
 
     # variables communes à tous les régimes
     def info_ind(self, regime='all'):
@@ -55,15 +55,14 @@ class Regime(object):
             # est surcotée selon critère trimestres
             n_trim = array(P.plein.n_trim)
             cumul_trim = trimesters_tot.cumsum(axis=1)
+
             trim_limit = array((n_trim - nan_to_num(trim_maj_tot)))
             years_surcote_trim = greater(cumul_trim.T, trim_limit).T
             nb_years = years_surcote_trim.shape[1]
-
             # 2. Construction de la matrice des booléens indiquant si l'année
             # est surcotée selon critère âge
             age_by_year = array([array(agem) - 12 * i for i in reversed(range(nb_years))])
             years_surcote_age = greater(age_by_year, array(age_min_retirement)).T
-
             # 3. Décompte du nombre d'années répondant aux deux critères
             years_surcote = years_surcote_trim * years_surcote_age
             nb_years_surcote = years_surcote.sum(axis=1)
@@ -104,7 +103,7 @@ class Regime(object):
 
     def cotisations(self, data):
         ''' Calcul des cotisations passées par année'''
-        sali = data.sali * data.workstate.isin(self.code_regime).astype(int)
+        sali = data.sali.copy() * data.workstate.isin(self.code_regime).astype(int)
         assert self.P_cot is not None, 'self.P_cot should be not None'
         Pcot_regime = reduce(getattr, self.param_name.split('.'), self.P_cot)
         # getattr(self.P_longit.prive.complementaire,  self.name)
@@ -116,7 +115,7 @@ class Regime(object):
         for ix_year in range(sali.shape[1]):
             cot_sal_by_year[:, ix_year] = taux_sal[ix_year].calc(sali[:, ix_year])
             cot_pat_by_year[:, ix_year] = taux_pat[ix_year].calc(sali[:, ix_year])
-        if not sal_nominal:
+        if not self.sal_nominal:
             revalo = self.P_longit.prive.RG.revalo
             revalo = array(revalo)
             for i in range(1, len(revalo)):
@@ -316,3 +315,25 @@ class RegimeComplementaires(Regime):
         val_point = P.val_point
         pension_brute_b = (nb_points + minimum_points) * val_point
         return pension_brute_b
+    def cotisations(self, sali_for_regime):
+        ''' Calcul des cotisations passées par année'''
+        sali = sali_for_regime.copy()
+        assert self.P_cot is not None, 'self.P_cot should be not None'
+        Pcot_regime = reduce(getattr, self.param_name.split('.'), self.P_cot)
+        # getattr(self.P_longit.prive.complementaire,  self.name)
+        taux_pat = Pcot_regime.cot_pat
+        taux_sal = Pcot_regime.cot_sal
+        assert len(taux_pat) == sali.shape[1] == len(taux_sal)
+        cot_sal_by_year = zeros(sali.shape)
+        cot_pat_by_year = zeros(sali.shape)
+        for ix_year in range(sali.shape[1]):
+            cot_sal_by_year[:, ix_year] = taux_sal[ix_year].calc(sali[:, ix_year])
+            cot_pat_by_year[:, ix_year] = taux_pat[ix_year].calc(sali[:, ix_year])
+        if not self.sal_nominal:
+            revalo = self.P_longit.prive.RG.revalo
+            revalo = array(revalo)
+            for i in range(1, len(revalo)):
+                revalo[:i] *= revalo[i]
+            cot_sal_by_year = multiply(cot_sal_by_year, revalo)
+            cot_pat_by_year = multiply(cot_pat_by_year, revalo)
+        return {'sal': cot_sal_by_year, 'pat': cot_pat_by_year}
