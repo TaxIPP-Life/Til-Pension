@@ -3,7 +3,7 @@
 import os
 import datetime
 import numpy as np
-from pandas import read_table
+import pandas as pd
 from numpy.lib import recfunctions
 
 from til_pension.sandbox.compare.CONFIG_compare import pensipp_comparison_path
@@ -13,7 +13,7 @@ from til_pension.pension_data import PensionData
 
 def _child_by_age(info_child, year, id_selected):
     info_child = info_child.loc[info_child['id_parent'].isin(id_selected),:]
-    info_child.loc[:, age'] = calculate_age(info_child.loc[:, 'naiss'], datetime.date(year,1,1))
+    info_child.loc[:, 'age'] = calculate_age(info_child.loc[:, 'naiss'], datetime.date(year,1,1))
     nb_enf = info_child.groupby(['id_parent', 'age']).size().reset_index()
     nb_enf.columns = ['id_parent', 'age_enf', 'nb_enf']
     return nb_enf
@@ -38,14 +38,14 @@ def build_info_child(enf, info_ind):
 def load_from_csv(path):
     ''' the csv are directly produce after executing load_from_Rdata
             - we don't need to work on columns names'''
-    statut = read_table(os.path.join(path, 'statut.csv'), sep=',', index_col=0)
-    salaire = read_table(os.path.join(path, 'salaire.csv'), sep=',', index_col=0)
-    info = read_table(os.path.join(path, 'info.csv'), sep=',', index_col=0)
-    info_child = read_table(os.path.join(path, 'info_child.csv'), sep=',', index_col=0)
-    # is read_table not able to convert directly to datetime
-    info_child.loc[:, naiss'] = [datetime.date(int(date[0:4]), int(date[5:7]), int(date[8:10]))
+    statut = pd.read_table(os.path.join(path, 'statut.csv'), sep=',', index_col=0)
+    salaire = pd.read_table(os.path.join(path, 'salaire.csv'), sep=',', index_col=0)
+    info = pd.read_table(os.path.join(path, 'info.csv'), sep=',', index_col=0)
+    info_child = pd.read_table(os.path.join(path, 'info_child.csv'), sep=',', index_col=0)
+    # is pd.read_table not able to convert directly to datetime
+    info_child.loc[:, 'naiss'] = [datetime.date(int(date[0:4]), int(date[5:7]), int(date[8:10]))
                           for date in info_child['naiss']]
-    info.loc[:, naiss'] = [datetime.date(int(year), 1, 1) for year in info['t_naiss']]
+    info.loc[:, 'naiss'] = [datetime.date(int(year), 1, 1) for year in info['t_naiss']]
     for table in [salaire, statut]:
         table.columns = [int(col) for col in table.columns]
     return info, info_child, salaire, statut
@@ -62,8 +62,8 @@ def load_from_Rdata(path, to_csv=False):
     salaire = com.load_data('salaire')
     salaire.columns = dates_to_col
     info = com.load_data('ind')
-    info.loc[:, naiss'] = [datetime.date(1900 + int(year),1,1) for year in info['t_naiss']]
-    info.loc[:, id'] = info.index
+    info.loc[:, 'naiss'] = [datetime.date(1900 + int(year),1,1) for year in info['t_naiss']]
+    info.loc[:, 'id'] = info.index
     id_enf = com.load_data('enf')
     id_enf.columns =  [ 'enf'+ str(i) for i in range(id_enf.shape[1])]
     info_child = build_info_child(id_enf,info)
@@ -115,27 +115,31 @@ def load_pensipp_data(pensipp_path, yearsim, first_year_sal, selection_id=False,
     # ajoute les variables d'enfants pour info_ind
     rec = data_bounded.info_ind
     newdtype = [('nb_enf_' + name, '<i8') for name in dict_regime] + [('nb_enf_all', '<i8')]
-    newdtype = np.dtype(rec.dtype.descr + newdtype)
-    info_ind = np.empty(rec.shape, dtype=newdtype)
-    for field in rec.dtype.fields:
-        info_ind[field] = rec[field]
+    old_dtype = [(name.encode("ascii"), data_type) for name, data_type in rec.dtype.descr]  # See https://stackoverflow.com/questions/46329365/numpy-dtype-data-type-not-understood
+    newdtype = np.dtype(old_dtype + newdtype)
+    info_ind = pd.DataFrame.from_records(
+        np.empty(rec.shape, dtype=newdtype)
+        )
+    print info_ind
     # rempli les colonnes nb_enf
     for name_reg, code_reg in dict_regime.iteritems():
-        nb_enf_regime = (array_enf*data_bounded.workstate.isin(code_reg)).sum(axis=1)
-        info_ind.loc[:, nb_enf_' + name_reg] = nb_enf_regime
-        info_ind.loc[:, nb_enf_all'] += nb_enf_regime
+        nb_enf_regime = (array_enf * data_bounded.workstate.isin(code_reg)).sum(axis=1)
+        info_ind['nb_enf_' + name_reg] = nb_enf_regime
+        info_ind['nb_enf_all'] += nb_enf_regime
 #         data_bounded.info_ind['nb_enf_' + name_reg] = nb_enf_regime
 #         nb_enf_all += nb_enf_regime
 #     info_ind.loc[:,'nb_enf'] = nb_enf_all
-    #print sum(nb_enf_all -  info_ind.loc[:,'nb_born'])
-    #print info_ind.loc[15478, ['nb_born', 'nb_enf', 'nb_enf_RG', 'nb_enf_FP', 'nb_enf_RSI']]
+    # print sum(nb_enf_all -  info_ind.loc[:,'nb_born'])
+    # print info_ind.loc[15478, ['nb_born', 'nb_enf', 'nb_enf_RG', 'nb_enf_FP', 'nb_enf_RSI']]
+    print info_ind
     data_bounded.info_ind = info_ind
     return data_bounded
+
 
 def load_pensipp_result(pensipp_path, to_csv=False):
     path = os.path.join(pensipp_path, 'result_pensipp.csv')
     try:
-        result_pensipp = read_table(path, sep=',', index_col=0)
+        result_pensipp = pd.read_table(path, sep=',', index_col=0)
     except:
         import pandas.rpy.common as com
         from rpy2 import robjects as r

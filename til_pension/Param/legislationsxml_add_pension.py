@@ -31,7 +31,7 @@ import logging
 import itertools
 
 import datetime
-from openfisca_core import conv
+from til_pension.Param import conv
 
 from datetime import datetime as dt
 #legislation_json_key_by_xml_tag = dict(

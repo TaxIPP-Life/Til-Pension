@@ -46,6 +46,7 @@ class PensionSimulation(object):
         regime_base_names = ['nb_enf_' + regime.name
                              for regime in self.legislation.regimes['bases']]
         var_info_ind += regime_base_names
+        print info_ind
         for var in var_info_ind:
             if var not in info_ind.dtype.names:
                 print("La variable {} doit être renseignée dans info_ind " +

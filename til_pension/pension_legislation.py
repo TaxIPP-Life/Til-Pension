@@ -9,7 +9,7 @@ from numpy import array
 from xml.etree import ElementTree
 from til_pension.Param import legislations_add_pension as legislations
 from til_pension.Param import legislationsxml_add_pension as legislationsxml
-from openfisca_core import conv
+from til_pension.Param import conv
 
 from til_pension.Regimes.Fonction_publique import FonctionPublique
 from til_pension.Regimes.Regimes_complementaires_prive import AGIRC, ARRCO
