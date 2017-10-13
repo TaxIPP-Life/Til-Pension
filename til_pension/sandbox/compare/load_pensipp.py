@@ -3,11 +3,10 @@
 import os
 import datetime
 import numpy as np
-from pandas import read_table
-from numpy.lib import recfunctions
+import pandas as pd
 
 from til_pension.sandbox.compare.CONFIG_compare import pensipp_comparison_path
-from til_pension.sandbox.compare.utils_compar import calculate_age, count_enf_born, count_enf_pac, count_enf_by_year
+from til_pension.sandbox.compare.utils_compar import calculate_age, count_enf_pac, count_enf_by_year
 from til_pension.pension_data import PensionData
 
 
@@ -44,11 +43,11 @@ def build_info_child(enf, info_ind):
 def load_from_csv(path):
     ''' the csv are directly produce after executing load_from_Rdata
             - we don't need to work on columns names'''
-    statut = read_table(os.path.join(path, 'statut.csv'), sep=',', index_col=0)
-    salaire = read_table(os.path.join(path, 'salaire.csv'), sep=',', index_col=0)
-    info = read_table(os.path.join(path, 'info.csv'), sep=',', index_col=0)
-    info_child = read_table(os.path.join(path, 'info_child.csv'), sep=',', index_col=0)
-    # is read_table not able to convert directly to datetime
+    statut = pd.read_table(os.path.join(path, 'statut.csv'), sep=',', index_col=0)
+    salaire = pd.read_table(os.path.join(path, 'salaire.csv'), sep=',', index_col=0)
+    info = pd.read_table(os.path.join(path, 'info.csv'), sep=',', index_col=0)
+    info_child = pd.read_table(os.path.join(path, 'info_child.csv'), sep=',', index_col=0)
+    # is pd.read_table not able to convert directly to datetime
     info_child.loc[:, 'naiss'] = [
         datetime.date(int(date[0:4]), int(date[5:7]), int(date[8:10]))
         for date in info_child['naiss']
@@ -84,7 +83,9 @@ def load_from_Rdata(path, to_csv=False):
     return info, info_child, salaire, statut
 
 
-def load_pensipp_data(pensipp_path, yearsim, first_year_sal, selection_id=False, selection_naiss=False, selection_age=[63]):
+def load_pensipp_data(pensipp_path, yearsim, first_year_sal, selection_id = False, selection_naiss = False,
+        selection_age = [63]):
+
     try:
         info, info_child, salaire, statut = load_from_csv(pensipp_comparison_path)
     except:
@@ -119,24 +120,28 @@ def load_pensipp_data(pensipp_path, yearsim, first_year_sal, selection_id=False,
     data_bounded = data.selected_dates(first=first_year_sal, last=yearsim)
     # TODO: commun declaration for codes and names regimes : Déclaration inapte (mais adapté à Taxipp)
     array_enf = count_enf_by_year(data_bounded.workstate, info_ind, info_child)
-    dict_regime = {'FP': [5, 6], 'RG': [3, 4, 1, 2, 9, 8, 0], 'RSI': [7]}  # On met les inactifs/chomeurs/avpf ou préretraité au RG
+    # On met les inactifs/chomeurs/avpf ou préretraité au RG
+    dict_regime = {'FP': [5, 6], 'RG': [3, 4, 1, 2, 9, 8, 0], 'RSI': [7]}
     # ajoute les variables d'enfants pour info_ind
     rec = data_bounded.info_ind
     newdtype = [('nb_enf_' + name, '<i8') for name in dict_regime] + [('nb_enf_all', '<i8')]
-    newdtype = np.dtype(rec.dtype.descr + newdtype)
-    info_ind = np.empty(rec.shape, dtype=newdtype)
-    for field in rec.dtype.fields:
-        info_ind[field] = rec[field]
+    old_dtype = [(name.encode("ascii"), data_type) for name, data_type in rec.dtype.descr]  # See https://stackoverflow.com/questions/46329365/numpy-dtype-data-type-not-understood
+    newdtype = np.dtype(old_dtype + newdtype)
+    info_ind = pd.DataFrame.from_records(
+        np.empty(rec.shape, dtype=newdtype)
+        )
+    print info_ind
     # rempli les colonnes nb_enf
     for name_reg, code_reg in dict_regime.iteritems():
         nb_enf_regime = (array_enf * data_bounded.workstate.isin(code_reg)).sum(axis=1)
-        info_ind.loc[:, 'nb_enf_' + name_reg] = nb_enf_regime
-        info_ind.loc[:, 'nb_enf_all'] += nb_enf_regime
+        info_ind['nb_enf_' + name_reg] = nb_enf_regime
+        info_ind['nb_enf_all'] += nb_enf_regime
 #         data_bounded.info_ind['nb_enf_' + name_reg] = nb_enf_regime
 #         nb_enf_all += nb_enf_regime
 #     info_ind.loc[:,'nb_enf'] = nb_enf_all
-    #print sum(nb_enf_all -  info_ind.loc[:,'nb_born'])
-    #print info_ind.loc[15478, ['nb_born', 'nb_enf', 'nb_enf_RG', 'nb_enf_FP', 'nb_enf_RSI']]
+    # print sum(nb_enf_all -  info_ind.loc[:,'nb_born'])
+    # print info_ind.loc[15478, ['nb_born', 'nb_enf', 'nb_enf_RG', 'nb_enf_FP', 'nb_enf_RSI']]
+    print info_ind
     data_bounded.info_ind = info_ind
     return data_bounded
 
@@ -144,7 +149,7 @@ def load_pensipp_data(pensipp_path, yearsim, first_year_sal, selection_id=False,
 def load_pensipp_result(pensipp_path, to_csv=False):
     path = os.path.join(pensipp_path, 'result_pensipp.csv')
     try:
-        result_pensipp = read_table(path, sep=',', index_col=0)
+        result_pensipp = pd.read_table(path, sep=',', index_col=0)
     except:
         import pandas.rpy.common as com
         from rpy2 import robjects as r

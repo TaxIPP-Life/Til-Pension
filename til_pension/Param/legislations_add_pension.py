@@ -1,47 +1,29 @@
 # -*- coding: utf-8 -*-
 
 
-# OpenFisca -- A versatile microsimulation software
-# By: OpenFisca Team <contact@openfisca.fr>
-#
-# Copyright (C) 2011, 2012, 2013, 2014 OpenFisca Team
-# https://github.com/openfisca
-#
-# This file is part of OpenFisca.
-#
-# OpenFisca is free software; you can redistribute it and/or modify
-# it under the terms of the GNU Affero General Public License as
-# published by the Free Software Foundation, either version 3 of the
-# License, or (at your option) any later version.
-#
-# OpenFisca is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Affero General Public License for more details.
-#
-# You should have received a copy of the GNU Affero General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-
 """Handle legislative parameters in JSON format."""
 
 
 import collections
 import datetime
 import itertools
+import pandas as pd
 
-from openfisca_core import conv
+from til_pension.Param import conv
 from Scales import Bareme, Generation
+
 
 def valbytranches(param, info_ind):
     ''' Associe à chaque individu la bonne valeur du paramètre selon la valeur de la variable de control
     var_control spécifié au format date (exemple : date de naissance) '''
     if isinstance(param, float) or isinstance(param, int):
         return param
-    if '_control' in  param.__dict__ :
-        var_control = info_ind[str(param.control)]
+    if '_control' in param.__dict__:
+        print param.__dict__
+        print info_ind
+        var_control = pd.DataFrame.from_records(info_ind)[str(param._control)]
         param_indiv = var_control.copy()
-        for i in range(param._nb) :
+        for i in range(param._nb):
             param_indiv[(var_control >= param._tranches[i][0])] = param._tranches[i][1]
         return param_indiv
     else:
@@ -100,6 +82,7 @@ def compact_dated_node_json(dated_node_json, info_ind, code = None):
                 generation.addTranche(threshold, val)
         return valbytranches(generation, info_ind)
 
+
 def compact_long_dated_node_json(long_node_json, code = None):
     node_type = long_node_json['@type']
     if node_type == u'Node':
@@ -122,7 +105,7 @@ def compact_long_dated_node_json(long_node_json, code = None):
         long = long_node_json.get('values')
         long_bareme = {}
         for date in long.keys():
-            dated_node_json= long[date]
+            dated_node_json = long[date]
             bareme = Bareme(name = code, option = long_node_json.get('option'))
             for dated_slice_json in dated_node_json:
                 base = dated_slice_json.get('base', 1)
@@ -134,11 +117,13 @@ def compact_long_dated_node_json(long_node_json, code = None):
             long_bareme[date] = bareme
         return long_bareme
 
+
 def generate_dated_json_value(values_json, date_str):
     for value_json in values_json:
         if value_json['from'] <= date_str <= value_json['to']:
             return value_json['value']
     return None
+
 
 def generate_long_json_value(values_json, date_str):
     long_series = {}
@@ -147,11 +132,13 @@ def generate_long_json_value(values_json, date_str):
             long_series[value_json['from']] = value_json['value']
     return long_series
 
+
 def generate_dated_legislation_json(node_json, date):
     date_str = date.isoformat()
     dated_node_json = generate_dated_node_json(node_json, date_str)
     dated_node_json['datesim'] = date_str
     return dated_node_json
+
 
 def generate_long_legislation_json(node_json, date):
     date_str = date.isoformat()
@@ -159,12 +146,14 @@ def generate_long_legislation_json(node_json, date):
     long_node_json['datesim'] = date_str
     return long_node_json
 
+
 def clean_selected_dates(dates_list, final_date):
     seen = set()
     seen_add = seen.add
-    selected_dates = [ date for date in dates_list if date not in seen and not seen_add(date)]
-    selected_dates = [ date for date in selected_dates if date <= final_date]
+    selected_dates = [date for date in dates_list if date not in seen and not seen_add(date)]
+    selected_dates = [date for date in selected_dates if date <= final_date]
     return selected_dates
+
 
 def generate_long_node_json(node_json, date_str):
     long_node_json = collections.OrderedDict()
@@ -223,6 +212,7 @@ def generate_long_node_json(node_json, date_str):
             long_node_json[key] = value
     return long_node_json
 
+
 def generate_dated_node_json(node_json, date_str):
     dated_node_json = collections.OrderedDict()
     for key, value in node_json.iteritems():
@@ -277,6 +267,7 @@ def generate_dated_slice_json(slice_json, date_str):
             dated_slice_json[key] = value
     return dated_slice_json
 
+
 def generate_dated_long_json_scale(scale_json, date_str):
     long_scale = {}
     dated_slice_json = collections.OrderedDict()
@@ -288,7 +279,7 @@ def generate_dated_long_json_scale(scale_json, date_str):
                 selected_dates += dated_value.keys()
     seen = set()
     seen_add = seen.add
-    selected_dates = [ date for date in selected_dates if date not in seen and not seen_add(date)]
+    selected_dates = [date for date in selected_dates if date not in seen and not seen_add(date)]
     for date in selected_dates:
         dated_slices_json = [
                 dated_slice_json
