@@ -38,22 +38,26 @@ class PensionSimulation(object):
         regimes_names = [reg.name for reg in tous_regimes]
         self.calculated = dict((reg_name, dict()) for reg_name in regimes_names + ['all'])
 
+
     def check(self):
         ''' Cette fonction vérifie que le data d'entrée comporte toute
         l'information nécessaire au lancement d'une simulation'''
         info_ind = self.data.info_ind
         var_info_ind = ['agem', 'sexe', 'tauxprime', 'naiss']
-        regime_base_names = ['nb_enf_' + regime.name
-                             for regime in self.legislation.regimes['bases']]
+        regime_base_names = [
+            'nb_enf_' + regime.name
+            for regime in self.legislation.regimes['bases']
+            ]
         var_info_ind += regime_base_names
         print info_ind
+        print info_ind.dtypes
         for var in var_info_ind:
-            if var not in info_ind.dtype.names:
+            if var not in info_ind.columns:
                 print("La variable {} doit être renseignée dans info_ind " +
                       "pour que la simulation puisse tourner, \n seules" +
                       "{} sont connues").format(var, info_ind.columns)
         assert min(info_ind['tauxprime']) >= 0
-        assert max(info_ind['tauxprime']) <= 1
+        assert max(info_ind['tauxprime']) <= 1, "There are tauxprime > 1:\n {}".format(info_ind.query('tauxprime > 1'))
 
     def get_regime(self, regime_name):
         # subtilité :
@@ -183,9 +187,10 @@ class PensionSimulation(object):
         return sum(self._eval_for_regimes('trim_maj', regimes=self.legislation.regimes['bases']))
 
     def pension(self):
-        return sum(self._eval_for_regimes('pension',
-                                          regimes=self.legislation.regimes['bases'] +
-                                          self.legislation.regimes['complementaires']))
+        return sum(
+            self._eval_for_regimes(
+                'pension',
+                regimes=self.legislation.regimes['bases'] + self.legislation.regimes['complementaires']))
 
     def date_depart(self):
         list_dates = self._eval_for_regimes('date_start_taux_plein', regimes=self.legislation.regimes['bases'])

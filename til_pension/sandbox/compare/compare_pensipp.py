@@ -1,21 +1,29 @@
 # -*- coding: utf-8 -*-
 
+import logging
 import pandas as pd
+import sys
+
 
 from til_pension.sandbox.compare.CONFIG_compare import pensipp_comparison_path
 from til_pension.simulation import PensionSimulation
 from til_pension.pension_legislation import PensionParam, PensionLegislation
 from til_pension.sandbox.compare.load_pensipp import load_pensipp_data, load_pensipp_result
 
+
+log = logging.getLogger(__name__)
+
+
 first_year_sal = 1949
 
 
-def load_til_pensipp(pensipp_comparison_path, years, to_print=(None, None, True)):
-    result_pensipp = load_pensipp_result(pensipp_comparison_path, to_csv=False)
+def load_til_pensipp(pensipp_comparison_path, years, to_print = (None, None, True)):
+    # FIXME to_print unused
+    result_pensipp = load_pensipp_result(pensipp_comparison_path, to_csv = False)
     result_til = pd.DataFrame(columns = var_to_check_montant + var_to_check_taux, index = result_pensipp.index)
     result_til['yearliq'] = -1
     for yearsim in years:
-        print(yearsim)
+        log.info("Simulation year = {}".format(yearsim))
         data_bounded = load_pensipp_data(pensipp_comparison_path, yearsim, first_year_sal)
         param = PensionParam(yearsim, data_bounded)
         legislation = PensionLegislation(param)
@@ -27,7 +35,7 @@ def load_til_pensipp(pensipp_comparison_path, years, to_print=(None, None, True)
             trim_regime = simul_til.calculate('nb_trimesters', regime)
             for varname in ['coeff_proratisation', 'DA', 'decote', 'n_trim', 'salref', 'surcote', 'taux', 'pension']:
                 if varname == 'coeff_proratisation':
-                    result_til_year['CP_' + regime] = simul_til.calculate(varname, regime)*(trim_regime > 0)
+                    result_til_year['CP_' + regime] = simul_til.calculate(varname, regime) * (trim_regime > 0)
                 elif varname == 'decote':
                     param_name = simul_til.get_regime(regime).param_name
                     taux_plein = reduce(getattr, param_name.split('.'), P).plein.taux
@@ -112,18 +120,21 @@ def compare(table1, table2, var_to_check_montant, var_to_check_taux, threshold):
             print ('Pour ' + var + ', on a ' + str(sum(prob)) + ' différences')
     return all_prob
 
-if __name__ == '__main__':
 
-    var_to_check_montant = [ u'pension_RG', u'salref_RG', u'DA_RG', u'DA_RSI',
-                            u'nb_points_arrco', u'nb_points_agirc', u'pension_arrco', u'pension_agirc',
-                            u'DA_FP', u'pension_FP',
-                            u'n_trim_RG', 'N_CP_RG', 'n_trim_FP', 'salref_FP']
+if __name__ == '__main__':
+    logging.basicConfig(level = logging.DEBUG, stream = sys.stdout)
+    var_to_check_montant = [
+        u'pension_RG', u'salref_RG', u'DA_RG', u'DA_RSI',
+        u'nb_points_arrco', u'nb_points_agirc', u'pension_arrco', u'pension_agirc',
+        u'DA_FP', u'pension_FP',
+        u'n_trim_RG', 'N_CP_RG', 'n_trim_FP', 'salref_FP']
     var_to_check_taux = [u'taux_RG', u'decote_RG', u'CP_RG', u'surcote_RG',
                          u'taux_FP', u'decote_FP', u'CP_FP', u'surcote_FP']
-    threshold = {'montant' : 1, 'taux' : 0.0005}
-    to_print = ({'FP':['calculate_coeff_proratisation']}, [17917, 21310, 28332, 28607], True)
+    threshold = {'montant': 1, 'taux': 0.0005}
+    to_print = ({'FP': ['calculate_coeff_proratisation']}, [17917, 21310, 28332, 28607], True)
 
-    til_compare, pensipp_compare, simul_til = load_til_pensipp(pensipp_comparison_path, [2004], to_print=(None, None, True))
+    til_compare, pensipp_compare, simul_til = load_til_pensipp(
+        pensipp_comparison_path, [2004], to_print=(None, None, True))
     prob = compare(til_compare, pensipp_compare, var_to_check_montant, var_to_check_taux, threshold)  #, to_print, new_data=False)
 
     #surcote RG

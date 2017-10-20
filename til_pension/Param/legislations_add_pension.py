@@ -29,6 +29,7 @@ def valbytranches(param, info_ind):
     else:
         return param
 
+
 units = [
     u'currency',
     u'day',

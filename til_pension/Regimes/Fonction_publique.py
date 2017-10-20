@@ -9,7 +9,6 @@ code_chomage = 2
 
 
 class FonctionPublique(RegimeBase):
-
     def __init__(self):
         RegimeBase.__init__(self)
         self.name = 'FP'
@@ -97,6 +96,7 @@ class FonctionPublique(RegimeBase):
 
     # coeff_proratisation
     def CP_5eme(self, nb_trimesters, trim_maj_5eme):
+        print self.P.public.fp
         N_CP = self.P.public.fp.plein.n_trim
         return minimum(divide(nb_trimesters + trim_maj_5eme, N_CP), 1)
 

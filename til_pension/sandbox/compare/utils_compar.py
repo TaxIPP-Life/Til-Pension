@@ -24,7 +24,10 @@ def calculate_age(birth_date, date):
     return birth_date.apply(_age)
 
 def count_enf_pac(info_child, index):
-    info_child['enf_pac'] = (( info_child['age_enf'] <= 18)&( info_child['age_enf'] >= 0 )).astype(int)*info_child['nb_enf']
+    info_child['enf_pac'] = (
+        (info_child['age_enf'] <= 18) &
+        (info_child['age_enf'] >= 0)
+        ).astype(int) * info_child['nb_enf']
     info = info_child.groupby(['id_parent'])['enf_pac'].sum().reset_index()
     info.columns = ['id_parent', 'nb_pac']
     info.index = info['id_parent']
@@ -44,8 +47,8 @@ def count_enf_born(info_child, index):
 def count_enf_by_year(workstate, info_ind, info_enf):
     ''' Update le info_ind contenue dans Data avec le nombre d'enfant par régime '''
     parents_id = info_ind.index
-    info = info_enf.loc[info_enf['id_parent'].isin(parents_id),:]
-    info['naiss_liam'] = [ datenaiss.year*100 + 1 for datenaiss in info['naiss']]
+    info = info_enf.loc[info_enf['id_parent'].isin(parents_id), :].copy()
+    info['naiss_liam'] = [datenaiss.year * 100 + 1 for datenaiss in info['naiss']]
     info = info.sort_values('id_parent')
 
     list_ident = info_ind.index
@@ -67,6 +70,7 @@ def count_enf_by_year(workstate, info_ind, info_enf):
     enf_by_year[(id_ix, year_ix)] = array(nb_enf)
     #TODO: check pb with twins
     return enf_by_year
+
 
 def print_info_timearrays(list_timearrays, all_ident, label_func, loglevel="info", list_ident=None):
     ''' Cette fonction permet d'imprimer (sous format DataFrame) le déroulé individuel
