@@ -12,8 +12,8 @@ from til_pension.pension_data import PensionData
 
 
 def _child_by_age(info_child, year, id_selected):
-    info_child = info_child.loc[info_child['id_parent'].isin(id_selected),:]
-    info_child.loc[:, age'] = calculate_age(info_child.loc[:, 'naiss'], datetime.date(year,1,1))
+    info_child = info_child.loc[info_child['id_parent'].isin(id_selected), :]
+    info_child.loc[:, 'age'] = calculate_age(info_child.loc[:, 'naiss'], datetime.date(year, 1, 1))
     nb_enf = info_child.groupby(['id_parent', 'age']).size().reset_index()
     nb_enf.columns = ['id_parent', 'age_enf', 'nb_enf']
     return nb_enf
@@ -29,9 +29,15 @@ def build_info_child(enf, info_ind):
         - info_child_mother : identifiant de la mere, ages possibles des enfants, nombre d'enfant ayant cet age
     '''
     info_enf = enf.stack().reset_index()
-    info_enf.columns =  ['id_parent', 'enf', 'id_enf']
-    info_enf = info_enf.merge(info_ind[['sexe', 'id']], left_on='id_parent', right_on= 'id')
-    info_enf = info_enf.merge(info_ind[['naiss', 'id']], left_on='id_enf', right_on= 'id').drop(['id_x', 'id_y', 'enf'], axis=1)
+    info_enf.columns = ['id_parent', 'enf', 'id_enf']
+    info_enf = info_enf.merge(info_ind[['sexe', 'id']], left_on = 'id_parent', right_on = 'id')
+    info_enf = (info_enf
+        .merge(info_ind[['naiss', 'id']], left_on = 'id_enf', right_on = 'id')
+        .drop(
+            ['id_x', 'id_y', 'enf'],
+            axis = 1,
+            )
+        )
     return info_enf
 
 
@@ -43,9 +49,11 @@ def load_from_csv(path):
     info = read_table(os.path.join(path, 'info.csv'), sep=',', index_col=0)
     info_child = read_table(os.path.join(path, 'info_child.csv'), sep=',', index_col=0)
     # is read_table not able to convert directly to datetime
-    info_child.loc[:, naiss'] = [datetime.date(int(date[0:4]), int(date[5:7]), int(date[8:10]))
-                          for date in info_child['naiss']]
-    info.loc[:, naiss'] = [datetime.date(int(year), 1, 1) for year in info['t_naiss']]
+    info_child.loc[:, 'naiss'] = [
+        datetime.date(int(date[0:4]), int(date[5:7]), int(date[8:10]))
+        for date in info_child['naiss']
+        ]
+    info.loc[:, 'naiss'] = [datetime.date(int(year), 1, 1) for year in info['t_naiss']]
     for table in [salaire, statut]:
         table.columns = [int(col) for col in table.columns]
     return info, info_child, salaire, statut
@@ -55,18 +63,18 @@ def load_from_Rdata(path, to_csv=False):
     import pandas.rpy.common as com
     from rpy2 import robjects as r
     input_pensipp = path + 'dataALL.RData'
-    dates_to_col = [ year*100 + 1 for year in range(1901,2061)]
+    dates_to_col = [year * 100 + 1 for year in range(1901, 2061)]
     r.r("load('" + str(input_pensipp) + "')")
     statut = com.load_data('statut')
-    statut.columns =  dates_to_col
+    statut.columns = dates_to_col
     salaire = com.load_data('salaire')
     salaire.columns = dates_to_col
     info = com.load_data('ind')
-    info.loc[:, naiss'] = [datetime.date(1900 + int(year),1,1) for year in info['t_naiss']]
-    info.loc[:, id'] = info.index
+    info.loc[:, 'naiss'] = [datetime.date(1900 + int(year), 1, 1) for year in info['t_naiss']]
+    info.loc[:, 'id'] = info.index
     id_enf = com.load_data('enf')
-    id_enf.columns =  [ 'enf'+ str(i) for i in range(id_enf.shape[1])]
-    info_child = build_info_child(id_enf,info)
+    id_enf.columns = ['enf' + str(i) for i in range(id_enf.shape[1])]
+    info_child = build_info_child(id_enf, info)
 
     if to_csv:
         for table in ['info', 'info_child', 'salaire', 'statut']:
@@ -82,21 +90,21 @@ def load_pensipp_data(pensipp_path, yearsim, first_year_sal, selection_id=False,
     except:
         print(" Les données sont chargées à partir du Rdata et non du csv")
         info, info_child, salaire, statut = load_from_Rdata(pensipp_comparison_path, to_csv=True)
-    if max(info.loc[:,'sexe']) == 2:
-            info.loc[:,'sexe'] = info.loc[:,'sexe'].replace(1,0)
-            info.loc[:,'sexe'] = info.loc[:,'sexe'].replace(2,1)
-    info.loc[:,'agem'] =  (yearsim - info['t_naiss'])*12
+    if max(info.loc[:, 'sexe']) == 2:
+            info.loc[:, 'sexe'] = info.loc[:, 'sexe'].replace(1, 0)
+            info.loc[:, 'sexe'] = info.loc[:, 'sexe'].replace(2, 1)
+    info.loc[:, 'agem'] = (yearsim - info['t_naiss']) * 12
 
     if selection_id:
-        id_selected =  selection_id
+        id_selected = selection_id
     elif selection_naiss:
-        select_id_depart = (info.loc[:,'t_naiss'].isin(selection_naiss))
-        id_selected = select_id_depart[select_id_depart == True].index
+        select_id_depart = (info.loc[:, 't_naiss'].isin(selection_naiss))
+        id_selected = select_id_depart[select_id_depart].index
 
     elif selection_age:
-        agem_selected = [12*age for age in selection_age]
-        select_id_depart = (info.loc[:,'agem'].isin(agem_selected))
-        id_selected = select_id_depart[select_id_depart == True].index
+        agem_selected = [12 * age for age in selection_age]
+        select_id_depart = (info.loc[:, 'agem'].isin(agem_selected))
+        id_selected = select_id_depart[select_id_depart].index
 
     info.drop('t_naiss', axis=1, inplace=True)
     ix_selected = [int(ident) - 1 for ident in id_selected]
@@ -105,13 +113,13 @@ def load_pensipp_data(pensipp_path, yearsim, first_year_sal, selection_id=False,
     workstate = statut.iloc[ix_selected, :]
     info_child_ = _child_by_age(info_child, yearsim, id_selected)
     nb_pac = count_enf_pac(info_child_, info.index)
-    info_ind = info.iloc[ix_selected,:]
-    info_ind.loc[:,'nb_pac'] = nb_pac
+    info_ind = info.iloc[ix_selected, :]
+    info_ind.loc[:, 'nb_pac'] = nb_pac
     data = PensionData.from_arrays(workstate, sali, info_ind)
     data_bounded = data.selected_dates(first=first_year_sal, last=yearsim)
     # TODO: commun declaration for codes and names regimes : Déclaration inapte (mais adapté à Taxipp)
     array_enf = count_enf_by_year(data_bounded.workstate, info_ind, info_child)
-    dict_regime = {'FP': [5,6], 'RG': [3,4,1,2,9,8,0], 'RSI':[7]} #On met les inactifs/chomeurs/avpf ou préretraité au RG
+    dict_regime = {'FP': [5, 6], 'RG': [3, 4, 1, 2, 9, 8, 0], 'RSI': [7]}  # On met les inactifs/chomeurs/avpf ou préretraité au RG
     # ajoute les variables d'enfants pour info_ind
     rec = data_bounded.info_ind
     newdtype = [('nb_enf_' + name, '<i8') for name in dict_regime] + [('nb_enf_all', '<i8')]
@@ -121,9 +129,9 @@ def load_pensipp_data(pensipp_path, yearsim, first_year_sal, selection_id=False,
         info_ind[field] = rec[field]
     # rempli les colonnes nb_enf
     for name_reg, code_reg in dict_regime.iteritems():
-        nb_enf_regime = (array_enf*data_bounded.workstate.isin(code_reg)).sum(axis=1)
-        info_ind.loc[:, nb_enf_' + name_reg] = nb_enf_regime
-        info_ind.loc[:, nb_enf_all'] += nb_enf_regime
+        nb_enf_regime = (array_enf * data_bounded.workstate.isin(code_reg)).sum(axis=1)
+        info_ind.loc[:, 'nb_enf_' + name_reg] = nb_enf_regime
+        info_ind.loc[:, 'nb_enf_all'] += nb_enf_regime
 #         data_bounded.info_ind['nb_enf_' + name_reg] = nb_enf_regime
 #         nb_enf_all += nb_enf_regime
 #     info_ind.loc[:,'nb_enf'] = nb_enf_all
@@ -131,6 +139,7 @@ def load_pensipp_data(pensipp_path, yearsim, first_year_sal, selection_id=False,
     #print info_ind.loc[15478, ['nb_born', 'nb_enf', 'nb_enf_RG', 'nb_enf_FP', 'nb_enf_RSI']]
     data_bounded.info_ind = info_ind
     return data_bounded
+
 
 def load_pensipp_result(pensipp_path, to_csv=False):
     path = os.path.join(pensipp_path, 'result_pensipp.csv')

@@ -9,7 +9,8 @@ from til_pension.sandbox.compare.load_pensipp import load_pensipp_data, load_pen
 
 first_year_sal = 1949
 
-def load_til_pensipp(pensipp_comparison_path, years, to_print=(None,None,True)):
+
+def load_til_pensipp(pensipp_comparison_path, years, to_print=(None, None, True)):
     result_pensipp = load_pensipp_result(pensipp_comparison_path, to_csv=False)
     result_til = pd.DataFrame(columns = var_to_check_montant + var_to_check_taux, index = result_pensipp.index)
     result_til['yearliq'] = -1
@@ -31,11 +32,11 @@ def load_til_pensipp(pensipp_comparison_path, years, to_print=(None,None,True)):
                     param_name = simul_til.get_regime(regime).param_name
                     taux_plein = reduce(getattr, param_name.split('.'), P).plein.taux
                     calc = simul_til.calculate(varname, regime)
-                    result_til_year[varname + '_' + regime] = taux_plein*calc*(trim_regime > 0)
+                    result_til_year[varname + '_' + regime] = taux_plein * calc * (trim_regime > 0)
                 else:
                     if varname != 'n_trim':
                         calc = simul_til.calculate(varname, regime)
-                        result_til_year[varname + '_' + regime] = calc*(trim_regime > 0)
+                        result_til_year[varname + '_' + regime] = calc * (trim_regime > 0)
                     else:
                         result_til_year[varname + '_' + regime] = simul_til.calculate(varname, regime)
         for regime in ['agirc', 'arrco']:
@@ -63,7 +64,7 @@ def load_til_pensipp(pensipp_comparison_path, years, to_print=(None,None,True)):
 
 
 def compare(table1, table2, var_to_check_montant, var_to_check_taux, threshold):
-    var_not_implemented = {'til':[], 'pensipp':[]}
+    var_not_implemented = {'til': [], 'pensipp': []}
 
     def _check_var(var, threshold, var_conflict):
 
@@ -120,10 +121,10 @@ if __name__ == '__main__':
     var_to_check_taux = [u'taux_RG', u'decote_RG', u'CP_RG', u'surcote_RG',
                          u'taux_FP', u'decote_FP', u'CP_FP', u'surcote_FP']
     threshold = {'montant' : 1, 'taux' : 0.0005}
-    to_print = ({'FP':['calculate_coeff_proratisation']}, [17917,21310,28332,28607], True)
+    to_print = ({'FP':['calculate_coeff_proratisation']}, [17917, 21310, 28332, 28607], True)
 
-    til_compare, pensipp_compare, simul_til = load_til_pensipp(pensipp_comparison_path, [2004], to_print=(None,None,True))
-    prob = compare(til_compare, pensipp_compare, var_to_check_montant, var_to_check_taux, threshold)#, to_print, new_data=False)
+    til_compare, pensipp_compare, simul_til = load_til_pensipp(pensipp_comparison_path, [2004], to_print=(None, None, True))
+    prob = compare(til_compare, pensipp_compare, var_to_check_montant, var_to_check_taux, threshold)  #, to_print, new_data=False)
 
     #surcote RG
 
