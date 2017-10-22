@@ -220,4 +220,5 @@ pip-log.txt
 .mr.developer.cfg
 til_pension/sandbox/scenarios/CONFIG_scenarios.py
 til_pension/sandbox/compare/CONFIG_compare.py
+til_pension/sandbox/compare/CONFIG_nber.py
 *.csv

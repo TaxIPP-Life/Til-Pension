@@ -122,7 +122,7 @@ if __name__ == '__main__':
     threshold = {'montant' : 1, 'taux' : 0.0005}
     to_print = ({'FP':['calculate_coeff_proratisation']}, [17917,21310,28332,28607], True)
 
-    til_compare, pensipp_compare, simul_til = load_til_pensipp(pensipp_comparison_path, [2004], to_print=(None,None,True))
+    til_compare, pensipp_compare, simul_til = load_til_pensipp(pensipp_comparison_path, years = [2004], to_print=(None,None,True))
     prob = compare(til_compare, pensipp_compare, var_to_check_montant, var_to_check_taux, threshold)#, to_print, new_data=False)
 
     #surcote RG
