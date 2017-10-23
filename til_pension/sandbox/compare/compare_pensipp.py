@@ -24,7 +24,7 @@ def load_til_pensipp(pensipp_comparison_path, years, to_print=(None,None,True)):
         P = simul_til.legislation.P
         for regime in ['FP', 'RG', 'RSI']:
             trim_regime = simul_til.calculate('nb_trimesters', regime)
-            for varname in ['coeff_proratisation', 'DA', 'decote', 'n_trim', 'salref', 'surcote', 'taux', 'pension']:
+            for varname in ['DA', 'coeff_proratisation',  'decote', 'n_trim', 'salref', 'surcote', 'taux', 'pension']:
                 if varname == 'coeff_proratisation':
                     result_til_year['CP_' + regime] = simul_til.calculate(varname, regime)*(trim_regime > 0)
                 elif varname == 'decote':

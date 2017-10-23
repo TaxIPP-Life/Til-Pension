@@ -20,6 +20,7 @@ class PensionSimulation(object):
     '''
     def __init__(self, data, legislation):
         self.data = data
+        
         self.legislation = legislation
 
         # adapt longitudinal parameter to data
@@ -46,8 +47,9 @@ class PensionSimulation(object):
         regime_base_names = ['nb_enf_' + regime.name
                              for regime in self.legislation.regimes['bases']]
         var_info_ind += regime_base_names
+        print info_ind
         for var in var_info_ind:
-            if var not in info_ind.dtype.names:
+            if var not in info_ind.columns:
                 print("La variable {} doit être renseignée dans info_ind " +
                       "pour que la simulation puisse tourner, \n seules" +
                       "{} sont connues").format(var, info_ind.columns)
@@ -155,7 +157,7 @@ class PensionSimulation(object):
                 print(arguments)
                 print str(e)
                 print (dict_var)
-                pdb.set_trace()
+                raise Exception()
 
         return self.calculated[regime_name][varname]
 

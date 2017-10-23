@@ -9,7 +9,7 @@ from numpy import array
 from xml.etree import ElementTree
 from til_pension.Param import legislations_add_pension as legislations
 from til_pension.Param import legislationsxml_add_pension as legislationsxml
-from openfisca_core import conv
+from til_pension.Param import conv
 
 from til_pension.Regimes.Fonction_publique import FonctionPublique
 from til_pension.Regimes.Regimes_complementaires_prive import AGIRC, ARRCO
@@ -252,3 +252,41 @@ class PensionLegislation(object):
             setattr(eval('P_cot.' + '.'.join(param_name[:-1])), param_name[-1], param)
 
         return P_cot
+
+if __name__ == '__main__':
+    from pension_data import PensionData
+    import datetime
+    from pandas import DataFrame
+  
+#    data = DataFrame()
+    info_ind = array([
+        (186, 2.0, 1.0, datetime.date(1941, 1, 1), 756.0, 0.0, 2.0),
+        (376, 1.0, 1.0, datetime.date(1941, 1, 1), 756.0, 0.0, 1.0),
+        (833, 3.0, 0.0, datetime.date(1941, 1, 1), 756.0, 0.0, 3.0),
+        (834, 3.0, 1.0, datetime.date(1941, 1, 1), 756.0, 0.0, 3.0),
+        (956, 0.0, 0.0, datetime.date(1941, 1, 1), 756.0, 0.0, 0.0)],
+        dtype=[('index', '<i8'), ('n_enf', '<f8'), ('sexe', '<f8'), ('naiss', 'O'), ('agem', '<f8'), ('nb_pac', '<f8'), ('nb_born', '<f8')])
+    sali = DataFrame(0, index=info_ind['index'], columns=[201301,201401])
+#    data = PensionData.from_arrays(sali, sali, info_ind)
+#    
+#    param = PensionParam(2015, data)
+#    print(param.param.prive.RG.prorat)
+#    print(param.param.prive.RG.prorat)
+#    
+#    legislation = PensionLegislation(param)
+#    legislation.salref_RG_builder(1000)
+    
+    
+#    info_ind = DataFrame(array([ (186L, 2.0, 1.0, datetime.date(1941, 1, 1), 756.0, 0.0, 2.0),
+#    (376L, 1.0, 1.0, datetime.date(1941, 1, 1), 756.0, 0.0, 1.0),
+#    (833L, 3.0, 0.0, datetime.date(1941, 1, 1), 756.0, 0.0, 3.0),
+#    (834L, 3.0, 1.0, datetime.date(1941, 1, 1), 756.0, 0.0, 3.0),
+#    (956L, 0.0, 0.0, datetime.date(1941, 1, 1), 756.0, 0.0, 0.0)]),
+#    columns = ['ind', 'n_enf', 'sexe', 'naiss', 'agem', 'nb_pac', 'nb_born'])
+    
+      #     colu=[('index', '<i8'), ('n_enf', '<f8'), ('sexe', '<f8'), ('naiss', 'O'), ('agem', '<f8'), ('nb_pac', '<f8'), ('nb_born', '<f8')])
+#    sali = DataFrame(0, index=info_ind.index, columns=[201301,201401])
+    data = PensionData.from_arrays(sali, sali, info_ind)
+    
+    param = PensionParam(2015, data)
+    print param.P_cot

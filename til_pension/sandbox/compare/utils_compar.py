@@ -46,7 +46,7 @@ def count_enf_by_year(workstate, info_ind, info_enf):
     parents_id = info_ind.index
     info = info_enf.loc[info_enf['id_parent'].isin(parents_id),:]
     info['naiss_liam'] = [ datenaiss.year*100 + 1 for datenaiss in info['naiss']]
-    info = info.sort('id_parent')
+    info = info.sort_values('id_parent')
 
     list_ident = info_ind.index
     id_par = info['id_parent']
