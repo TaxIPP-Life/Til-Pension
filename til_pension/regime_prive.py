@@ -41,7 +41,7 @@ class RegimePrive(RegimeBase):
         return trim_maj_mda_ini
 
     def trim_maj(self, data, trim_maj_mda):
-        if 'maj_other_RG' in data.info_ind.dtype.names:
+        if 'maj_other_RG' in data.info_ind.columns:
             trim_maj = trim_maj_mda + data.info_ind.trim_other_RG
         else:
             trim_maj = trim_maj_mda

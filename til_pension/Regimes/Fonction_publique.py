@@ -1,6 +1,7 @@
 # -*- coding:utf-8 -*-
 
 from numpy import array, maximum, minimum, divide, zeros, inf, ones
+import pandas as pd
 
 from til_pension.regime import RegimeBase
 from til_pension.trimesters_functions import trimesters_in_code, nb_trim_surcote, nb_trim_decote, trim_mda
@@ -59,8 +60,9 @@ class FonctionPublique(RegimeBase):
     def nb_trimesters(self, trimesters):
         return trimesters.sum(axis=1)
 
-    def trim_maj_mda_ini(self, info_ind, nb_trimesters):
-        P_mda = self.P.public.fp.mda
+    def trim_maj_mda_ini(self, data, nb_trimesters):
+        info_ind = data.info_ind
+        P_mda = self.P.public.fp.mda 
         return trim_mda(info_ind, self.name, P_mda) * (nb_trimesters > 0)
 
     def trim_maj_mda_RG(self, regime='RG'):
@@ -106,10 +108,13 @@ class FonctionPublique(RegimeBase):
         N_CP = P.plein.n_trim
         taux = P.plein.taux
         taux_bonif = P.taux_bonif
-        return minimum(divide(maximum(nb_trimesters, N_CP) + trim_maj_mda_ini,
+        max_CP_trim = maximum(nb_trimesters, N_CP)
+        CP = minimum(divide(max_CP_trim + trim_maj_mda_ini.values,
                               N_CP),
                        divide(taux_bonif, taux))
 
+        return CP
+    
     def coeff_proratisation_Destinie(self, nb_trimesters, trim_maj_mda_ini):
         P = self.P.public.fp
         N_CP = P.plein.n_trim

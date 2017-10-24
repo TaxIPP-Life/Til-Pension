@@ -18,8 +18,8 @@ class PensionData(object):
         self.workstate = workstate
         self.sali = sali
         self.info_ind = info_ind
-        if isinstance(info_ind, DataFrame):
-            self.info_ind = info_ind.to_records(index=True)
+#        if isinstance(info_ind, DataFrame):
+#            self.info_ind = info_ind.to_records(index=True)
 
         assert workstate.dates == sali.dates
         dates = sali.dates

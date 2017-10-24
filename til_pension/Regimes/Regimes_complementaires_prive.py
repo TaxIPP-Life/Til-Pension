@@ -135,9 +135,9 @@ class ARRCO(RegimeComplementaires):
     def nb_points(self, data, nb_points_cot):
         nb_points_other = 0
         # Points d'ancienneté dans le Régime qui sont déterminées par une source externe (EIR)
-        if 'nb_point_anc_arrco' in data.info_ind.dtype.names:
+        if 'nb_point_anc_arrco' in data.info_ind.columns:
             nb_points_other = data.info_ind['nb_point_anc_arrco']
-        if 'nb_point_grat_arrco' in data.info_ind.dtype.names:
+        if 'nb_point_grat_arrco' in data.info_ind.columns:
             nb_points_other += data.info_ind['nb_point_grat_arrco']
         return nb_points_cot
 

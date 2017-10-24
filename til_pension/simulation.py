@@ -6,6 +6,7 @@ from numpy import minimum
 import pdb
 import inspect
 import cProfile
+import pandas as pd
 
 basic_info = [('index', '<i8'), ('n_enf', '<f8'), ('sexe', '<f8'),
               ('tauxprime', '<f8'), ('naiss', 'O'), ('agem', '<f8'),
@@ -48,7 +49,7 @@ class PensionSimulation(object):
         var_info_ind += regime_base_names
         print info_ind
         for var in var_info_ind:
-            if var not in info_ind.dtype.names:
+            if var not in info_ind.dtypes.index:
                 print("La variable {} doit être renseignée dans info_ind " +
                       "pour que la simulation puisse tourner, \n seules" +
                       "{} sont connues").format(var, info_ind.columns)
@@ -79,6 +80,7 @@ class PensionSimulation(object):
             P_cot = P_cot,
             time_step = time_step,
             data = self.data,
+            info_ind =  self.data.info_ind
             )
         """
         Configures the Regime
