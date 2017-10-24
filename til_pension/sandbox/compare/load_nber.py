@@ -82,7 +82,7 @@ def selection_for_simul(data, yearsim):
     agem_selected = [12*63]
     select_id_depart = (data_bounded.info_ind.loc[:,'agem'].isin(agem_selected))
     id_selected = select_id_depart[select_id_depart == True].index
-    data_bounded.info_ind.drop('t_naiss', axis=1, inplace=True)
+    #data_bounded.info_ind.drop('t_naiss', axis=1, inplace=True)
    
     ix_selected = [int(ident) - 1 for ident in id_selected]
 

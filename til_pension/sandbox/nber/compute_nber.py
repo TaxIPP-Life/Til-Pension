@@ -25,6 +25,10 @@ years = range(1983, 2010)
 
 #def compute_pension(data_path, years):
 data = load_from_csv(data_path)
+
+for generation in range(1920:1970):
+    
+
 for yearsim in years:
     print(yearsim)
     data_bounded = selection_for_simul(data, yearsim)
