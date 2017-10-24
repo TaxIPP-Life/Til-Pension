@@ -124,7 +124,7 @@ class RegimePrive(RegimeBase):
 
         P = reduce(getattr, self.param_name.split('.'), self.P)
         trim_regime = trim_maj + nb_trimesters
-        if 'maj_other_RG' in info_ind.dtype.names:
+        if 'maj_other_RG' in info_ind.columns:
             trim_maj_other = info_ind['maj_other_RG']
             trim_regime += trim_maj_other  # _assurance_corrigee(trim_regime, agem)
         # disposition pour montée en charge de la loi Boulin (ne s'applique qu'entre 72 et 74) :

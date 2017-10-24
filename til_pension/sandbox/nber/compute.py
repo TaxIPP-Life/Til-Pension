@@ -14,7 +14,7 @@ from til_pension.simulation import PensionSimulation
 from til_pension.pension_legislation import PensionParam, PensionLegislation
 from til_pension.sandbox.compare.load_pensipp import load_pensipp_data, load_pensipp_result
 from til_pension.sandbox.compare.load_nber import load_from_csv, selection_for_simul
-from til_pension.sandbox.compare.CONFIG_nber import data_path
+from til_pension.sandbox.nber.CONFIG_nber import data_path
 #from til_pension.sandbox.nber.load_data_nber import load_from_csv
 #from til_pension.sandbox.nber.CONFIG_nber import data_path
 

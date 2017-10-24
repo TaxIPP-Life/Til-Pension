@@ -2,6 +2,8 @@
 ## Eclipse
 #################
 
+*.ini
+tags
 *.pydevproject
 .project
 .metadata
@@ -221,4 +223,5 @@ pip-log.txt
 til_pension/sandbox/scenarios/CONFIG_scenarios.py
 til_pension/sandbox/compare/CONFIG_compare.py
 til_pension/sandbox/compare/CONFIG_nber.py
+til_pension/sandbox/nber/CONFIG_nber.py
 *.csv
