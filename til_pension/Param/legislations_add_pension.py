@@ -19,8 +19,6 @@ def valbytranches(param, info_ind):
     if isinstance(param, float) or isinstance(param, int):
         return param
     if '_control' in param.__dict__:
-        print param.__dict__
-        print info_ind
         var_control = pd.DataFrame.from_records(info_ind)[str(param._control)]
         param_indiv = var_control.copy()
         for i in range(param._nb):

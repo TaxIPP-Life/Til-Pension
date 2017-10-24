@@ -62,7 +62,7 @@ class FonctionPublique(RegimeBase):
 
     def trim_maj_mda_ini(self, data, nb_trimesters):
         info_ind = data.info_ind
-        P_mda = self.P.public.fp.mda 
+        P_mda = self.P.public.fp.mda
         return trim_mda(info_ind, self.name, P_mda) * (nb_trimesters > 0)
 
     def trim_maj_mda_RG(self, regime='RG'):
@@ -109,12 +109,12 @@ class FonctionPublique(RegimeBase):
         taux = P.plein.taux
         taux_bonif = P.taux_bonif
         max_CP_trim = maximum(nb_trimesters, N_CP)
-        CP = minimum(divide(max_CP_trim + trim_maj_mda_ini.values,
+        CP = minimum(divide(max_CP_trim + trim_maj_mda_ini,
                               N_CP),
                        divide(taux_bonif, taux))
 
         return CP
-    
+
     def coeff_proratisation_Destinie(self, nb_trimesters, trim_maj_mda_ini):
         P = self.P.public.fp
         N_CP = P.plein.n_trim

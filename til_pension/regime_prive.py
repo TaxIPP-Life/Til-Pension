@@ -82,7 +82,10 @@ class RegimePrive(RegimeBase):
         # TODO: Imagine a better way to include external sources
         P = reduce(getattr, self.param_name.split('.'), self.P)
         agem = data.info_ind['agem']
-        duree_assurance_from_external = data.info_ind['duree_assurance_tot_RG']
+        try:
+            duree_assurance_from_external = data.info_ind['duree_assurance_tot_RG']
+        except:
+            duree_assurance_from_external = 0 * data.info_ind['id'].values  # FIXME ugly hack
         if P.decote.dispositif == 1:
             age_annulation = P.decote.age_null
             trim_decote = max(divide(age_annulation - agem, 3), 0)
@@ -197,7 +200,7 @@ class RegimePrive(RegimeBase):
         P = reduce(getattr, self.param_name.split('.'), self.P)
         # pension_RG, pension, trim_RG, trim_cot, trim
         trim_regime = nb_trimesters + trim_maj
-        coeff = minimum(1, divide(trim_regime, P.prorat.n_trim))
+        coeff = minimum(1, divide(trim_regime, P.prorat.n_trim.values))
         if P.mico.dispositif == 0:
             # Avant le 1er janvier 1983, comparé à l'AVTS
             min_pension = self.P.common.avts
@@ -210,7 +213,7 @@ class RegimePrive(RegimeBase):
         elif P.mico.dispositif == 2:
             # A partir du 1er janvier 2004 les périodes cotisées interviennent
             # (+ dispositif transitoire de 2004)
-            nb_trim = P.prorat.n_trim
+            nb_trim = P.prorat.n_trim.values
             trim_regime = nb_trimesters  # + sum(trim_maj)
             mico_entier = P.mico.entier * minimum(divide(trim_regime, nb_trim), 1)
             maj = (P.mico.entier_maj - P.mico.entier) * divide(trimesters_tot.sum(axis=1), nb_trim)
@@ -224,6 +227,15 @@ class RegimePrive(RegimeBase):
         P = reduce(getattr, self.param_name.split('.'), self.P)
         taux_plein = P.plein.taux
         taux_PSS = P.plafond
-        pension_surcote_RG = taux_plein * salref * coeff_proratisation * surcote
+        print 'taux plein', taux_plein
+        print 'taux_PSS', taux_PSS
+        print 'surcote', surcote
+        print 'PSS', PSS
+        print 'pension_brute', pension_brute
+        pension_surcote_RG = taux_plein * salref * coeff_proratisation.values * surcote
+        print 'coeff_proratisation', coeff_proratisation
+        print 'pension_surcote_RG', pension_surcote_RG
+        print 'result', minimum(pension_brute - pension_surcote_RG, taux_PSS * PSS) + \
+            pension_surcote_RG
         return minimum(pension_brute - pension_surcote_RG, taux_PSS * PSS) + \
             pension_surcote_RG

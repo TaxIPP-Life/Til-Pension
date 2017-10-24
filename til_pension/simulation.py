@@ -47,7 +47,6 @@ class PensionSimulation(object):
         regime_base_names = ['nb_enf_' + regime.name
                              for regime in self.legislation.regimes['bases']]
         var_info_ind += regime_base_names
-        print info_ind
         for var in var_info_ind:
             if var not in info_ind.dtypes.index:
                 print("La variable {} doit être renseignée dans info_ind " +
@@ -149,16 +148,16 @@ class PensionSimulation(object):
                     dict_var[arg] = self.data
                 else:
                     dict_var[arg] = self.calculate(arg, regime_name)
-            try:
-                self.calculated[regime_name][varname] = method(**dict_var)
-            except Exception, e:
-                print ("on est en train de calculer la variable " + varname +
-                       " de " + regime_name)
-                print(varname)
-                print(arguments)
-                print str(e)
-                print (dict_var)
-                pdb.set_trace()
+#            try:
+            self.calculated[regime_name][varname] = method(**dict_var)
+#            except Exception as e:
+#                print ("on est en train de calculer la variable " + varname +
+#                       " de " + regime_name)
+#                print(e)
+#                print(varname)
+#                print(arguments)
+#                print (dict_var)
+#                pdb.set_trace()
 
         return self.calculated[regime_name][varname]
 

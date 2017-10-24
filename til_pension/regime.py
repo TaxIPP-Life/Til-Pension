@@ -184,9 +184,11 @@ class RegimeBase(Regime):
         decote = P.decote.taux * trim_decote
         return decote * (nb_trimesters > 0)
 
-    def pension_brute(self, data, taux,
-                      coeff_proratisation, salref):
-        return coeff_proratisation * salref * taux
+    def pension_brute(self, data, taux, coeff_proratisation, salref):
+        import numpy as np
+        if not isinstance(taux, np.ndarray):
+            taux = taux.values
+        return coeff_proratisation.values * salref * taux
 
     def pension_brute_b(self, plafond_pension, minimum_pension):
         ''' Pension brute ramenée au minimum et au maximum.
@@ -194,6 +196,10 @@ class RegimeBase(Regime):
         1) pension brute déterminée comme ci-dessus
         2) Minimum/plafonnement
         3) application des majoration type 10% pour enfants'''
+        print 'plafond_pension'
+        print plafond_pension
+        print 'minimum_pension'
+        print minimum_pension
         return plafond_pension + minimum_pension
 
     def pension(self, pension_brute_b, majoration_pension):
@@ -242,7 +248,7 @@ class RegimeComplementaires(Regime):
         ''' TODO: add surcote  pour avant 1955 '''
         P = reduce(getattr, self.param_name.split('.'), self.P)
         coef_mino = P.coef_mino
-        agem = data.info_ind['agem']
+        agem = data.info_ind['agem'].values
         # print data.info_ind.dtype.names
         age_annulation_decote = self.P.prive.RG.decote.age_null
         diff_age = divide(age_annulation_decote - agem, 12) * (age_annulation_decote > agem)
@@ -299,7 +305,7 @@ class RegimeComplementaires(Regime):
     def majoration_pension(self, nb_points_enf):
         P = reduce(getattr, self.param_name.split('.'), self.P)
         val_point = P.val_point
-        return nb_points_enf * val_point
+        return (nb_points_enf * val_point).values
 
     def nb_points_cot(self, nombre_points):
         return nombre_points.sum(axis=1)
@@ -309,6 +315,11 @@ class RegimeComplementaires(Regime):
         ''' le régime Arrco ne tient pas compte du coefficient de
         minoration pour le calcul des majorations pour enfants '''
         P = reduce(getattr, self.param_name.split('.'), self.P)
+        print 'pension_brute_b:\n {}'.format(pension_brute_b)
+        print 'majoration_pension:\n {}'.format(majoration_pension)
+        print 'trim_decote:\n {}'.format(trim_decote)
+        print 'P.taux_decote:\n {}'.format(P.taux_decote)
+
         pension = pension_brute_b + majoration_pension
         decote = trim_decote * P.taux_decote
         pension = (1 - decote) * pension
@@ -317,6 +328,8 @@ class RegimeComplementaires(Regime):
     def pension_brute(self, nb_points, minimum_points):
         P = reduce(getattr, self.param_name.split('.'), self.P)
         val_point = P.val_point
+        print 'val_point'
+        print val_point
         pension_brute = (nb_points + minimum_points) * val_point
         return pension_brute
 

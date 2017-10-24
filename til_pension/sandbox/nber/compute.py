@@ -21,7 +21,7 @@ from til_pension.sandbox.nber.CONFIG_nber import data_path
 
 first_year_sal = 1949
 yearsim = 2004
-years = [2004]
+years = range(2000, 2010)
 
 #def compute_pension(data_path, years):
 data = load_from_csv(data_path)

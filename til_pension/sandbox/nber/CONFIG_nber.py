@@ -1,3 +1,3 @@
 # -*- coding: utf-8 -*-
 
-data_path =  "C:/Users/s.rabate/Dropbox/NBER/17-11-Munich/data/" #path of  RData bases for comparison
+data_path = "/mnt/ipp_projets/TAXIPP Life/nber/data" #path of  RData bases for comparison

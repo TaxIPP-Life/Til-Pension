@@ -39,7 +39,7 @@ def build_info_child(enf, info):
 def load_from_csv(data_path):
     ''' the csv are directly produce after executing load_from_Rdata
             - we don't need to work on columns names'''
-    # Workstate and wages        
+    # Workstate and wages
     sali = pd.read_table(os.path.join(data_path, 'salaire.csv'), sep=',', index_col=0)
     workstate = pd.read_table(os.path.join(data_path, 'statut.csv'), sep=',', index_col=0)
     dates_to_col = [ year*100 + 1 for year in range(1901,2061)]
@@ -58,13 +58,13 @@ def load_from_csv(data_path):
         nb_enf_regime = 0
         info_ind['nb_enf_' + name_reg] = nb_enf_regime
         info_ind['nb_enf_' + name_reg] = pd.to_numeric(info_ind['nb_enf_' + name_reg] , downcast='float')
-        
+
     info_ind['nb_enf_all'] = 0
     info_ind.loc[:,'nb_pac'] = 0
     info_ind = info_ind.sort_values(by = 'id')
 
     data = PensionData.from_arrays(workstate, sali, info_ind)
-    
+
 
     return data
 
@@ -73,23 +73,23 @@ def load_from_csv(data_path):
 def selection_for_simul(data, yearsim):
     ''' the csv are directly produce after executing load_from_Rdata
             - we don't need to work on columns names'''
-    # Age at simul        
+    # Age at simul
     data.info_ind.loc[:,'agem'] =  (yearsim - pd.DatetimeIndex(data.info_ind['naiss']).year)*12
-    # Date Selection 
+    # Date Selection
     data_bounded = data.selected_dates(first=1949, last=yearsim)
 
     # Age selection:
     agem_selected = [12*63]
     select_id_depart = (data_bounded.info_ind.loc[:,'agem'].isin(agem_selected))
     id_selected = select_id_depart[select_id_depart == True].index
-    data_bounded.info_ind.drop('t_naiss', axis=1, inplace=True)
-   
+   # data_bounded.info_ind.drop('t_naiss', axis=1, inplace=True)
+
     ix_selected = [int(ident) - 1 for ident in id_selected]
 
     data_bounded.sali = data_bounded.sali[ix_selected, :]
     data_bounded.workstate = data_bounded.workstate[ix_selected, :]
     data_bounded.info_ind = data_bounded.info_ind.iloc[ix_selected,:]
-    
+
 #    if selection_id:
 #        id_selected =  selection_id
 #    elif selection_naiss:

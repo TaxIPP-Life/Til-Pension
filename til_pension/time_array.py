@@ -127,13 +127,13 @@ class TimeArray(np.ndarray):
             if nb_best == 0:
                 return 0
             row = sort(row[:-1])
-            row = row[-nb_best:]
-            return row.sum()/nb_best
+            row = row[-int(nb_best):]
+            return row.sum() / nb_best
 
-        array_ = zeros((self.shape[0], self.shape[1]+1))
+        array_ = zeros((self.shape[0], self.shape[1] + 1))
         array_[:, :-1] = self
         array_[:, -1] = nb_best_dates
-        return apply_along_axis(mean_best_dates_row, axis=1, arr=array_)
+        return apply_along_axis(mean_best_dates_row, axis = 1, arr = array_)
 
 #     def __add__(self, other):
 #         initial_dates = self.dates

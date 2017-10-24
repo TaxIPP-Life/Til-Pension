@@ -64,7 +64,7 @@ def trim_mda(info_ind, name_regime, P):
     cond_enf_min = child_mother >= P.nb_enf_min
     mda[~cond_enf_min] = 0
     mda[info_ind['sexe'] != 1] = 0
-    return mda
+    return mda.values
 
 
 def nb_trim_surcote(trim_by_year, selected_dates, date_start_surcote):
