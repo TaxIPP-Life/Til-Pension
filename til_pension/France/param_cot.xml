@@ -852,6 +852,7 @@
 		  <VALUE valeur="0.0013" deb="1999-01-01" fin="1999-12-31"/>
 		  <VALUE valeur="0.0009" deb="1998-01-01" fin="1998-12-31"/>
 		  <VALUE valeur="0.00045" deb="1997-01-01" fin="1997-12-31"/>
+		  <VALUE valeur="0.00000" deb="1900-01-01" fin="1996-12-31"/>
 		</CODE>
 	</NODE>
    </NODE>
@@ -936,6 +937,7 @@
 	  <VALUE valeur="0.474" deb="1997-01-01" fin="1997-12-31"/>
 	  <VALUE valeur="0.462" deb="1996-01-01" fin="1996-12-31"/>
 	  <VALUE valeur="0.486" deb="1995-01-01" fin="1995-12-31"/>
+	  <VALUE valeur="0.000" deb="1990-01-01" fin="1994-12-31"/>
 	</CODE>
 	<CODE description="Cotisation retraite de l'Etat employeur, pensions civiles taux explicite" code="cot_pat_pc" format="float" longitudinal="true">
 	  <VALUE valeur="0.7428" deb="2014-01-01" fin="2100-12-01"/>

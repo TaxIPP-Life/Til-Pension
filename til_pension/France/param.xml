@@ -2055,6 +2055,7 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 		  <VALUE valeur="4329.57497408" deb="1985-01-01" fin="1985-06-30"/>
 		  <VALUE valeur="4187.21263492" deb="1984-07-01" fin="1984-12-31"/>
 		  <VALUE valeur="4097.07909019" deb="1984-01-01" fin="1984-06-30"/>
+			<VALUE valeur="0.0000" deb="1900-01-01" fin="1983-12-31"/>
 		</CODE>
 		<CODE description= "Minimum contributif majoré" code="entier_maj" format="float">
 		  <VALUE valeur="8247.85" deb="2013-04-01" fin="2100-12-01"/>
@@ -2068,6 +2069,7 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 		  <VALUE valeur="7172.54" deb="2006-01-01" fin="2006-12-31"/>
 		  <VALUE valeur="6840.51" deb="2005-01-01" fin="2005-12-31"/>
 		  <VALUE valeur="6706.39" deb="2004-01-01" fin="2004-12-31"/>
+			<VALUE valeur="0.00" deb="1900-01-01" fin="2003-12-31"/>
 		</CODE>
 		<CODE description= "Plafond de ressources toutes pensions confondues (mensuelles)" code="plaf" format="float">
 		  <VALUE valeur="1120.00" deb="2014-02-01" fin="2100-12-01"/>
@@ -3765,15 +3767,15 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 		  </VALBYTRANCHES>
 		  <VALBYTRANCHES description="Age d'ouverture des droits dans la fonction publique sédentaire par génération" code="age_min" format="integer">
 		    <VARCONTROL>
-			  <CONTROL valeur="naiss" deb="1983-01-01" fin="2100-12-31" format="date"/>
+			  <CONTROL valeur="naiss" deb="1980-01-01" fin="2100-12-31" format="date"/>
 		    </VARCONTROL>
 		    <TRANCHE code ="tranche1">
 		      <SEUIL>
-	  	        <VALUE valeur="1900-01-01" deb="1983-01-01" fin="2100-12-31"/>
+	  	        <VALUE valeur="1900-01-01" deb="1980-01-01" fin="2100-12-31"/>
 			  </SEUIL>
 			  <VALEUR>
-			    <VALUE valeur="804" deb="1937-01-01" fin="1975-12-31"/>
-			    <VALUE valeur="780" deb="1976-01-01" fin="1984-12-31"/>
+			    <VALUE valeur="720" deb="1937-01-01" fin="1975-12-31"/>
+			    <VALUE valeur="720" deb="1976-01-01" fin="1984-12-31"/>
 			    <VALUE valeur="720" deb="1985-01-01" fin="2100-12-31"/>
 			  </VALEUR>
 			</TRANCHE>
@@ -3843,7 +3845,7 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 	  	</CODE>
 	  	<VALBYTRANCHES description="Age limite de la fonction publique active par génération" code="age_max" format="integer">
 		    <VARCONTROL>
-			  <CONTROL valeur="naiss" deb="1983-01-01" fin="2100-12-31" format="date"/>
+			  <CONTROL valeur="naiss" deb="1980-01-01" fin="2100-12-31" format="date"/>
 		    </VARCONTROL>
 		    <TRANCHE code ="tranche1">
 		      <SEUIL>
@@ -3910,7 +3912,7 @@ TODO : Checker les paramètres importés de ParamSociaux (plaf_ss, indice des pr
 		  </VALBYTRANCHES>
 		  <VALBYTRANCHES description="Age d'ouverture des droits dans la fonction publique active par génération" code="age_min" format="integer">
 		    <VARCONTROL>
-			  <CONTROL valeur="naiss" deb="1983-01-01" fin="2100-12-31" format="date"/>
+			  <CONTROL valeur="naiss" deb="1980-01-01" fin="2100-12-31" format="date"/>
 		    </VARCONTROL>
 		    <TRANCHE code ="tranche1">
 		      <SEUIL>
