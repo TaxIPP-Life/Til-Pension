@@ -816,7 +816,7 @@
 						<VALUE valeur="0.152" deb="1997-01-01" fin="1997-12-31"/>
 						<VALUE valeur="0.156" deb="1998-01-01" fin="1998-12-31"/>
 						<VALUE valeur="0.16" deb="1999-01-01" fin="2005-12-31"/>
-                                    <VALUE valeur="0.165" deb="2006-01-01" fin="2100-12-31"/>
+                        <VALUE valeur="0.165" deb="2006-01-01" fin="2100-12-31"/>
 			 		</TAUX>
 		 		</TRANCHE>
 		 		<TRANCHE code="tranche2">
@@ -843,6 +843,7 @@
 		  <VALUE valeur="0.0005" deb="1998-01-01" fin="1998-12-31"/>
 		  <VALUE valeur="0.00025" deb="1997-01-01" fin="1997-12-31"/>
 		   <VALUE valeur="0.00025" deb="1997-01-01" fin="1997-12-31"/>
+     	   <VALUE valeur="0" deb="1949-01-01" fin="1996-12-31"/>
 		</CODE>
 
 		<CODE description="Cotisation Exceptionnelle et Temporaire, cotisation employeur pour les cadres du régime Agirc" code="cet_pat" format="float" longitudinal="true">
