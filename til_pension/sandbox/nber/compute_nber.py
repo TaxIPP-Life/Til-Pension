@@ -9,6 +9,7 @@ Created on Mon Oct 23 09:51:12 2017
 
 import pandas as pd
 
+import matplotlib.pyplot as plt
 from til_pension.sandbox.compare.CONFIG_compare import pensipp_comparison_path
 from til_pension.simulation import PensionSimulation
 from til_pension.pension_legislation import PensionParam, PensionLegislation
@@ -25,45 +26,78 @@ years = range(1983, 2010)
 
 #def compute_pension(data_path, years):
 data = load_from_csv(data_path)
+columns = ['60','61', '62', '63','64', '65', '66', '67']
+results = pd.DataFrame(index=data.info_ind.index, columns=columns)
+results = results.merge(data.info_ind.ix[ : , ['sexe', 'versant', 'type', 't_naiss']], left_index = True,  right_index = True)
 
-for generation in range(1920:1970):
-    
+for generation in range(1920, 1955):
+    print("Individuals of generation {}".format(generation))
+    # Selection:
+    subdata = load_from_csv(data_path)
+    select_id_depart = (subdata.info_ind.loc[:,'t_naiss']+1900 == generation)
+    id_selected = select_id_depart[select_id_depart == True].index
+    ix_selected = [int(ident) - 1 for ident in id_selected]
+    subdata.sali = subdata.sali[ix_selected, :]
+    subdata.workstate = subdata.workstate[ix_selected, :]
+    subdata.info_ind = subdata.info_ind.iloc[ix_selected,:]
+    for age in range (60, 68):
+        print("Age =  {}".format(age))
+        yearsim = max(1983, generation + age)
+        subdata.info_ind.loc[:,'agem'] =  (yearsim - pd.DatetimeIndex(subdata.info_ind['naiss']).year)*12
+        data_bounded = subdata.selected_dates(first=1949, last=yearsim)
+        param = PensionParam(yearsim, data_bounded)
+        legislation = PensionLegislation(param)
+        simul_til = PensionSimulation(data_bounded, legislation)
+        simul_til.set_config()
+        result_til_year = dict()
+        P = simul_til.legislation.P
+        results.loc[ix_selected , str(age)] = simul_til.calculate('pension', 'all')
 
-for yearsim in years:
-    print(yearsim)
-    data_bounded = selection_for_simul(data, yearsim)
-    param = PensionParam(yearsim, data_bounded)
-    legislation = PensionLegislation(param)
-    simul_til = PensionSimulation(data_bounded, legislation)
-    simul_til.set_config()
-    result_til_year = dict()
-    P = simul_til.legislation.P
-    for regime in ['FP', 'RG', 'RSI']:
-        trim_regime = simul_til.calculate('nb_trimesters', regime)
-        for varname in ['coeff_proratisation', 'DA', 'decote', 'n_trim', 'salref', 'surcote', 'taux', 'pension']:
-            if varname == 'coeff_proratisation':
-                result_til_year['CP_' + regime] = simul_til.calculate(varname, regime)*(trim_regime > 0)
-            elif varname == 'decote':
-                param_name = simul_til.get_regime(regime).param_name
-                taux_plein = reduce(getattr, param_name.split('.'), P).plein.taux
-                calc = simul_til.calculate(varname, regime)
-                result_til_year[varname + '_' + regime] = taux_plein*calc*(trim_regime > 0)
-            else:
-                if varname != 'n_trim':
-                    calc = simul_til.calculate(varname, regime)
-                    result_til_year[varname + '_' + regime] = calc*(trim_regime > 0)
-                else:
-                    result_til_year[varname + '_' + regime] = simul_til.calculate(varname, regime)
-    for regime in ['agirc', 'arrco']:
-        for varname in ['coefficient_age', 'nb_points', 'pension']:
-            if varname == 'coefficient_age':
-                result_til_year['coeff_age_' + regime] = simul_til.calculate(varname, regime)
-            if varname == 'nombre_points':
-                result_til_year['nb_points_' + regime] = simul_til.calculate(varname, regime)
-            else:
-                result_til_year[varname + '_' + regime] = simul_til.calculate(varname, regime)
-    result_til_year['N_CP_RG'] = simul_til.calculate('N_CP', 'RG')
-    result_til_year['pension_tot'] = simul_til.calculate('pension', 'all')
+
+# Sorties
+selection = (results.t_naiss >= 49) & (results.t_naiss <= 54) &  (results.type == 1)  & (results.sexe == 1)  & (results.versant == 1)
+subresults = results.loc[selection, ]         
+
+x = ['60','61', '62', '63','64', '65']
+plt.plot(x, subresults.iloc[0, 0:6],
+         x, subresults.iloc[1, 0:6],
+         x, subresults.iloc[2, 0:6],
+         x, subresults.iloc[3, 0:6],
+         x, subresults.iloc[4, 0:6],
+         x, subresults.iloc[5, 0:6])
+
+
+        
+#        for regime in ['FP', 'RG', 'RSI']:
+#            print(regime)    
+#            trim_regime = simul_til.calculate('nb_trimesters', regime)
+#            for varname in ['coeff_proratisation', 'DA', 'decote', 'n_trim', 'salref', 'surcote', 'taux', 'pension']:
+#                print(varname)
+#                if varname == 'coeff_proratisation':
+#                    result_til_year['CP_' + regime] = simul_til.calculate(varname, regime)*(trim_regime > 0)
+#                elif varname == 'decote':
+#                    param_name = simul_til.get_regime(regime).param_name
+#                    taux_plein = reduce(getattr, param_name.split('.'), P).plein.taux
+#                    calc = simul_til.calculate(varname, regime)
+#                    result_til_year[varname + '_' + regime] = taux_plein*calc*(trim_regime > 0)
+#                else:
+#                    if varname != 'n_trim':
+#                        calc = simul_til.calculate(varname, regime)
+#                        result_til_year[varname + '_' + regime] = calc*(trim_regime > 0)
+#                    else:
+#                        result_til_year[varname + '_' + regime] = simul_til.calculate(varname, regime)
+#        for regime in ['agirc', 'arrco']:
+#            for varname in ['coefficient_age', 'nb_points', 'pension']:
+#                if varname == 'coefficient_age':
+#                    result_til_year['coeff_age_' + regime] = simul_til.calculate(varname, regime)
+#                if varname == 'nombre_points':
+#                    result_til_year['nb_points_' + regime] = simul_til.calculate(varname, regime)
+#                else:
+#                    result_til_year[varname + '_' + regime] = simul_til.calculate(varname, regime)
+        
+        
+        
+
 
 #        result_til_year = pd.DataFrame(result_til_year, index=data_bounded.info_ind['index'])
 #        id_year_in_initial = [ident for ident in result_til_year.index if ident in result_til.index]

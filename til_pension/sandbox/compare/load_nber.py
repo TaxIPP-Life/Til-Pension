@@ -70,18 +70,20 @@ def load_from_csv(data_path):
 
 
 
-def selection_for_simul(data, yearsim):
+def selection_for_simul(data, yearsim, age_selection = False):
     ''' the csv are directly produce after executing load_from_Rdata
             - we don't need to work on columns names'''
     # Age at simul        
     data.info_ind.loc[:,'agem'] =  (yearsim - pd.DatetimeIndex(data.info_ind['naiss']).year)*12
     # Date Selection 
     data_bounded = data.selected_dates(first=1949, last=yearsim)
+    id_selected = data_bounded.info_ind.id
 
     # Age selection:
-    agem_selected = [12*63]
-    select_id_depart = (data_bounded.info_ind.loc[:,'agem'].isin(agem_selected))
-    id_selected = select_id_depart[select_id_depart == True].index
+    if age_selection:
+        agem_selected = [12*63]
+        select_id_depart = (data_bounded.info_ind.loc[:,'agem'].isin(agem_selected))
+        id_selected = select_id_depart[select_id_depart == True].index
     #data_bounded.info_ind.drop('t_naiss', axis=1, inplace=True)
    
     ix_selected = [int(ident) - 1 for ident in id_selected]
