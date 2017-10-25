@@ -196,10 +196,10 @@ class RegimeBase(Regime):
         1) pension brute déterminée comme ci-dessus
         2) Minimum/plafonnement
         3) application des majoration type 10% pour enfants'''
-        print 'plafond_pension'
-        print plafond_pension
-        print 'minimum_pension'
-        print minimum_pension
+        #print 'plafond_pension'
+        #print plafond_pension
+        #print 'minimum_pension'
+        #print minimum_pension
         return plafond_pension + minimum_pension
 
     def pension(self, pension_brute_b, majoration_pension):
@@ -328,8 +328,6 @@ class RegimeComplementaires(Regime):
     def pension_brute(self, nb_points, minimum_points):
         P = reduce(getattr, self.param_name.split('.'), self.P)
         val_point = P.val_point
-        print 'val_point'
-        print val_point
         pension_brute = (nb_points + minimum_points) * val_point
         return pension_brute
 

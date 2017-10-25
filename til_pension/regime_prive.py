@@ -201,6 +201,7 @@ class RegimePrive(RegimeBase):
         # pension_RG, pension, trim_RG, trim_cot, trim
         trim_regime = nb_trimesters + trim_maj
         coeff = minimum(1, divide(trim_regime, P.prorat.n_trim.values))
+        #print("Dispostif mico {}".format( P.mico.dispositif))
         if P.mico.dispositif == 0:
             # Avant le 1er janvier 1983, comparé à l'AVTS
             min_pension = self.P.common.avts
@@ -210,7 +211,7 @@ class RegimePrive(RegimeBase):
             # complexe (Doc n°5 du COR)
             mico = P.mico.entier
             return maximum(mico - pension_brute, 0) * coeff
-        elif P.mico.dispositif == 2:
+        elif P.mico.dispositif >= 2:
             # A partir du 1er janvier 2004 les périodes cotisées interviennent
             # (+ dispositif transitoire de 2004)
             nb_trim = P.prorat.n_trim.values
@@ -218,7 +219,8 @@ class RegimePrive(RegimeBase):
             mico_entier = P.mico.entier * minimum(divide(trim_regime, nb_trim), 1)
             maj = (P.mico.entier_maj - P.mico.entier) * divide(trimesters_tot.sum(axis=1), nb_trim)
             mico = mico_entier + maj * (trimesters_tot.sum(axis=1) >= P.mico.trim_min)
-            return (mico - pension_brute) * (mico > pension_brute) * (pension_brute > 0)
+            minim = (mico - pension_brute) * (mico > pension_brute) * (pension_brute > 0)
+            return minim
 
     def plafond_pension(self, pension_brute, salref, coeff_proratisation, surcote):
         ''' plafonnement à 50% du PSS
@@ -227,15 +229,6 @@ class RegimePrive(RegimeBase):
         P = reduce(getattr, self.param_name.split('.'), self.P)
         taux_plein = P.plein.taux
         taux_PSS = P.plafond
-        print 'taux plein', taux_plein
-        print 'taux_PSS', taux_PSS
-        print 'surcote', surcote
-        print 'PSS', PSS
-        print 'pension_brute', pension_brute
         pension_surcote_RG = taux_plein * salref * coeff_proratisation.values * surcote
-        print 'coeff_proratisation', coeff_proratisation
-        print 'pension_surcote_RG', pension_surcote_RG
-        print 'result', minimum(pension_brute - pension_surcote_RG, taux_PSS * PSS) + \
-            pension_surcote_RG
         return minimum(pension_brute - pension_surcote_RG, taux_PSS * PSS) + \
             pension_surcote_RG
